@@ -6,11 +6,15 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Double_Window.H>
-#include <FL/platform.H>
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Menu_Item.H>
+#include <FL/Fl_RGB_Image.H>
+
+#include <FL/platform.H>
 #include <FL/Fl_Box.H>
 #include <FL/fl_draw.H>
+#include <FL/Enumerations.H>
+
 //
 // MAIN WINDOW CALLBACKS DECLARATIONS
 //
@@ -19,6 +23,8 @@ void save_cb(Fl_Widget* widget, void*);
 void saveas_cb(Fl_Widget* widget, void*);
 void quit_cb(Fl_Widget* widget, void*);
 void about_cb(Fl_Widget* widget, void*);
+
+
 //
 // MAIN WINDOW WIDGETS
 //
@@ -35,19 +41,22 @@ Fl_Menu_Item menutable[] = {
         { 0 },
     { 0 }
 };
+
 //
 // CANVAS
 //
-constexpr int offscreen_size = 1000;    // temp
+Fl_Double_Window* main_window;
+constexpr int canvas_size = 200;    // temp
 constexpr int num_iterations = 300;
 constexpr double max_line_width = 9.0;
-Fl_Double_Window* main_window;
+
 
 class Canvas : public Fl_Box {
 public:
-    Canvas(int x, int y, int w, int h);
+    Canvas(int wdx, int wdy, int wdw, int wdh, int cw, int ch);
     void canvas_drawing(void);
-    bool has_offscreen() const { return static_cast<bool>(m_offscreen); }
+    bool has_offscreen() const { return m_offscreen; }
+    float scale() const { return m_scale; }
 private:
     // member functions
     void draw();
@@ -61,37 +70,45 @@ private:
     int m_xoff, m_yoff; // drag offsets
     int m_drag_state; // non-zero if drag is in progress
     int m_page_x, m_page_y; // top left of view area
+    int m_canvas_w, m_canvas_h;
     int m_offscreen_w, m_offscreen_h;   // width and height of the offscreen surface
     int m_iters;      // must be set on first pass!
     float m_scale;    // current screen scaling factor value
 };
 
-Canvas::Canvas(int x, int y, int w, int h) :
-    Fl_Box(x, y, w, h),                 // base box
+/*
+*/
+Canvas::Canvas(int wdx, int wdy, int wdw, int wdh, int cw, int ch) :
+    Fl_Box(wdx, wdy, wdw, wdh),                 // base box
     m_offscreen{0},                     // offscreen is not set at start
     m_x1{0}, m_y1{0}, m_drag_state{0},  // not dragging view
     m_page_x{0},                        // roughly centred in view
     m_page_y{0},
-    m_offscreen_w{0}, m_offscreen_h{0}, // offscreen size - initially none
+    m_canvas_w{cw}, m_canvas_h{ch},
+    m_offscreen_w{0}, m_offscreen_h{0}, // offscreen size
     m_iters{num_iterations + 1}
-{ } // Canvas
+{ 
+    
+} // Canvas
 
 void Canvas::draw()
 {
-    int wd = w();
-    int ht = h();
-    int xo = x();
-    int yo = y();
+    int wd = w();   // gets the widget width
+    int ht = h();   // gets the widget height
+    int xo = x();   // gets the widget x position relative to the window
+    int yo = y();   // gets the widget y position relative to the window
     
-    fl_color(fl_gray_ramp(19));     // a light grey background shade
-    fl_rectf(xo, yo, wd, ht);       // fill the box with this colour
+    // draw world color
+    fl_color(fl_gray_ramp(255));     // a black background shade
+    // draw rectangle, the actual canvas
+    fl_rectf(xo, yo, wd, ht);        // fill the box with this colour
     
     // then add the offscreen on top of the grey background
     if (has_offscreen()) {
         if (m_scale != Fl_Graphics_Driver::default_driver().scale()) {
             // the screen scaling factor has changed
             fl_rescale_offscreen(m_offscreen);
-            m_offscreen = Fl_Graphics_Driver::default_driver().scale();
+            m_scale = Fl_Graphics_Driver::default_driver().scale();
         }
         fl_copy_offscreen(xo, yo, wd, ht, m_offscreen, m_page_x, m_page_y);
     }
@@ -99,8 +116,8 @@ void Canvas::draw()
         // create offscreen
         // some hosts may need a valid window context to base the offscreen on...
         main_window->make_current();
-        m_offscreen_w = offscreen_size;
-        m_offscreen_h = offscreen_size;
+        m_offscreen_w = m_canvas_w;
+        m_offscreen_h = m_canvas_h;
         m_offscreen = fl_create_offscreen(m_offscreen_w, m_offscreen_h);
         m_scale = Fl_Graphics_Driver::default_driver().scale();
     }
@@ -174,8 +191,8 @@ void Canvas::canvas_drawing(void)
 {
     Fl_Color color;
     static int icolor = first_useful_color;
-    static int ox = offscreen_size / 2;
-    static int oy = offscreen_size / 2;
+    static int ox = canvas_size / 2;
+    static int oy = canvas_size / 2;
     if (!has_offscreen()) return;   // no valid offscreen, nothing to do here
     
     fl_begin_offscreen(m_offscreen);    // open the offscreen context for drawing
@@ -212,17 +229,22 @@ void Canvas::canvas_drawing(void)
 //
 constexpr int MAIN_WIN_W = 480;
 constexpr int MAIN_WIN_H = 360;
+constexpr int MENUBAR_W = MAIN_WIN_W;
 constexpr int MENUBAR_H = 30;
+constexpr int CANVAS_W = 480;
+constexpr int CANVAS_H = 360;
+
 static void canvas_animation(void*);
-int canva_sz = 300;
 constexpr double delta_time = 0.1;
-Canvas* canvas = new Canvas{ 0, MENUBAR_H, MAIN_WIN_W, MAIN_WIN_H };
+Canvas* canvas = new Canvas{ 0, MENUBAR_H, MAIN_WIN_W,MAIN_WIN_H, CANVAS_W, CANVAS_H };
+// Canvas* canvas = new Canvas{ 0, MENUBAR_H, MAIN_WIN_W, MAIN_WIN_H };
 int main(void)
 {
+    Fl_Menu_Bar menubar{ 0, 0, MENUBAR_W, MENUBAR_H };
+    menubar.menu(menutable);
     main_window = new Fl_Double_Window{ MAIN_WIN_W, MAIN_WIN_H };
     main_window->begin();
-    Fl_Menu_Bar menubar{ 0, 0, MAIN_WIN_W, MENUBAR_H };
-    menubar.menu(menutable);
+    main_window->add(menubar);
     main_window->add(canvas);
     main_window->end();
     main_window->resizable(canvas);
