@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(inkbreaker
         VERSION 0.1.0
         LANGUAGES C CXX)
-
+configure_file(InkBreakerConfig.h.in InkBreakerConfig.h)
 
 # toolchain var: -DCMAKE_TOOLCHAIN_FILE=[toolchain.cmake path]
 # TODO: add MSVC fltk dir resolution
@@ -20,15 +20,29 @@ endif()
 # Find fltk package
 find_package(FLTK REQUIRED NO_MODULE)
 
+# stb header libraries
+set(STB_PERLIN_LIB stb_perlin)
+add_library(${STB_PERLIN_LIB} INTERFACE)
+target_include_directories(${STB_PERLIN_LIB}
+    INTERFACE vendor/)
+
 # Main app
 set(MAIN_APP InkBreaker)
-add_executable(${MAIN_APP} WIN32 MACOSX_BUNDLE src/main.cpp)
+add_executable(${MAIN_APP} WIN32 MACOSX_BUNDLE src/main.cpp src/canvas.cpp)
 set_property(TARGET ${MAIN_APP} PROPERTY CXX_STANDARD 17)
 target_include_directories(${MAIN_APP}
-                           PRIVATE ${FLTK_INCLUDE_DIRS})
+                           PRIVATE ${PROJECT_BINARY_DIR}
+                           PRIVATE ${FLTK_INCLUDE_DIRS}
+)
 
 target_link_libraries(${MAIN_APP}
-    PRIVATE fltk fltk_forms fltk_gl fltk_images fltk_jpeg)
+    PRIVATE fltk
+    PRIVATE fltk_forms
+    PRIVATE fltk_gl
+    PRIVATE fltk_images
+    PRIVATE fltk_jpeg
+    PRIVATE ${STB_PERLIN_LIB}
+)
 if(APPLE)
     target_link_libraries(${MAIN_APP} "-framework cocoa")
 elseif(WIN32)
@@ -45,6 +59,7 @@ set(TEST_BENCH test_bench)
 add_executable(${TEST_BENCH} WIN32 MACOSX_BUNDLE src/test_bench.cpp)
 set_property(TARGET ${TEST_BENCH} PROPERTY CXX_STANDARD 17)
 target_include_directories(${TEST_BENCH}
+                           PUBLIC vendor/
                            PRIVATE ${FLTK_INCLUDE_DIRS})
 
 target_link_libraries(${TEST_BENCH}

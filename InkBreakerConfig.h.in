@@ -1,0 +1,4 @@
+// configuration
+#define INKBREAKER_VERSION_MAJOR @inkbreaker_VERSION_MAJOR@
+#define INKBREAKER_VERSION_MINOR @inkbreaker_VERSION_MINOR@
+#define INKBREAKER_VERSION_PATCH @inkbreaker_VERSION_PATCH@
