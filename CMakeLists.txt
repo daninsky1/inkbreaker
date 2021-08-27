@@ -32,15 +32,19 @@ target_include_directories(${STB_PERLIN_LIB}
     INTERFACE vendor/)
 
 # Main app
-set(MAIN_APP InkBreaker)
-add_executable(${MAIN_APP} WIN32 MACOSX_BUNDLE src/main.cpp src/canvas.cpp)
-set_property(TARGET ${MAIN_APP} PROPERTY CXX_STANDARD 17)
-target_include_directories(${MAIN_APP}
+set(MAIN_APP_NAME InkBreaker)
+set(MAIN_APP_SOURCES src/main.cpp
+    src/canvas.cpp src/canvas.h
+    screen_space.cpp screen_space.h
+    world_space.cpp world_space.h)
+add_executable(${MAIN_APP_NAME} WIN32 MACOSX_BUNDLE ${MAIN_APP_SOURCES}
+set_property(TARGET ${MAIN_APP_NAME} PROPERTY CXX_STANDARD 17)
+target_include_directories(${MAIN_APP_NAME}
                            PRIVATE ${PROJECT_BINARY_DIR}
                            PRIVATE ${FLTK_INCLUDE_DIRS}
 )
 
-target_link_libraries(${MAIN_APP}
+target_link_libraries(${MAIN_APP_NAME}
     PRIVATE fltk
     PRIVATE fltk_forms
     PRIVATE fltk_gl
@@ -49,15 +53,15 @@ target_link_libraries(${MAIN_APP}
     PRIVATE ${STB_PERLIN_LIB}
 )
 if(APPLE)
-    target_link_libraries(${MAIN_APP} "-framework cocoa")
+    target_link_libraries(${MAIN_APP_NAME} "-framework cocoa")
 elseif(WIN32)
-    target_link_libraries(${MAIN_APP} PRIVATE gdiplus)
+    target_link_libraries(${MAIN_APP_NAME} PRIVATE gdiplus)
 endif()
 
 if(UNIX)
     add_custom_target(runmain
-                      COMMAND ${MAIN_APP}
-                      DEPENDS ${MAIN_APP}
+                      COMMAND ${MAIN_APP_NAME}
+                      DEPENDS ${MAIN_APP_NAME}
                       WORKING_DIRECTORY ${CMAKE_PROJECT_DIR})
 endif()
                   
