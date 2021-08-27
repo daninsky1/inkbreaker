@@ -35,9 +35,9 @@ target_include_directories(${STB_PERLIN_LIB}
 set(MAIN_APP_NAME InkBreaker)
 set(MAIN_APP_SOURCES src/main.cpp
     src/canvas.cpp src/canvas.h
-    screen_space.cpp screen_space.h
-    world_space.cpp world_space.h)
-add_executable(${MAIN_APP_NAME} WIN32 MACOSX_BUNDLE ${MAIN_APP_SOURCES}
+    src/screen_space.cpp src/screen_space.h
+    src/world_space.cpp src/world_space.h)
+add_executable(${MAIN_APP_NAME} WIN32 MACOSX_BUNDLE ${MAIN_APP_SOURCES})
 set_property(TARGET ${MAIN_APP_NAME} PROPERTY CXX_STANDARD 17)
 target_include_directories(${MAIN_APP_NAME}
                            PRIVATE ${PROJECT_BINARY_DIR}
