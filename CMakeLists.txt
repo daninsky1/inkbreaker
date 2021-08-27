@@ -7,8 +7,13 @@ configure_file(InkBreakerConfig.h.in InkBreakerConfig.h)
 
 # toolchain var: -DCMAKE_TOOLCHAIN_FILE=[toolchain.cmake path]
 # TODO: add MSVC fltk dir resolution
+# please use the following names to the build dir on fltk
+# MINGW: mingw/ for crosscompile or compile with mingw under windows
+# MSVC: msvc/ for visual studio solution
+# UNIX: build under unix using make
 if(MSVC)
     add_compile_options(-W4)
+    set(FLTK_DIR "vendor/fltk/msvc/")
 elseif(MINGW)
     add_compile_options(-mwindows -lgdiplus)
     set(FLTK_DIR "vendor/fltk/mingw/")
@@ -49,10 +54,12 @@ elseif(WIN32)
     target_link_libraries(${MAIN_APP} PRIVATE gdiplus)
 endif()
 
-add_custom_target(runmain
-                  COMMAND ${MAIN_APP}
-                  DEPENDS ${MAIN_APP}
-                  WORKING_DIRECTORY ${CMAKE_PROJECT_DIR})
+if(UNIX)
+    add_custom_target(runmain
+                      COMMAND ${MAIN_APP}
+                      DEPENDS ${MAIN_APP}
+                      WORKING_DIRECTORY ${CMAKE_PROJECT_DIR})
+endif()
                   
 # Bench test app
 set(TEST_BENCH test_bench)
@@ -70,7 +77,9 @@ elseif(WIN32)
     target_link_libraries(${TEST_BENCH} PRIVATE gdiplus)
 endif()
 
-add_custom_target(runbench 
-                  COMMAND ${TEST_BENCH}
-                  DEPENDS ${TEST_BENCH}
-                  WORKING_DIRECTORY ${CMAKE_PROJECT_DIR})
+if(UNIX)
+    add_custom_target(runbench 
+                      COMMAND ${TEST_BENCH}
+                      DEPENDS ${TEST_BENCH}
+                      WORKING_DIRECTORY ${CMAKE_PROJECT_DIR})
+endif()
