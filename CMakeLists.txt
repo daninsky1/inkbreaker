@@ -31,6 +31,11 @@ add_library(${STB_PERLIN_LIB} INTERFACE)
 target_include_directories(${STB_PERLIN_LIB}
     INTERFACE vendor/)
 
+
+add_library(sqlite STATIC vendor/sqlite/sqlite3.c)
+target_include_directories(sqlite
+    PUBLIC vendor/)
+
 # Main app
 set(MAIN_APP_NAME InkBreaker)
 set(MAIN_APP_SOURCES src/main.cpp
@@ -51,6 +56,7 @@ target_link_libraries(${MAIN_APP_NAME}
     PRIVATE fltk_images
     PRIVATE fltk_jpeg
     PRIVATE ${STB_PERLIN_LIB}
+    PRIVATE sqlite
 )
 if(APPLE)
     target_link_libraries(${MAIN_APP_NAME} "-framework cocoa")
