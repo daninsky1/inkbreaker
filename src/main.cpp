@@ -1,6 +1,7 @@
 #include "InkBreakerConfig.h"
 
 #include <iostream>
+#include <clocale>
 
 #include <stdlib.h>
 #include <time.h>
@@ -11,6 +12,10 @@
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Menu_Item.H>
 #include <FL/Fl_RGB_Image.H>
+
+#include <sqlite/sqlite3.h>
+
+#include "screen_space.h"
 
 
 // #define STB_PERLIN_IMPLEMENTATION
@@ -58,49 +63,41 @@ Fl_Menu_Item menutable[] = {
 //
 // MAIN FUNCTION
 //
-constexpr int MAIN_WIN_W = 480;
-constexpr int MAIN_WIN_H = 360;
+constexpr int MAIN_WIN_W = 680;                 // main_window w
 constexpr int MENUBAR_W = MAIN_WIN_W;
 constexpr int MENUBAR_H = 30;
-constexpr int CANVAS_W = 480;
-constexpr int CANVAS_H = 360;
+constexpr int SPW = MAIN_WIN_W;                 // ScreenSpace w, h
+constexpr int SPH = 360;
+constexpr int MAIN_WIN_H = MENUBAR_H + SPH;     // main_window h
 
-static void canvas_animation_cb(void*);
-constexpr double delta_time = 0.05;
-Canvas* canvas;
+ScreenSpace* screen_space;
 
 int main(void)
 {
+
     // window
-    Fl_Double_Window* main_window = new Fl_Double_Window{ MAIN_WIN_W, MAIN_WIN_H + MENUBAR_H };
+    Fl_Double_Window* main_window = new Fl_Double_Window{ MAIN_WIN_W, MAIN_WIN_H };
     // windows items
     Fl_Menu_Bar menubar{ 0, 0, MENUBAR_W, MENUBAR_H };
     menubar.menu(menutable);
-    canvas = new Canvas{ 0, MENUBAR_H, MAIN_WIN_W,MAIN_WIN_H,
-        CANVAS_W, CANVAS_H, main_window };
+    screen_space = new ScreenSpace{ 0, MENUBAR_H, SPW, SPH, main_window };
     // adding window items
     main_window->begin();
     main_window->add(menubar);
-    main_window->add(canvas);
+    main_window->add(screen_space);
     main_window->end();
-    main_window->resizable(canvas);
+    //main_window->resizable(screen_space);
     
     main_window->show();
-    Fl::add_timeout(delta_time, canvas_animation_cb);
+    //Fl::add_timeout(delta_time, canvas_animation_cb);
     return Fl::run();
-}
-
-static void canvas_animation_cb(void *)
-{
-    canvas->canvas_drawing();   // if the offscreen exists, draw something
-    Fl::repeat_timeout(delta_time, canvas_animation_cb);
 }
 //
 //MAIN WINDOW CALLBACKS DEFINITIONS
 //
 void new_cb(Fl_Widget* widget, void*)
 {
-    std::cout << widget->label() << '\n';
+    std::cout << "New\n";
 }
 void save_cb(Fl_Widget* widget, void*) { }
 void saveas_cb(Fl_Widget* widget, void*) { }
@@ -111,7 +108,7 @@ void quit_cb(Fl_Widget* widget, void*)
 }
 void about_cb(Fl_Widget* widget, void*)
 {
-    std::cout << "INKBREAKER — "
+    std::cout << "INKBREAKER - "
               << "Version " << INKBREAKER_VERSION_MAJOR << "."
               << INKBREAKER_VERSION_MINOR << "."
               << INKBREAKER_VERSION_PATCH << std::endl;
