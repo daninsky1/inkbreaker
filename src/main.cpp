@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <clocale>
+#include <sstream>
 
 #include <stdlib.h>
 #include <time.h>
@@ -42,6 +43,10 @@ void perlin_noise_anim_cb(Fl_Widget* widget, void*);
 //
 // MAIN WINDOW WIDGETS
 //
+void line_state_cb(Fl_Widget* widget, void*)
+{
+
+}
 Fl_Menu_Item menutable[] = {
     { "INKBREAKER", 0, (Fl_Callback*)about_cb, nullptr, FL_MENU_INACTIVE },
     { "&File",      0, nullptr, nullptr, FL_SUBMENU },
@@ -54,6 +59,9 @@ Fl_Menu_Item menutable[] = {
         { "Blank", 0, (Fl_Callback*)blank_cb},
         { "Line Splash Animation", 0, (Fl_Callback*)perlin_noise_anim_cb },
         { "Perlin Noise Animation", 0, (Fl_Callback*)perlin_noise_anim_cb },
+        { 0 },
+    { "Draw", 0, nullptr, nullptr, FL_SUBMENU },
+        { "Line", 0, (Fl_Callback*)line_state_cb},
         { 0 },
     { "&Help", 0, nullptr, nullptr, FL_SUBMENU },
         { "&About", 0, (Fl_Callback*)about_cb },
@@ -74,6 +82,37 @@ ScreenSpace* screen_space;
 
 int main(void)
 {
+    sqlite3* db;
+    char* z_err_msg = 0;
+    int rc;
+    rc = sqlite3_open("my_db.db", &db);
+    char* sql;
+
+    // Open db
+    if (rc) {
+        std::cerr << "Failed to Open: " << sqlite3_errmsg(db) << '\n';
+        return 0;
+    }
+    else
+        std::cout << "Successfully Open\n";
+
+    // Create a SQL statement
+    sql = "CREATE TABLE shapes("
+        "id INT PRIMARY KEY NOT NULL,"
+        "name TEXT NOT NULL);";
+
+    // Execute SQL
+    rc = sqlite3_exec(db, sql, NULL, NULL, &z_err_msg);
+
+    if (rc != SQLITE_OK) {
+        std::cout << "SQL error: " << z_err_msg;
+        sqlite3_free(z_err_msg);
+    }
+    else
+        std::cout << "SQL executed successfully\n";
+
+    // Close db
+    sqlite3_close(db);
 
     // window
     Fl_Double_Window* main_window = new Fl_Double_Window{ MAIN_WIN_W, MAIN_WIN_H };

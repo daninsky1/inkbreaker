@@ -13,7 +13,7 @@ ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Window* win_wd) 
 	m_drag_constraint{ false },
 	m_drag_sx{ 0 }, m_drag_sy{ 0 },
 	m_drag_state{ true },
-	m_ssp_state{ DEFAULT_MODE }
+	m_lm_state{ mode::zoom }
 {
 	// LOG
 	std::cout << "New Offscreen\n";
@@ -49,8 +49,21 @@ void ScreenSpace::draw()
 	fl_color(FL_GREEN);
 	fl_line(waxx, 0, waxx, h());
 
-	
+	// TODO: A RENDER QUEUE here
 	fl_color(FL_WHITE);
+	fl_line_style(FL_SOLID, 2.0f*m_scale);
+	fl_begin_line();
+	for (float i = 0; i < w(); i+=0.1) {
+		float x = i;
+		float y = std::sin(x*(0.5*0.1))*50;
+		int sx, sy;
+		world_to_scr(x, y, sx, sy);
+		
+		fl_vertex(sx, sy);
+	}
+	fl_end_line();
+
+	/* TE AMO MSG
 	fl_font(FL_TIMES_BOLD_ITALIC, 50.0f*m_scale);
 
 	float tx = static_cast<float>(w() / 2);
@@ -58,6 +71,7 @@ void ScreenSpace::draw()
 	int stx, sty;
 	world_to_scr(tx, ty, stx, sty);
 	fl_draw("TE AMO !!!", stx, sty);
+	*/
 
 	// GRID
 	// TODO: IMPLEMENT GRID OBJECT
@@ -103,19 +117,19 @@ void ScreenSpace::draw()
 	fl_color(FL_WHITE);
 	int font = FL_COURIER;
 	int font_sz = 14;
-	fl_font(font, 14);
-	char c_draw_log_msg[100];
-	sprintf(c_draw_log_msg,
-		"ScreenSpace Size: (%d x %d)", m_ssph, m_sspw);
-	fl_draw(c_draw_log_msg, wdx, wdy + fl_height(font, font_sz));
-	sprintf(c_draw_log_msg,
-		"World Offset: (%f, %f)",
-		m_xoff, m_yoff);
-	fl_draw(c_draw_log_msg, wdx, wdy + fl_height(font, font_sz) * 2);
-	sprintf(c_draw_log_msg,
-		"Scale Factor: %f",
-		m_scale);
-	fl_draw(c_draw_log_msg, wdx, wdy + fl_height(font, font_sz) * 3);
+	fl_font(font, 15);
+	std::stringstream ss_log;
+	ss_log << std::fixed;
+	char log_msg[100];
+	ss_log << "ScreenSpace Size: " << '(' << m_ssph << " x " << m_sspw << ')';
+	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz));
+	ss_log.str(std::string{""});
+	ss_log.str("");
+	ss_log << "World Offset: " << '(' << m_xoff << " x " << m_yoff << ')';
+	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz) * 2);
+	ss_log.str("");
+	ss_log << "Scale Factor:" << m_scale;
+	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz) * 3);
 }
 
 int ScreenSpace::handle(int evt)
@@ -145,15 +159,15 @@ int ScreenSpace::handle(int evt)
 			switch (key_code) {
 			case 'z':
 				std::cout << "ZOOM_MODE\n";
-				m_ssp_state = ZOOM_MODE;
+				m_lm_state = mode::zoom;
 				break;
 			case 'h': case ' ':
 				std::cout << "DRAG_MODE\n";
-				m_ssp_state = PANNING_MODE;
+				m_lm_state = mode::pan;
 				break;
 			case '0':
 				std::cout << "ZERO_MODE\n";
-				m_ssp_state = DEFAULT_MODE;
+				m_lm_state = mode::default;
 				break;
 			}
 		}
@@ -179,18 +193,14 @@ int ScreenSpace::handle(int evt)
 		std::cout << keyname << '\t' << key_code << '\n';
 	}
 
+
 	int mouse_x, mouse_y;	// mouse position
 
 	switch (evt) {
-	case FL_ENTER:
-		static_cast<Fl_Window*>(m_win)->cursor(FL_CURSOR_MOVE);
-		ret = 1;
-		break;
-	case FL_LEAVE:
-		static_cast<Fl_Window*>(m_win)->cursor(FL_CURSOR_DEFAULT);
-		ret = 1;
-		break;
-	case FL_PUSH:
+	case FL_PUSH:;
+		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
+			static_cast<Fl_Window*>(m_win)->cursor(FL_CURSOR_MOVE);
+		}
 		m_drag_sx = Fl::event_x_root();
 		m_drag_sy = Fl::event_y_root();
 		m_drag_state = true;
@@ -198,12 +208,18 @@ int ScreenSpace::handle(int evt)
 		break;
 	case FL_DRAG:
 		if (m_drag_state) {
-			pan();
+			if ((Fl::event_button() == FL_MIDDLE_MOUSE) || m_lm_state == mode::pan) {
+				pan();
+			}
+			else if (m_lm_state == mode::zoom) {
+				zoom();
+			}
 			redraw();
 		}
 		ret = 1;
 		break;
 	case FL_RELEASE:
+		static_cast<Fl_Window*>(m_win)->cursor(FL_CURSOR_DEFAULT);
 		m_drag_state = false;
 		ret = 1;
 		break;
@@ -237,6 +253,7 @@ int ScreenSpace::handle(int evt)
 	default:
 		break;
 	}
+
 	return ret;
 } // handle member
 
@@ -272,5 +289,25 @@ void ScreenSpace::pan()
 
 void ScreenSpace::zoom()
 {
+	int sx = 340;
+	int sy = 180;
+	float bf_center_axis_x, bf_center_axis_y;
+	scr_to_world(sx, sy, bf_center_axis_x, bf_center_axis_y);
+
+	// TODO: bug, scale according to percentage
+	float update_mouse_x = static_cast<float>(Fl::event_x_root());
+	m_scale += (update_mouse_x - m_drag_sx) * (m_scale_sens / 20.0f);
+	m_drag_sx = update_mouse_x;
+	redraw();
+
+	float af_center_axis_x, af_center_axis_y;
+	scr_to_world(sx, sy, af_center_axis_x, af_center_axis_y);
+
+	m_xoff += (bf_center_axis_x - af_center_axis_x);
+	m_yoff += (bf_center_axis_y - af_center_axis_y);
+
+	redraw();
+
+	//m_xoff += (mouse_bfz_worldx - mouse_afz_worldx);
 }
 

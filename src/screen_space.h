@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
+#include <cmath>
 
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
@@ -10,9 +12,18 @@
 
 #include "world_space.h"
 
-#define DEFAULT_MODE 0
-#define PANNING_MODE 1
-#define ZOOM_MODE 2
+// LEFT MOUSE BUTTON MODE
+enum class mode {
+	default,
+	pan,
+	zoom,
+	draw
+};
+
+// DRAW MODE
+enum class draw {
+	line
+};
 
 // THE SCREEN CONTEXT
 class ScreenSpace : public Fl_Box {
@@ -40,5 +51,5 @@ private:
 	float m_drag_sx, m_drag_sy;		// drag start position
 	bool m_drag_state;
 	
-	int m_ssp_state;
+	mode m_lm_state;		// left mouse button state
 };
