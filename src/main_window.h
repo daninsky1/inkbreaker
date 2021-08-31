@@ -10,6 +10,7 @@
 class MainWindow : public Fl_Double_Window {
 public:
     MainWindow(int sspw, int ssph, const char* l = "");
+    ~MainWindow();
 private:
     Fl_Menu_Bar m_mbar;
     ScreenSpace* m_ssp;

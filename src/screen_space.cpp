@@ -1,8 +1,8 @@
 #include "screen_space.h"
 
-ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Window* win_wd) :
+ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* win) :
 	Fl_Box{ wdx, wdy, wdw, wdh },
-	m_win{ win_wd },
+	m_win{ win },
 	m_screen_buffer{ 0 },
 	m_sspx{ 0 }, m_sspy{ 0 },		// Buffer on top left of the Fl_Box
 	m_sspw{ wdw }, m_ssph{ wdh },
@@ -17,7 +17,6 @@ ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Window* win_wd) 
 {
 	// LOG
 	std::cout << "New Offscreen\n";
-	static_cast<Fl_Window*>(m_win)->make_current();
 	m_screen_buffer = fl_create_offscreen(m_sspw, m_ssph);
 	m_buffer_scale = Fl_Graphics_Driver::default_driver().scale();
 } // ScreenSpace
@@ -199,7 +198,7 @@ int ScreenSpace::handle(int evt)
 	switch (evt) {
 	case FL_PUSH:;
 		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			static_cast<Fl_Window*>(m_win)->cursor(FL_CURSOR_MOVE);
+			m_win->cursor(FL_CURSOR_MOVE);
 		}
 		m_drag_sx = Fl::event_x_root();
 		m_drag_sy = Fl::event_y_root();
@@ -219,7 +218,7 @@ int ScreenSpace::handle(int evt)
 		ret = 1;
 		break;
 	case FL_RELEASE:
-		static_cast<Fl_Window*>(m_win)->cursor(FL_CURSOR_DEFAULT);
+		m_win->cursor(FL_CURSOR_DEFAULT);
 		m_drag_state = false;
 		ret = 1;
 		break;

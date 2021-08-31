@@ -39,8 +39,8 @@ target_include_directories(sqlite
 # Main app
 set(MAIN_APP_NAME InkBreaker)
 set(MAIN_APP_SOURCES src/main.cpp
-    src/canvas.cpp src/canvas.h
     src/screen_space.cpp src/screen_space.h
+    src/main_window.cpp src/main_window.h
     src/world_space.cpp src/world_space.h)
 add_executable(${MAIN_APP_NAME} WIN32 MACOSX_BUNDLE ${MAIN_APP_SOURCES})
 set_property(TARGET ${MAIN_APP_NAME} PROPERTY CXX_STANDARD 17)

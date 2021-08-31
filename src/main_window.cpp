@@ -78,9 +78,14 @@ MainWindow::MainWindow(int sspw, int ssph, const char* l) :
     m_mbar{0, 0, sspw, 30},
     m_ssp{ new ScreenSpace{0, MENUBAR_H, sspw, ssph, this} }
 {
+    make_current();
     m_mbar.menu(menutable);
-    this->add(m_mbar);
-    this->add(m_ssp);
-
-    std::clog << m_mbar.w() << "   " << m_mbar.h() << '\n';
+    add(m_mbar);
+    add(m_ssp);
 } // MainWindow
+
+MainWindow::~MainWindow()
+{
+    delete m_ssp;
+}
+
