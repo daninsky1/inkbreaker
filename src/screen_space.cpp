@@ -13,7 +13,8 @@ ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* w
 	m_drag_constraint{ false },
 	m_drag_sx{ 0 }, m_drag_sy{ 0 },
 	m_drag_state{ true },
-	m_lm_state{ mode::zoom }
+	m_lm_state{ mode::zoom },
+	m_md_scr_msg{ "mode: zoom" }
 {
 	// LOG
 	std::cout << "New Offscreen\n";
@@ -112,14 +113,18 @@ void ScreenSpace::draw()
 	}
 	fl_copy_offscreen(wdx, wdy, wdw, wdh, m_screen_buffer, 0, 0);
 
-	// LOG
 	fl_color(FL_WHITE);
 	int font = FL_COURIER;
 	int font_sz = 14;
 	fl_font(font, 15);
+
+	// SCREEN MESSAGENS
+	int pad = 10;
+	fl_draw(m_md_scr_msg.c_str(), wdx+pad, h()+y() - pad);
+
+	// LOG
 	std::stringstream ss_log;
 	ss_log << std::fixed;
-	char log_msg[100];
 	ss_log << "ScreenSpace Size: " << '(' << m_ssph << " x " << m_sspw << ')';
 	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz));
 	ss_log.str(std::string{""});
@@ -159,14 +164,20 @@ int ScreenSpace::handle(int evt)
 			case 'z':
 				std::cout << "ZOOM_MODE\n";
 				m_lm_state = mode::zoom;
+				m_md_scr_msg = "mode: zoom";
+				redraw();
 				break;
 			case 'h': case ' ':
 				std::cout << "DRAG_MODE\n";
 				m_lm_state = mode::pan;
+				m_md_scr_msg = "mode: pan";
+				redraw();
 				break;
 			case '0':
 				std::cout << "ZERO_MODE\n";
 				m_lm_state = mode::default;
+				m_md_scr_msg = "mode: default";
+				redraw();
 				break;
 			}
 		}
@@ -226,7 +237,6 @@ int ScreenSpace::handle(int evt)
 	{
 		int mouse_x = Fl::event_x() - x();
 		int mouse_y = Fl::event_y() - y();
-		std::cout << mouse_x << ", " << mouse_y << '\n';
 
 		float mouse_bfz_worldx, mouse_bfz_worldy;		// mouse coordinates on the world before zoom
 		scr_to_world(mouse_x, mouse_y, mouse_bfz_worldx, mouse_bfz_worldy);

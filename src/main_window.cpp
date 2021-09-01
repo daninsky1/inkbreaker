@@ -25,6 +25,15 @@ void quit_cb(Fl_Widget* widget, void*)
     std::cout << "Bye Bye." << std::endl;
     exit(0);
 }
+
+void controls_cd(Fl_Widget* widget, void*)
+{
+    fl_message("change left mouse button mode:\n"
+               "pan: h or space or middle mouse button directly\n"
+               "zoom: z\n"
+               "nothing: 0");
+}
+
 void about_cb(Fl_Widget* widget, void*)
 {
     std::cout << "INKBREAKER - "
@@ -65,11 +74,11 @@ Fl_Menu_Item menutable[] = {
         { "Line", 0, (Fl_Callback*)line_state_cb},
         { 0 },
     { "&Help", 0, nullptr, nullptr, FL_SUBMENU },
+        { "Controls", 0, (Fl_Callback*)controls_cd },
         { "&About", 0, (Fl_Callback*)about_cb },
         { 0 },
     { 0 }
 };
-
 
 constexpr int MENUBAR_H = 30;
 

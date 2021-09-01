@@ -51,5 +51,6 @@ private:
 	bool m_drag_constraint;
 	float m_drag_sx, m_drag_sy;		// drag start position
 	bool m_drag_state;
-	mode m_lm_state;		// left mouse button state
+	mode m_lm_state;				// left mouse button state
+	std::string m_md_scr_msg;
 };
