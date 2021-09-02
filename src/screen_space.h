@@ -10,7 +10,7 @@
 #include <FL/fl_draw.H>
 #include <FL/Enumerations.H>
 
-#include "point.h"
+#include "shapes.h"
 
 // LEFT MOUSE BUTTON MODE
 enum class mode {
