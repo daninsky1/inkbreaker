@@ -42,10 +42,9 @@ void ScreenSpace::draw()
 
 
 	// DRAW AXES
-	float axx = 0.0f;
-	float axy = 0.0f;
+	Vector ax{ 1.0, 1.0 };
 	int waxx, waxy;
-	world_to_scr(axx, axy, waxx, waxy);
+	world_to_scr(ax, waxx, waxy);
 	fl_line_style(FL_SOLID, 1.0f);
 	fl_color(FL_RED);
 	fl_line(0, waxy, w(), waxy);
@@ -56,11 +55,10 @@ void ScreenSpace::draw()
 	fl_color(FL_WHITE);
 	fl_line_style(FL_SOLID, 2.0f*m_scale);
 	fl_begin_line();
-	for (float i = 0; i < w(); i+=0.1) {
-		float x = i;
-		float y = std::sin(x*(0.5*0.1))*50;
+	for (float i = 0; i < w(); i += 0.1) {
+		Vector wv{ i, std::sin(i * (0.5 * 0.1)) * 50 };	// world vector
 		int sx, sy;
-		world_to_scr(x, y, sx, sy);
+		world_to_scr(wv, sx, sy);
 		
 		fl_vertex(sx, sy);
 	}
@@ -81,27 +79,29 @@ void ScreenSpace::draw()
 	fl_line_style(FL_SOLID, 2.0f*m_scale);
 	// horizontal lines
 	float gridx = 100.0f, gridy = 100.0f;
-	for (int y = 0.0f; y <= gridy; y+=gridy/10.0f) {
-		int startx = 0.0f, starty = y;
-		int endx = gridx, endy = y;
+	for (double y = 0.0; y <= gridy; y+=gridy/10.0) {
+		Vector start{ 0.0, y };
+		Vector end{ gridx, y };
 
 		// world to screen
 		int start_sspx, start_sspy, end_sspx, end_sspy;
-		world_to_scr(startx, starty, start_sspx, start_sspy);
-		world_to_scr(endx, endy, end_sspx, end_sspy);
+		world_to_scr(start, start_sspx, start_sspy);
+		world_to_scr(end, end_sspx, end_sspy);
 
 		fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
 	}
 
 	//// vertical lines
-	for (int x = 0.0f; x <= gridx; x+=gridx/10.0f) {
+	for (double x = 0.0; x <= gridx; x+=gridx/10.0) {
+		Vector start{ x, 0.0 };
+		Vector end{ x, gridy };
 		int startx = x, starty = 0.0f;
 		int endx = x, endy = gridy;
 
 		// world to screen
 		int start_sspx, start_sspy, end_sspx, end_sspy;
-		world_to_scr(startx, starty, start_sspx, start_sspy);
-		world_to_scr(endx, endy, end_sspx, end_sspy);
+		world_to_scr(start, start_sspx, start_sspy);
+		world_to_scr(end, end_sspx, end_sspy);
 
 		fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
 	}
@@ -239,8 +239,8 @@ int ScreenSpace::handle(int evt)
 		int mouse_x = Fl::event_x() - x();
 		int mouse_y = Fl::event_y() - y();
 
-		float mouse_bfz_worldx, mouse_bfz_worldy;		// mouse coordinates on the world before zoom
-		scr_to_world(mouse_x, mouse_y, mouse_bfz_worldx, mouse_bfz_worldy);
+		Vector mouse_bf_world;		// mouse coordinates on the world before zoom	
+		scr_to_world(mouse_x, mouse_y, mouse_bf_world);
 
 		int wheel_state = Fl::event_dy();
 		if (wheel_state < 1) {
@@ -252,11 +252,11 @@ int ScreenSpace::handle(int evt)
 			redraw();
 		}
 
-		float mouse_afz_worldx, mouse_afz_worldy;		// mouse coordinates on the world after zoom
-		scr_to_world(mouse_x, mouse_y, mouse_afz_worldx, mouse_afz_worldy);
+		Vector mouse_af_world;
+		scr_to_world(mouse_x, mouse_y, mouse_af_world);
 
-		m_off.x += (mouse_bfz_worldx - mouse_afz_worldx);
-		m_off.y += (mouse_bfz_worldy - mouse_afz_worldy);
+		m_off.x += (mouse_bf_world.x - mouse_af_world.x);
+		m_off.y += (mouse_bf_world.y - mouse_af_world.y);
 		ret = 1;
 		break;
 	}
@@ -267,16 +267,16 @@ int ScreenSpace::handle(int evt)
 	return ret;
 } // handle member
 
-void ScreenSpace::world_to_scr(float worldx, float worldy, int& scrx, int& scry)
+void ScreenSpace::world_to_scr(Vector world, int& scrx, int& scry)
 {
-	scrx = static_cast<int>((worldx - m_off.x) * m_scale);
-	scry = static_cast<int>((worldy - m_off.y) * m_scale);
+	scrx = static_cast<int>((world.x - m_off.x) * m_scale);
+	scry = static_cast<int>((world.y - m_off.y) * m_scale);
 }
 
-void ScreenSpace::scr_to_world(int scrx, int scry, float& worldx, float& worldy)
+void ScreenSpace::scr_to_world(int scrx, int scry, Vector& world)
 {
-	worldx = static_cast<float>(scrx) / m_scale + m_off.x;
-	worldy = static_cast<float>(scry) / m_scale + m_off.y;
+	world.x = static_cast<float>(scrx) / m_scale + m_off.x;
+	world.y = static_cast<float>(scry) / m_scale + m_off.y;
 }
 
 void ScreenSpace::pan()
@@ -301,8 +301,8 @@ void ScreenSpace::zoom()
 {
 	int sx = 340;
 	int sy = 180;
-	float bf_center_axis_x, bf_center_axis_y;
-	scr_to_world(sx, sy, bf_center_axis_x, bf_center_axis_y);
+	Vector bf_center_axis;
+	scr_to_world(sx, sy, bf_center_axis);
 
 	// TODO: bug, scale according to percentage
 	float update_mouse_x = static_cast<float>(Fl::event_x_root());
@@ -310,14 +310,12 @@ void ScreenSpace::zoom()
 	m_drag_sx = update_mouse_x;
 	redraw();
 
-	float af_center_axis_x, af_center_axis_y;
-	scr_to_world(sx, sy, af_center_axis_x, af_center_axis_y);
+	Vector af_center_axis;
+	scr_to_world(sx, sy, af_center_axis);
 
-	m_off.x += (bf_center_axis_x - af_center_axis_x);
-	m_off.y += (bf_center_axis_y - af_center_axis_y);
+	m_off.x += (bf_center_axis.x - af_center_axis.x);
+	m_off.y += (bf_center_axis.y - af_center_axis.y);
 
 	redraw();
-
-	//m_xoff += (mouse_bfz_worldx - mouse_afz_worldx);
 }
 

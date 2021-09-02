@@ -32,8 +32,8 @@ public:
 private:
 	void draw();
 	int handle(int evt);
-	void world_to_scr(float worldx, float worldy, int& scrx, int& screeny);
-	void scr_to_world(int scrx, int screeny, float& worldx, float& worldy);
+	void world_to_scr(Vector world, int& scrx, int& screeny);
+	void scr_to_world(int scrx, int screeny, Vector& world);
 	void set_cursor();
 	void pan();		// change offset values
 	void zoom();	// change scale factor
