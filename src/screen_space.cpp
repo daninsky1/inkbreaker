@@ -10,12 +10,14 @@ ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* w
 	m_buffer_scale{ 0.0f },
 	m_scale{ 1.0f },
 	m_scale_sens{ 0.1f },
+	m_mouse_scr_pos{ 0, 0 },
 	m_off{ 0.0, 0.0 },
 	m_drag_constraint{ false },
 	m_drag_sx{ 0 }, m_drag_sy{ 0 },
 	m_drag_state{ true },
 	m_lm_state{ mode::zoom },
-	m_md_scr_msg{ "mode: zoom" }
+	m_md_scr_msg{ "mode: zoom" },
+	m_line{ nullptr }
 {
 	// LOG
 	std::cout << "Create Offscreen\n";
@@ -50,6 +52,17 @@ void ScreenSpace::draw()
 	fl_line(0, waxy, w(), waxy);
 	fl_color(FL_GREEN);
 	fl_line(waxx, 0, waxx, h());
+
+	// MY LINE
+	sShape::world_offset = m_off;
+	sShape::world_scale = m_scale;
+	m_line = new sLine();
+	m_line->get_next_node(Vector{ 0.0, 0.0 });
+	m_line->get_next_node(Vector{ 100.0, 100.0 });
+	if (m_line != nullptr) {
+		m_line->draw_shape();
+		m_line->draw_nodes();
+	}
 
 	// TODO: A RENDER QUEUE here
 	fl_color(FL_WHITE);
@@ -120,8 +133,23 @@ void ScreenSpace::draw()
 	fl_font(font, 15);
 
 	// SCREEN MESSAGENS
+	// mode
 	int pad = 10;
-	fl_draw(m_md_scr_msg.c_str(), wdx+pad, h()+y() - pad);
+	fl_draw(m_md_scr_msg.c_str(), wdx+pad, h()+y() - pad - fl_height(font, font_sz)*2);
+	// screen mouse position
+	std::string mouse_coor;
+	mouse_coor.append("mp screen x: ");
+	mouse_coor.append(std::to_string(m_mouse_scr_pos.x));
+	mouse_coor.append(" y: ");
+	mouse_coor.append(std::to_string(m_mouse_scr_pos.y));
+	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz));
+	// world mouse position
+	mouse_coor = "";
+	mouse_coor.append("mp world x: ");
+	mouse_coor.append(std::to_string(m_mouse_world_pos.x));
+	mouse_coor.append(" y: ");
+	mouse_coor.append(std::to_string(m_mouse_world_pos.y));
+	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad);
 
 	// LOG
 	std::stringstream ss_log;
@@ -174,6 +202,12 @@ int ScreenSpace::handle(int evt)
 				m_md_scr_msg = "mode: pan";
 				redraw();
 				break;
+			case 'l':
+				std::cout << "DRAW_MODE\n";
+				m_lm_state = mode::draw;
+				m_md_scr_msg = "mode: draw";
+				redraw();
+				break;
 			case '0':
 				std::cout << "ZERO_MODE\n";
 				m_lm_state = mode::default;
@@ -186,7 +220,7 @@ int ScreenSpace::handle(int evt)
 			char key_buf[8];
 			int kl = fl_utf8encode((unsigned)evt, key_buf);
 			key_buf[kl] = '\0';
-			sprintf(buffer, "'%s'", key_code);
+			sprintf(buffer, "'%d'", key_code);
 			ret = 1;
 		}
 		else if (key_code > FL_F && key_code <= FL_F_Last) {
@@ -208,7 +242,14 @@ int ScreenSpace::handle(int evt)
 	int mouse_x, mouse_y;	// mouse position
 
 	switch (evt) {
-	case FL_PUSH:;
+	case FL_MOVE:
+		m_mouse_scr_pos.x = Fl::event_x() - x();
+		m_mouse_scr_pos.y = Fl::event_y() - y();
+		scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+		redraw();
+		ret = 1;
+		break;
+	case FL_PUSH:
 		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
 			m_win->cursor(FL_CURSOR_MOVE);
 		}
@@ -224,6 +265,9 @@ int ScreenSpace::handle(int evt)
 			}
 			else if (m_lm_state == mode::zoom) {
 				zoom();
+			}
+			else if (m_lm_state == mode::draw) {
+				draw_line();
 			}
 			redraw();
 		}
@@ -262,6 +306,36 @@ int ScreenSpace::handle(int evt)
 	}
 	default:
 		break;
+	}
+
+	if (m_lm_state == mode::draw) {
+		switch (evt) {
+		case FL_PUSH:
+			m_line = new sLine();
+
+			// first node at location of left click
+			m_selected_node = m_line->get_next_node(m_mouse_world_pos);
+			m_drag_state = true;
+			ret = 1;
+			break;
+		case FL_DRAG:
+			if (m_drag_state) {
+				// second node
+				m_selected_node = m_line->get_next_node(m_mouse_world_pos);
+
+				if (m_selected_node != nullptr) {
+					m_selected_node->pos = m_mouse_world_pos;
+				}
+				redraw();
+			}
+			ret = 1;
+			break;
+		case FL_RELEASE:
+			m_selected_node = m_line->get_next_node(m_mouse_world_pos);
+			m_drag_state = false;
+			ret = 1;
+			break;
+		}
 	}
 
 	return ret;
@@ -319,3 +393,7 @@ void ScreenSpace::zoom()
 	redraw();
 }
 
+void ScreenSpace::draw_line()
+{
+
+}

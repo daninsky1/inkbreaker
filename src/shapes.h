@@ -1,10 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <ostream>
+#include <FL/Fl.H>
+#include <FL/fl_draw.H>
 
-#include <ostream>
-
+struct Point_i { int x, y; };
 
 class Point {
 public:
@@ -18,6 +20,31 @@ private:
 };
 
 struct Vector { double x, y; };
+
+struct sShape;
+struct sNode {
+	sShape* parent;
+	Vector pos;
+};
+
+struct sShape {
+	// TODO: REPLACE STD::VECTOR WITH STD::ARRAY
+	std::vector<sNode> nodes;
+	uint32_t max_nodes = 0;
+
+	static double world_scale;
+	static Vector world_offset;
+
+	virtual void draw_shape() = 0;
+	sNode* get_next_node(const Vector& p);
+	void draw_nodes();
+	void world_to_scr(Vector& v, int& scrx, int& scry);
+};
+
+struct sLine : public sShape {
+	sLine();
+	void draw_shape() override;
+};
 
 //enum class obj_type {
 //	POLYGON,

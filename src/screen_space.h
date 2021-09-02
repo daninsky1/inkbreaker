@@ -37,6 +37,7 @@ private:
 	void set_cursor();
 	void pan();		// change offset values
 	void zoom();	// change scale factor
+	void draw_line();	// draw line
 	// The window that ScreenSpace are
 	Fl_Double_Window* m_win;
 	// ScreenSpace
@@ -48,11 +49,15 @@ private:
 	Vector m_off;					// world offset
 	float m_scale;					// world scale
 	float m_scale_sens;				// scale sensitivite
-	// drag
+	Point_i m_mouse_scr_pos;		// mouse position in the widget screen
+	Vector m_mouse_world_pos;		// mouse position in the world
 	bool m_drag_constraint;
 	float m_drag_sx, m_drag_sy;		// drag start position
 	bool m_drag_state;
 	mode m_lm_state;				// left mouse button state
 	std::string m_md_scr_msg;
 	double m_grid_sp;				// grid space
+
+	sLine* m_line;
+	sNode* m_selected_node;
 };
