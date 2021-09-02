@@ -18,3 +18,11 @@ std::ostream& operator<<(std::ostream& os, const Point& p)
 	return os << '(' << p.get_x()
 		<< ", " << p.get_y() << ')';
 }
+
+struct Vector { double x, y; };
+
+std::ostream& operator<<(std::ostream& os, const Vector& v)
+{
+	return os << '[' << v.x
+		<< ", " << v.y << ']';
+}

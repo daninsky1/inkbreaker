@@ -10,7 +10,7 @@
 #include <FL/fl_draw.H>
 #include <FL/Enumerations.H>
 
-#include "world_space.h"
+#include "point.h"
 
 // LEFT MOUSE BUTTON MODE
 enum class mode {
@@ -43,8 +43,9 @@ private:
 	Fl_Offscreen m_screen_buffer;	// ScreenSpace buffer
 	int m_sspx, m_sspy;				// ScreenSpace origin
 	int m_sspw, m_ssph;				// ScreanSpace size
+	float m_bg_grid_sz;				// background grid size
 	float m_buffer_scale;			// m_screen_buffer scale, this is an FLTK implementation detail
-	float m_xoff, m_yoff;			// world offset
+	Vector m_off;					// world offset
 	float m_scale;					// world scale
 	float m_scale_sens;				// scale sensitivite
 	// drag
@@ -53,4 +54,5 @@ private:
 	bool m_drag_state;
 	mode m_lm_state;				// left mouse button state
 	std::string m_md_scr_msg;
+	double m_grid_sp;				// grid space
 };

@@ -6,10 +6,11 @@ ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* w
 	m_screen_buffer{ 0 },
 	m_sspx{ 0 }, m_sspy{ 0 },		// Buffer on top left of the Fl_Box
 	m_sspw{ wdw }, m_ssph{ wdh },
+	m_bg_grid_sz{ 50.0f },
 	m_buffer_scale{ 0.0f },
 	m_scale{ 1.0f },
 	m_scale_sens{ 0.1f },
-	m_xoff{ 0 }, m_yoff{ 0 },
+	m_off{ 0.0, 0.0 },
 	m_drag_constraint{ false },
 	m_drag_sx{ 0 }, m_drag_sy{ 0 },
 	m_drag_state{ true },
@@ -17,7 +18,7 @@ ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* w
 	m_md_scr_msg{ "mode: zoom" }
 {
 	// LOG
-	std::cout << "New Offscreen\n";
+	std::cout << "Create Offscreen\n";
 	m_screen_buffer = fl_create_offscreen(m_sspw, m_ssph);
 	m_buffer_scale = Fl_Graphics_Driver::default_driver().scale();
 } // ScreenSpace
@@ -29,15 +30,17 @@ void ScreenSpace::draw()
 	int wdw = w();	// gets the widget width
 	int wdh = h();	// gets the widget height
 
-	// draw background
+	// DRAW WIDGET BACKGROUND
 	fl_color(FL_BLACK);
 	fl_rectf(wdx , wdy, wdw, wdh);
-
-
+	// DRAW BACKGROUND
 	fl_begin_offscreen(m_screen_buffer);
-	// BACKGROUND
 	fl_color(FL_DARK_RED);
 	fl_rectf(m_sspx, m_sspy, m_sspw, m_ssph);
+	// DRAW GRID
+	// TODO: IMPLEMENT GRID
+
+
 	// DRAW AXES
 	float axx = 0.0f;
 	float axy = 0.0f;
@@ -103,8 +106,6 @@ void ScreenSpace::draw()
 		fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
 	}
 
-
-
 	fl_end_offscreen();
 
 	if (m_buffer_scale != Fl_Graphics_Driver::default_driver().scale()) {
@@ -129,7 +130,7 @@ void ScreenSpace::draw()
 	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz));
 	ss_log.str(std::string{""});
 	ss_log.str("");
-	ss_log << "World Offset: " << '(' << m_xoff << " x " << m_yoff << ')';
+	ss_log << "World Offset: " << '(' << m_off.x << " x " << m_off.y << ')';
 	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz) * 2);
 	ss_log.str("");
 	ss_log << "Scale Factor:" << m_scale;
@@ -254,8 +255,8 @@ int ScreenSpace::handle(int evt)
 		float mouse_afz_worldx, mouse_afz_worldy;		// mouse coordinates on the world after zoom
 		scr_to_world(mouse_x, mouse_y, mouse_afz_worldx, mouse_afz_worldy);
 
-		m_xoff += (mouse_bfz_worldx - mouse_afz_worldx);
-		m_yoff += (mouse_bfz_worldy - mouse_afz_worldy);
+		m_off.x += (mouse_bfz_worldx - mouse_afz_worldx);
+		m_off.y += (mouse_bfz_worldy - mouse_afz_worldy);
 		ret = 1;
 		break;
 	}
@@ -268,14 +269,14 @@ int ScreenSpace::handle(int evt)
 
 void ScreenSpace::world_to_scr(float worldx, float worldy, int& scrx, int& scry)
 {
-	scrx = static_cast<int>((worldx - m_xoff) * m_scale);
-	scry = static_cast<int>((worldy - m_yoff) * m_scale);
+	scrx = static_cast<int>((worldx - m_off.x) * m_scale);
+	scry = static_cast<int>((worldy - m_off.y) * m_scale);
 }
 
 void ScreenSpace::scr_to_world(int scrx, int scry, float& worldx, float& worldy)
 {
-	worldx = static_cast<float>(scrx) / m_scale + m_xoff;
-	worldy = static_cast<float>(scry) / m_scale + m_yoff;
+	worldx = static_cast<float>(scrx) / m_scale + m_off.x;
+	worldy = static_cast<float>(scry) / m_scale + m_off.y;
 }
 
 void ScreenSpace::pan()
@@ -283,16 +284,16 @@ void ScreenSpace::pan()
 	float update_mouse_x = static_cast<float>(Fl::event_x_root());
 	float update_mouse_y = static_cast<float>(Fl::event_y_root());
 	// drag difference
-	m_xoff -= (update_mouse_x - m_drag_sx) / m_scale;
-	m_yoff -= (update_mouse_y - m_drag_sy) / m_scale;
+	m_off.x -= (update_mouse_x - m_drag_sx) / m_scale;
+	m_off.y -= (update_mouse_y - m_drag_sy) / m_scale;
 	m_drag_sx = update_mouse_x;
 	m_drag_sy = update_mouse_y;
 	// BUG
 	if (m_drag_constraint) {
-		if (m_xoff < -w()) m_xoff = -w();
-		else if (m_xoff > m_sspw) m_xoff = m_sspw;
-		if (m_yoff < -h()) m_yoff = -h();
-		else if (m_yoff > m_ssph) m_yoff = m_ssph;
+		if (m_off.x < -w()) m_off.x = -w();
+		else if (m_off.x > m_sspw) m_off.x = m_sspw;
+		if (m_off.y < -h()) m_off.y = -h();
+		else if (m_off.y > m_ssph) m_off.y = m_ssph;
 	}
 }
 
@@ -312,8 +313,8 @@ void ScreenSpace::zoom()
 	float af_center_axis_x, af_center_axis_y;
 	scr_to_world(sx, sy, af_center_axis_x, af_center_axis_y);
 
-	m_xoff += (bf_center_axis_x - af_center_axis_x);
-	m_yoff += (bf_center_axis_y - af_center_axis_y);
+	m_off.x += (bf_center_axis_x - af_center_axis_x);
+	m_off.y += (bf_center_axis_y - af_center_axis_y);
 
 	redraw();
 

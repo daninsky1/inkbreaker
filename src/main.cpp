@@ -9,11 +9,9 @@
 
 #include <FL/Fl.H>
 
-
 #include <sqlite/sqlite3.h>
 
 #include "main_window.h"
-#include "screen_space.h"
 
 
 // #define STB_PERLIN_IMPLEMENTATION
