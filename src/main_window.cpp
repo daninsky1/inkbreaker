@@ -8,9 +8,7 @@ void saveas_cb(Fl_Widget* widget, void*);
 void quit_cb(Fl_Widget* widget, void*);
 void about_cb(Fl_Widget* widget, void*);
 
-void blank_cb(Fl_Widget* widget, void*);
-void line_splash_anim_cb(Fl_Widget* widget, void*);
-void perlin_noise_anim_cb(Fl_Widget* widget, void*);
+void clear_cb(Fl_Widget* widget, void*);
 void line_state_cb(Fl_Widget* widget, void*) {}
 
 
@@ -41,21 +39,14 @@ void about_cb(Fl_Widget* widget, void*)
         << INKBREAKER_VERSION_MINOR << "."
         << INKBREAKER_VERSION_PATCH << std::endl;
 }
-//
-// GENERATORS CALLBACKS DEFINITIONS
-//
-void blank_cb(Fl_Widget* widget, void*)
+
+void clear_cb(Fl_Widget* widget, void*)
 {
 
 }
-void line_splash_anim_cb(Fl_Widget* widget, void*)
-{
+void pan_state_cb(Fl_Widget* widget, void*);
+void zoom_state_cb(Fl_Widget* widget, void*);
 
-}
-void perlin_noise_anim_cb(Fl_Widget* widget, void*)
-{
-
-}
 
 Fl_Menu_Item menutable[] = {
     { "INKBREAKER", 0, (Fl_Callback*)about_cb, nullptr, FL_MENU_INACTIVE },
@@ -65,13 +56,20 @@ Fl_Menu_Item menutable[] = {
         { "&Save as...", FL_COMMAND + FL_ALT + 's', (Fl_Callback*)saveas_cb },
         { "Quit", FL_COMMAND + 'q', (Fl_Callback*)quit_cb },
     { 0 },
+    // TODO: Implement procedural texture generation after deployment to image support
+    /*
     { "Generators", 0, nullptr, nullptr, FL_SUBMENU },
         { "Blank", 0, (Fl_Callback*)blank_cb},
         { "Line Splash Animation", 0, (Fl_Callback*)perlin_noise_anim_cb },
         { "Perlin Noise Animation", 0, (Fl_Callback*)perlin_noise_anim_cb },
         { 0 },
-    { "Draw", 0, nullptr, nullptr, FL_SUBMENU },
-        { "Line", 0, (Fl_Callback*)line_state_cb},
+    */
+    { "State", 0, nullptr, nullptr, FL_SUBMENU },
+        { "Pan", 0, (Fl_Callback*)pan_state_cb},
+        { "Zoom", 0, (Fl_Callback*)zoom_state_cb},
+        { "Draw", 0, nullptr, nullptr, FL_SUBMENU},
+            { "Line", 0, (Fl_Callback*)line_state_cb},
+            { 0 },
         { 0 },
     { "&Help", 0, nullptr, nullptr, FL_SUBMENU },
         { "Controls", 0, (Fl_Callback*)controls_cd },
@@ -98,3 +96,11 @@ MainWindow::~MainWindow()
     delete m_ssp;
 }
 
+void pan_state_cb(Fl_Widget* widget, void*)
+{
+    Fl_Menu_Item* item = (Fl_Menu_Item*)widget;
+    std::cout << item->submenu() << std::endl;
+}
+void zoom_state_cb(Fl_Widget* widget, void*)
+{
+}

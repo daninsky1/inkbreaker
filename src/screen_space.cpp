@@ -3,21 +3,7 @@
 ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* win) :
 	Fl_Box{ wdx, wdy, wdw, wdh },
 	m_win{ win },
-	m_screen_buffer{ 0 },
-	m_sspx{ 0 }, m_sspy{ 0 },		// Buffer on top left of the Fl_Box
-	m_sspw{ wdw }, m_ssph{ wdh },
-	m_bg_grid_sz{ 50.0f },
-	m_buffer_scale{ 0.0f },
-	m_scale{ 1.0f },
-	m_scale_sens{ 0.1f },
-	m_mouse_scr_pos{ 0, 0 },
-	m_off{ 0.0, 0.0 },
-	m_drag_constraint{ false },
-	m_drag_sx{ 0 }, m_drag_sy{ 0 },
-	m_drag_state{ true },
-	m_lm_state{ mode::zoom },
-	m_md_scr_msg{ "mode: zoom" },
-	m_line{ nullptr }
+	m_sspw{ wdw }, m_ssph{ wdh }
 {
 	// LOG
 	std::cout << "Create Offscreen\n";
@@ -56,12 +42,21 @@ void ScreenSpace::draw()
 	// MY LINE
 	sShape::world_offset = m_off;
 	sShape::world_scale = m_scale;
+	/* HARDCODED sLine
 	m_line = new sLine();
 	m_line->get_next_node(Vector{ 0.0, 0.0 });
 	m_line->get_next_node(Vector{ 100.0, 100.0 });
-	if (m_line != nullptr) {
-		m_line->draw_shape();
-		m_line->draw_nodes();
+	*/
+	if (!m_shapes.empty()) {
+		for (auto& shape : m_shapes) {
+			shape->draw_shape();
+			//shape->draw_nodes();
+		}
+	}
+
+	if (m_temp_shape) {
+		m_temp_shape->draw_shape();
+		//m_temp_shape->draw_nodes();
 	}
 
 	// TODO: A RENDER QUEUE here
@@ -89,6 +84,8 @@ void ScreenSpace::draw()
 
 	// GRID
 	// TODO: IMPLEMENT GRID OBJECT
+	/*
+	* 
 	fl_line_style(FL_SOLID, 2.0f*m_scale);
 	// horizontal lines
 	float gridx = 100.0f, gridy = 100.0f;
@@ -118,6 +115,7 @@ void ScreenSpace::draw()
 
 		fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
 	}
+	*/
 
 	fl_end_offscreen();
 
@@ -138,14 +136,14 @@ void ScreenSpace::draw()
 	fl_draw(m_md_scr_msg.c_str(), wdx+pad, h()+y() - pad - fl_height(font, font_sz)*2);
 	// screen mouse position
 	std::string mouse_coor;
-	mouse_coor.append("mp screen x: ");
+	mouse_coor.append("mouse screen x: ");
 	mouse_coor.append(std::to_string(m_mouse_scr_pos.x));
 	mouse_coor.append(" y: ");
 	mouse_coor.append(std::to_string(m_mouse_scr_pos.y));
 	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz));
 	// world mouse position
 	mouse_coor = "";
-	mouse_coor.append("mp world x: ");
+	mouse_coor.append("mouse world x: ");
 	mouse_coor.append(std::to_string(m_mouse_world_pos.x));
 	mouse_coor.append(" y: ");
 	mouse_coor.append(std::to_string(m_mouse_world_pos.y));
@@ -193,25 +191,25 @@ int ScreenSpace::handle(int evt)
 			case 'z':
 				std::cout << "ZOOM_MODE\n";
 				m_lm_state = mode::zoom;
-				m_md_scr_msg = "mode: zoom";
+				m_md_scr_msg = "zoom";
 				redraw();
 				break;
 			case 'h': case ' ':
 				std::cout << "DRAG_MODE\n";
 				m_lm_state = mode::pan;
-				m_md_scr_msg = "mode: pan";
+				m_md_scr_msg = "pan";
 				redraw();
 				break;
 			case 'l':
 				std::cout << "DRAW_MODE\n";
 				m_lm_state = mode::draw;
-				m_md_scr_msg = "mode: draw";
+				m_md_scr_msg = "draw";
 				redraw();
 				break;
 			case '0':
 				std::cout << "ZERO_MODE\n";
 				m_lm_state = mode::default;
-				m_md_scr_msg = "mode: default";
+				m_md_scr_msg = "default";
 				redraw();
 				break;
 			}
@@ -311,28 +309,32 @@ int ScreenSpace::handle(int evt)
 	if (m_lm_state == mode::draw) {
 		switch (evt) {
 		case FL_PUSH:
-			m_line = new sLine();
+			if (Fl::event_button() == FL_LEFT_MOUSE) {
+				m_temp_shape = new sRect();
 
-			// first node at location of left click
-			m_selected_node = m_line->get_next_node(m_mouse_world_pos);
-			m_drag_state = true;
-			ret = 1;
-			break;
-		case FL_DRAG:
-			if (m_drag_state) {
-				// second node
-				m_selected_node = m_line->get_next_node(m_mouse_world_pos);
-
-				if (m_selected_node != nullptr) {
-					m_selected_node->pos = m_mouse_world_pos;
-				}
-				redraw();
+				// first node at location of left click
+				m_temp_shape->get_next_node(m_mouse_world_pos);
+				m_selected_node = m_temp_shape->get_next_node(m_mouse_world_pos);
 			}
 			ret = 1;
 			break;
+		case FL_DRAG:
+			m_mouse_scr_pos.x = Fl::event_x() - x();
+			m_mouse_scr_pos.y = Fl::event_y() - y();
+			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+			// second node
+			if (m_selected_node != nullptr) {
+				m_selected_node->pos = m_mouse_world_pos;
+			}
+			redraw();
+			
+			ret = 1;
+			break;
 		case FL_RELEASE:
-			m_selected_node = m_line->get_next_node(m_mouse_world_pos);
-			m_drag_state = false;
+			if (m_temp_shape) {
+				m_selected_node = m_temp_shape->get_next_node(m_mouse_world_pos);
+				if (m_selected_node == nullptr) m_shapes.push_back(m_temp_shape);
+			}
 			ret = 1;
 			break;
 		}

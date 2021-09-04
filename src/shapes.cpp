@@ -38,7 +38,7 @@ void sShape::draw_nodes()
 		int sx, sy;
 		world_to_scr(n.pos, sx, sy);
 		fl_line_style(FL_SOLID, 1);
-		fl_color(FL_RED);
+		fl_color(FL_MAGENTA);
 		fl_circle(sx, sy, 2);
 	}
 }
@@ -61,6 +61,24 @@ void sLine::draw_shape()
 	int sx, sy, ex, ey;
 	world_to_scr(nodes[0].pos, sx, sy);
 	world_to_scr(nodes[1].pos, ex, ey);
-	fl_line_style(FL_SOLID, 1*world_scale);
+	fl_color(FL_DARK_GREEN);
+	fl_line_style(FL_SOLID, 2*world_scale);
 	fl_line(sx, sy, ex, ey);
+}
+
+sRect::sRect()
+{
+	max_nodes = 2;
+	// VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: sShape::get_next_node definition
+	nodes.reserve(max_nodes);
+}
+
+void sRect::draw_shape()
+{
+	int sx, sy, ex, ey;
+	world_to_scr(nodes[0].pos, sx, sy);
+	world_to_scr(nodes[1].pos, ex, ey);
+	fl_color(FL_DARK_GREEN);
+	fl_line_style(FL_SOLID, 2);
+	fl_rect(sx, sy, ex-sx, ey-sy);
 }

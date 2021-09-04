@@ -1,5 +1,7 @@
 #pragma once
 
+
+#include <iostream>
 #include <vector>
 #include <array>
 #include <ostream>
@@ -43,6 +45,11 @@ struct sShape {
 
 struct sLine : public sShape {
 	sLine();
+	void draw_shape() override;
+};
+
+struct sRect : public sShape {
+	sRect();
 	void draw_shape() override;
 };
 
