@@ -23,13 +23,15 @@ enum class mode {
 
 // DRAW MODE
 enum class draw {
-	line
+	line,
+	rect
 };
 
 // THE SCREEN CONTEXT
 class ScreenSpace : public Fl_Box {
 public:
 	ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* win);
+	void clear();
 private:
 	void draw();
 	int handle(int evt);
@@ -61,6 +63,5 @@ private:
 
 	std::vector<sShape*> m_shapes;
 	sShape* m_temp_shape{ nullptr };
-	sLine* m_line{ nullptr };
 	sNode* m_selected_node{ nullptr };
 };

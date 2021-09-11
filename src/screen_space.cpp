@@ -355,6 +355,16 @@ void ScreenSpace::scr_to_world(int scrx, int scry, Vector& world)
 	world.y = static_cast<float>(scry) / m_scale + m_off.y;
 }
 
+void ScreenSpace::clear()
+{
+	for (auto& shape : m_shapes) {
+		delete shape;
+	}
+	m_temp_shape = nullptr;
+	m_shapes.clear();
+	redraw();
+}
+
 void ScreenSpace::pan()
 {
 	float update_mouse_x = static_cast<float>(Fl::event_x_root());
