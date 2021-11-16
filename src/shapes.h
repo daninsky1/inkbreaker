@@ -3,23 +3,11 @@
 
 #include <iostream>
 #include <vector>
-#include <array>
 #include <ostream>
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 
 struct Point_i { int x, y; };
-
-class Point {
-public:
-	Point(double x, double y);
-	double get_x() const;
-	void set_x(double x);
-	double get_y() const;
-	void set_y(double y);
-private:
-	double m_x, m_y;
-};
 
 struct Vector { double x, y; };
 
@@ -38,6 +26,7 @@ struct sShape {
 	static Vector world_offset;
 
 	virtual void draw_shape() = 0;
+    virtual std::string type() = 0;
 	sNode* get_next_node(const Vector& p);
 	void draw_nodes();
 	void world_to_scr(Vector& v, int& scrx, int& scry);
@@ -46,11 +35,13 @@ struct sShape {
 struct sLine : public sShape {
 	sLine();
 	void draw_shape() override;
+    std::string type() override { return std::string{"line"}; };
 };
 
 struct sRect : public sShape {
 	sRect();
 	void draw_shape() override;
+    std::string type() override { return std::string{"rect"}; };
 };
 
 //enum class obj_type {

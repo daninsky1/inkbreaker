@@ -3,3 +3,5 @@ build/
 .vscode/
 mingw/
 msvc/
+src/buildtags.bat
+src/tags

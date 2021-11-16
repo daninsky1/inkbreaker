@@ -1,12 +1,6 @@
 #include "shapes.h"
 
 
-Point::Point(double x, double y) : m_x{ x }, m_y{ y } { };
-double Point::get_x() const { return m_x; }
-void Point::set_x(double x) { m_x = x; }
-double Point::get_y() const { return m_y; }
-void Point::set_y(double y) { m_y = y; }
-
 std::ostream& operator<<(std::ostream& os, const Vector& v)
 {
 	return os << '[' << v.x
@@ -62,7 +56,7 @@ void sLine::draw_shape()
 	world_to_scr(nodes[0].pos, sx, sy);
 	world_to_scr(nodes[1].pos, ex, ey);
 	fl_color(FL_DARK_GREEN);
-	fl_line_style(FL_SOLID, 2*world_scale);
+	fl_line_style(FL_SOLID, 2*(int)world_scale);
 	fl_line(sx, sy, ex, ey);
 }
 

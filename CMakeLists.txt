@@ -12,7 +12,7 @@ configure_file(InkBreakerConfig.h.in InkBreakerConfig.h)
 # MSVC: msvc/ for visual studio solution
 # UNIX: build under unix using make
 if(MSVC)
-    add_compile_options(-W4)
+    add_compile_options(-W0)
     set(FLTK_DIR "vendor/fltk/msvc/")
 elseif(MINGW)
     add_compile_options(-mwindows -lgdiplus)
@@ -37,20 +37,19 @@ target_include_directories(sqlite
     PUBLIC vendor/)
 
 # Main app
-set(MAIN_APP_NAME InkBreaker)
 set(MAIN_APP_SOURCES src/main.cpp
-    src/screen_space.cpp src/screen_space.h
-    src/main_window.cpp src/main_window.h
-    src/world_space.cpp src/world_space.h
-    src/shapes.cpp src/shapes.h)
-add_executable(${MAIN_APP_NAME} WIN32 MACOSX_BUNDLE ${MAIN_APP_SOURCES})
-set_property(TARGET ${MAIN_APP_NAME} PROPERTY CXX_STANDARD 17)
-target_include_directories(${MAIN_APP_NAME}
+    src/main_window.cpp
+    src/shapes.cpp)
+add_executable(InkBreaker WIN32 MACOSX_BUNDLE ${MAIN_APP_SOURCES})
+target_compile_options(InkBreaker PRIVATE -W3)
+set_property(TARGET InkBreaker PROPERTY CXX_STANDARD 17)
+target_include_directories(InkBreaker
                            PRIVATE ${PROJECT_BINARY_DIR}
                            PRIVATE ${FLTK_INCLUDE_DIRS}
+                           PRIVATE src/
 )
 
-target_link_libraries(${MAIN_APP_NAME}
+target_link_libraries(InkBreaker
     PRIVATE fltk
     PRIVATE fltk_forms
     PRIVATE fltk_gl
@@ -60,15 +59,15 @@ target_link_libraries(${MAIN_APP_NAME}
     PRIVATE sqlite
 )
 if(APPLE)
-    target_link_libraries(${MAIN_APP_NAME} "-framework cocoa")
+    target_link_libraries(InkBreaker "-framework cocoa")
 elseif(WIN32)
-    target_link_libraries(${MAIN_APP_NAME} PRIVATE gdiplus)
+    target_link_libraries(InkBreaker PRIVATE gdiplus)
 endif()
 
 if(UNIX)
     add_custom_target(runmain
-                      COMMAND ${MAIN_APP_NAME}
-                      DEPENDS ${MAIN_APP_NAME}
+                      COMMAND InkBreaker
+                      DEPENDS InkBreaker
                       WORKING_DIRECTORY ${CMAKE_PROJECT_DIR})
 endif()
                   
