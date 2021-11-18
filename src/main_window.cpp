@@ -7,9 +7,9 @@ void line_state_cb(Fl_Widget* widget, void*) {}
 void controls_cd(Fl_Widget* widget, void*)
 {
     fl_message("change left mouse button mode:\n"
-               "pan: h or space or middle mouse button directly\n"
-               "zoom: z\n"
-               "nothing: 0");
+        "pan: h or space or middle mouse button directly\n"
+        "zoom: z\n"
+        "nothing: 0");
 }
 
 void about_cb(Fl_Widget* widget, void*)
@@ -20,8 +20,10 @@ void about_cb(Fl_Widget* widget, void*)
         << INKBREAKER_VERSION_PATCH << std::endl;
 }
 
-void clear_cb(Fl_Widget* widget, void*)
+void clear_cb(Fl_Widget* widget, void* mwv)
 {
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    mw->screensp->clear();
 
 }
 void pan_state_cb(Fl_Widget* widget, void*);
@@ -465,15 +467,11 @@ MainWindow::MainWindow(int sspw, int ssph, const char* l) :
     m_mbar{0, 0, sspw, 30},
     m_ssp{ new ScreenSpace{0, MENUBAR_H, sspw, ssph, this} }
 {
-    make_current();
-    m_mbar.menu(menutable);
-    add(m_mbar);
-    add(m_ssp);
-} // MainWindow
+    std::cout << "New\n";
+}
 
-MainWindow::~MainWindow()
+void save_cb(Fl_Widget* widget, void*)
 {
-    delete m_ssp;
 }
 
 void pan_state_cb(Fl_Widget* widget, void*)

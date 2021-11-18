@@ -88,8 +88,19 @@ class MainWindow : public Fl_Double_Window {
 public:
     MainWindow(int sspw, int ssph, const char* l = "");
     ~MainWindow();
+	void set_mode();
+	void set_draw_state();
+
+	/* Widgets */
+    Fl_Menu_Item* menutable;
+    Fl_Menu_Bar menubar;
+	ScreenSpace* screensp;
 private:
-    Fl_Menu_Bar m_mbar;
-    ScreenSpace* m_ssp;
+	/* States*/
+	ib::mode m_mode_state = ib::mode::default;
+	ib::draw m_draw_state = ib::draw::line;
+
+	std::vector<sShape*> m_shapes;
+
 };
 

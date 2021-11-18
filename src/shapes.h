@@ -44,6 +44,11 @@ struct sRect : public sShape {
     std::string type() override { return std::string{"rect"}; };
 };
 
+struct sRect : public sShape {
+	sRect();
+	void draw_shape() override;
+};
+
 //enum class obj_type {
 //	POLYGON,
 //	POLYMESH,
