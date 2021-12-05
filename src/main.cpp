@@ -1,5 +1,3 @@
-#include "InkBreakerConfig.h"
-
 #include <iostream>
 #include <clocale>
 #include <sstream>
@@ -241,16 +239,19 @@ void saveas_cb() {
         if (ext_val == 0) {
             if (!fileext || (strcmp(fileext, ".sqlite3") && strcmp(fileext, ".sqlite") && strcmp(fileext, ".db"))) {
                 strcat_s(glob_filename, sizeof(glob_filename), ".sqlite3");
-                save_file(glob_filename);
+                save_file();
             }
         }
         else {
-            save_file(glob_filename);
+            save_file();
         }
 
         std::cout << "FILE_NAME: " << glob_filename << '\n';
     }
 }
+
+
+
 
 void quit_cb(Fl_Widget* widget, void*)
 {

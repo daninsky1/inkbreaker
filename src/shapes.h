@@ -9,7 +9,7 @@
 
 struct Point_i { int x, y; };
 
-struct Vector { double x, y; };
+struct Vector { float x, y; };
 
 struct sShape;
 struct sNode {
@@ -44,10 +44,6 @@ struct sRect : public sShape {
     std::string type() override { return std::string{"rect"}; };
 };
 
-struct sRect : public sShape {
-	sRect();
-	void draw_shape() override;
-};
 
 //enum class obj_type {
 //	POLYGON,

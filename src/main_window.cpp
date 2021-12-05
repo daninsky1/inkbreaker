@@ -1,5 +1,8 @@
-#include "InkBreakerConfig.h"
+#define INKBREAKER_VERSION_MAJOR 0
+#define INKBREAKER_VERSION_MINOR 0
+#define INKBREAKER_VERSION_PATCH 1
 
+#include <math.h>
 #include "main_window.h"
 
 void line_state_cb(Fl_Widget* widget, void*) {}
@@ -23,21 +26,18 @@ void about_cb(Fl_Widget* widget, void*)
 void clear_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mw = static_cast<MainWindow*>(mwv);
-    mw->screensp->clear();
-
 }
 void pan_state_cb(Fl_Widget* widget, void*);
 void zoom_state_cb(Fl_Widget* widget, void*);
 
-
-Fl_Menu_Item menutable[] = {
+Fl_Menu_Item menu_items[] = {
     { "INKBREAKER", 0, (Fl_Callback*)about_cb, nullptr, FL_MENU_INACTIVE },
     { "&File",      0, nullptr, nullptr, FL_SUBMENU },
         { "&New",        FL_COMMAND + 'n', (Fl_Callback*)new_cb },
         { "&Save",       FL_COMMAND + 's', (Fl_Callback*)save_cb },
         { "&Save as...", FL_COMMAND + FL_ALT + 's', (Fl_Callback*)saveas_cb },
         { "Quit", FL_COMMAND + 'q', (Fl_Callback*)quit_cb },
-    { 0 },
+        { 0 },
     // TODO: Implement procedural texture generation after deployment to image support
     /*
     { "Generators", 0, nullptr, nullptr, FL_SUBMENU },
@@ -60,9 +60,21 @@ Fl_Menu_Item menutable[] = {
     { 0 }
 };
 
-ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* win) :
+//void draw_msg(char *msg, float wsxf, float wsyf, int fnt_sz, float scale)
+//{
+//	fl_font(FL_TIMES_BOLD_ITALIC, static_cast<Fl_Fontsize>(fnt_sz*scale));
+//
+//    // world space text float
+//    // screen space text int
+//	int ssxi, ssyi;
+//	world_to_scr(wsxf, wsxf, ssxi, ssyi);
+//	fl_draw(msg, ssxi, ssyi);
+//}
+
+
+ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* wnd) :
 	Fl_Box{ wdx, wdy, wdw, wdh },
-	m_win{ win },
+	m_wnd{ wnd },
 	m_sspw{ wdw }, m_ssph{ wdh }
 {
 	// LOG
@@ -83,7 +95,7 @@ void ScreenSpace::draw()
 	fl_rectf(wdx , wdy, wdw, wdh);
 	// DRAW BACKGROUND
 	fl_begin_offscreen(m_screen_buffer);
-	fl_color(FL_DARK_RED);
+	fl_color(FL_DARK3);
 	fl_rectf(m_sspx, m_sspy, m_sspw, m_ssph);
 	// DRAW GRID
 	// TODO: IMPLEMENT GRID
@@ -124,7 +136,7 @@ void ScreenSpace::draw()
 	fl_line_style(FL_SOLID, 2*(int)m_scale);
 	fl_begin_line();
 	for (float i = 0; i < w(); i += 0.1f) {
-		Vector wv{ i, std::sin(i * (0.5 * 0.1)) * 50 };	// world vector
+		Vector wv{ i, std::sin(i * (0.5f * 0.1f)) * 50 };	// world vector
 		int sx, sy;
 		world_to_scr(wv, sx, sy);
 		
@@ -132,15 +144,6 @@ void ScreenSpace::draw()
 	}
 	fl_end_line();
 
-	/* TE AMO MSG
-	fl_font(FL_TIMES_BOLD_ITALIC, 50.0f*m_scale);
-
-	float tx = static_cast<float>(w() / 2);
-	float ty = static_cast<float>(h() / 2);
-	int stx, sty;
-	world_to_scr(tx, ty, stx, sty);
-	fl_draw("TE AMO !!!", stx, sty);
-	*/
 
 	// GRID
 	// TODO: IMPLEMENT GRID OBJECT
@@ -176,6 +179,15 @@ void ScreenSpace::draw()
 		fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
 	}
 	*/
+    // DRAW SNAP CURSOR
+    fl_color(FL_WHITE);
+    int snap_x;
+    int snap_y;
+    world_to_scr(m_mouse_world_snap_pos, snap_x, snap_y);
+    if (m_scale >= 1.0f) {
+        fl_circle(snap_x, snap_y, 1);
+        //fl_rect(snap_x - grid_snap_interval, snap_y - grid_snap_interval, snap_x + grid_snap_interval, snap_y + grid_snap_interval);
+    }
 
 	fl_end_offscreen();
 
@@ -185,42 +197,56 @@ void ScreenSpace::draw()
 	}
 	fl_copy_offscreen(wdx, wdy, wdw, wdh, m_screen_buffer, 0, 0);
 
+
+    // NOTE(daniel): Drawing outsize the offscreen buffer occur in drawing in
+    // the window space coordinates, the drawing only show in the widget but,
+    // again, coordinates are in window space
+
+
 	fl_color(FL_WHITE);
 	int font = FL_COURIER;
 	int font_sz = 14;
 	fl_font(font, 15);
 
-	// SCREEN MESSAGENS
-	// mode
+	// SCREEN DEBUG INFO
 	int pad = 10;
-	fl_draw(m_md_scr_msg.c_str(), wdx+pad, h()+y() - pad - fl_height(font, font_sz)*2);
 	// screen mouse position
-	std::string mouse_coor;
-	mouse_coor.append("mouse screen x: ");
-	mouse_coor.append(std::to_string(m_mouse_scr_pos.x));
-	mouse_coor.append(" y: ");
-	mouse_coor.append(std::to_string(m_mouse_scr_pos.y));
-	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz));
-	// world mouse position
-	mouse_coor = "";
-	mouse_coor.append("mouse world x: ");
-	mouse_coor.append(std::to_string(m_mouse_world_pos.x));
-	mouse_coor.append(" y: ");
-	mouse_coor.append(std::to_string(m_mouse_world_pos.y));
-	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad);
-
-	// LOG
 	std::stringstream ss_log;
 	ss_log << std::fixed;
-	ss_log << "ScreenSpace Size: " << '(' << m_ssph << " x " << m_sspw << ')';
-	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz));
+	ss_log << "ScreenSpace Size: " << '(' << m_sspw << " x " << m_ssph << ')';
+	fl_draw(ss_log.str().c_str(), wdx + pad, wdy + fl_height(font, font_sz));
 	ss_log.str(std::string{""});
 	ss_log.str("");
-	ss_log << "World Offset: " << '(' << m_off.x << " x " << m_off.y << ')';
-	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz) * 2);
+	ss_log << "World Offset: " << '(' << m_off.x << " ," << m_off.y << ')';
+	fl_draw(ss_log.str().c_str(), wdx + pad, wdy + fl_height(font, font_sz) * 2);
 	ss_log.str("");
-	ss_log << "Scale Factor:" << m_scale;
-	fl_draw(ss_log.str().c_str(), wdx, wdy + fl_height(font, font_sz) * 3);
+	ss_log << "Scale: " << m_scale;
+	fl_draw(ss_log.str().c_str(), wdx + pad, wdy + fl_height(font, font_sz) * 3);
+
+	// mode
+	fl_draw(m_md_scr_msg.c_str(), wdx+pad, h()+y() - pad - fl_height(font, font_sz)*4);
+	std::string mouse_coor;
+	mouse_coor.append("mouse screen (");
+	mouse_coor.append(std::to_string(m_mouse_scr_pos.x));
+	mouse_coor.append(" ,");
+	mouse_coor.append(std::to_string(m_mouse_scr_pos.y));
+	mouse_coor.append(")");
+	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz)*3);
+	// world mouse position
+	mouse_coor = "";
+	mouse_coor.append("mouse world (");
+	mouse_coor.append(std::to_string(m_mouse_world_pos.x));
+	mouse_coor.append(" ,");
+	mouse_coor.append(std::to_string(m_mouse_world_pos.y));
+	mouse_coor.append(" )");
+	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz)*2);
+	ss_log.str("");
+	ss_log << "mouse world snap: (" << m_mouse_world_snap_pos.x << ", " << m_mouse_world_snap_pos.y << ')';
+	fl_draw(ss_log.str().c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz));
+	ss_log.str("");
+	ss_log << "mouse screen snap: (" << snap_x << ", " << snap_y << ')';
+	fl_draw(ss_log.str().c_str(), wdx + pad, h() + y() - pad);
+
 }
 
 int ScreenSpace::handle(int evt)
@@ -251,25 +277,25 @@ int ScreenSpace::handle(int evt)
 			switch (key_code) {
 			case 'z':
 				std::cout << "ZOOM_MODE\n";
-				m_lm_state = mode::zoom;
+				m_lm_state = Mode::zoom;
 				m_md_scr_msg = "zoom";
 				redraw();
 				break;
 			case 'h': case ' ':
 				std::cout << "DRAG_MODE\n";
-				m_lm_state = mode::pan;
+				m_lm_state = Mode::pan;
 				m_md_scr_msg = "pan";
 				redraw();
 				break;
 			case 'l':
 				std::cout << "DRAW_MODE\n";
-				m_lm_state = mode::draw;
+				m_lm_state = Mode::draw;
 				m_md_scr_msg = "draw";
 				redraw();
 				break;
 			case '0':
 				std::cout << "ZERO_MODE\n";
-				m_lm_state = mode::default;
+				m_lm_state = Mode::select;
 				m_md_scr_msg = "default";
 				redraw();
 				break;
@@ -303,12 +329,20 @@ int ScreenSpace::handle(int evt)
 		m_mouse_scr_pos.x = Fl::event_x() - x();
 		m_mouse_scr_pos.y = Fl::event_y() - y();
 		scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+
+        if (m_scale >= 1.0f) {
+            //m_mouse_world_snap_pos.x = round((m_mouse_world_pos.x) * grid_snap_interval);
+            //m_mouse_world_snap_pos.y = round((m_mouse_world_pos.y) * grid_snap_interval);
+            m_mouse_world_snap_pos.x = floorf((m_mouse_world_pos.x + 0.5f) * grid_snap_interval);
+            m_mouse_world_snap_pos.y = floorf((m_mouse_world_pos.y + 0.5f) * grid_snap_interval);
+        }
+
 		redraw();
 		ret = 1;
 		break;
 	case FL_PUSH:
 		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			m_win->cursor(FL_CURSOR_MOVE);
+			m_wnd->cursor(FL_CURSOR_MOVE);
 		}
 		m_drag_sx = (float)Fl::event_x_root();
 		m_drag_sy = (float)Fl::event_y_root();
@@ -317,13 +351,13 @@ int ScreenSpace::handle(int evt)
 		break;
 	case FL_DRAG:
 		if (m_drag_state) {
-			if ((Fl::event_button() == FL_MIDDLE_MOUSE) || m_lm_state == mode::pan) {
+			if ((Fl::event_button() == FL_MIDDLE_MOUSE) || m_lm_state == Mode::pan) {
 				pan();
 			}
-			else if (m_lm_state == mode::zoom) {
+			else if (m_lm_state == Mode::zoom) {
 				zoom();
 			}
-			else if (m_lm_state == mode::draw) {
+			else if (m_lm_state == Mode::draw) {
 				draw_line();
 			}
 			redraw();
@@ -331,7 +365,7 @@ int ScreenSpace::handle(int evt)
 		ret = 1;
 		break;
 	case FL_RELEASE:
-		m_win->cursor(FL_CURSOR_DEFAULT);
+		m_wnd->cursor(FL_CURSOR_DEFAULT);
 		m_drag_state = false;
 		ret = 1;
 		break;
@@ -345,11 +379,11 @@ int ScreenSpace::handle(int evt)
 
 		int wheel_state = Fl::event_dy();
 		if (wheel_state < 1) {
-			m_scale *= (1.0f + m_scale_sens);
+			m_scale *= (1.0f + m_zooming_factor);
 			redraw();
 		}
 		else if (wheel_state > 0) {
-			m_scale *= (1.0f - m_scale_sens);
+			m_scale *= (1.0f - m_zooming_factor);
 			redraw();
 		}
 
@@ -358,6 +392,7 @@ int ScreenSpace::handle(int evt)
 
 		m_off.x += (mouse_bf_world.x - mouse_af_world.x);
 		m_off.y += (mouse_bf_world.y - mouse_af_world.y);
+
 		ret = 1;
 		break;
 	}
@@ -365,7 +400,7 @@ int ScreenSpace::handle(int evt)
 		break;
 	}
 
-	if (m_lm_state == mode::draw) {
+	if (m_lm_state == Mode::draw) {
 		switch (evt) {
 		case FL_PUSH:
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
@@ -425,10 +460,10 @@ void ScreenSpace::pan()
 	m_drag_sy = update_mouse_y;
 	// BUG
 	if (m_drag_constraint) {
-		if (m_off.x < -w()) m_off.x = -w();
-		else if (m_off.x > m_sspw) m_off.x = m_sspw;
-		if (m_off.y < -h()) m_off.y = -h();
-		else if (m_off.y > m_ssph) m_off.y = m_ssph;
+		if (m_off.x < -w()) m_off.x = static_cast<float>(-w());
+		else if (m_off.x > m_sspw) m_off.x = static_cast<float>(m_sspw);
+		if (m_off.y < -h()) m_off.y = static_cast<float>(-h());
+		else if (m_off.y > m_ssph) m_off.y = static_cast<float>(m_ssph);
 	}
 }
 
@@ -459,15 +494,14 @@ void ScreenSpace::draw_line()
 
 }
 
-
-constexpr int MENUBAR_H = 30;
+constexpr int MENU_BAR_H = 30;
 
 MainWindow::MainWindow(int sspw, int ssph, const char* l) :
-    Fl_Double_Window{ sspw, MENUBAR_H+ssph, l },
-    m_mbar{0, 0, sspw, 30},
-    m_ssp{ new ScreenSpace{0, MENUBAR_H, sspw, ssph, this} }
+    Fl_Double_Window{ sspw, MENU_BAR_H+ssph, l },
+    menu_bar{0, 0, sspw, MENU_BAR_H},
+    screensp{ new ScreenSpace{0, MENU_BAR_H, sspw, ssph, this} }
 {
-    std::cout << "New\n";
+    menu_bar.menu(menu_items);
 }
 
 void save_cb(Fl_Widget* widget, void*)
@@ -482,3 +516,5 @@ void pan_state_cb(Fl_Widget* widget, void*)
 void zoom_state_cb(Fl_Widget* widget, void*)
 {
 }
+
+
