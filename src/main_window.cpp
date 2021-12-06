@@ -75,11 +75,10 @@ Fl_Menu_Item menu_items[] = {
 
 ScreenSpace::ScreenSpace(int x, int y, int w, int h, Fl_Double_Window* wnd) :
 	Fl_Box{ x, y, w, h },
-	m_wnd{ wnd },
-	m_sspw{ w }, m_ssph{ h }
+	m_wnd{ wnd }
 {
     scr_buf = fl_create_offscreen(w, h);
-    scr_buf_scale = Fl_Graphics_Driver::default_driver().scale();
+    fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     ssx = x; ssy = y;
     ssw = w; ssh = h;
 } // ScreenSpace
@@ -101,14 +100,14 @@ void ScreenSpace::draw()
         scr_buf = fl_create_offscreen(ssw, ssh);
     }
 
-    if (scr_buf_scale != Fl_Graphics_Driver::default_driver().scale()) {
+    if (fl_offscr_scale != Fl_Graphics_Driver::default_driver().scale()) {
         // the screen scaling factor has changed
         fl_rescale_offscreen(scr_buf);
-        scr_buf_scale = Fl_Graphics_Driver::default_driver().scale();
+        fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     }
     
-	sShape::world_offset = m_off;
-	sShape::world_scale = m_scale;
+	sShape::world_offset = world_offset;
+	sShape::world_scale = world_scale;
 
     fl_begin_offscreen(scr_buf);
 	// DRAW WORLD BACKGROUND
@@ -150,7 +149,7 @@ void ScreenSpace::draw()
 
 	// TODO: A RENDER QUEUE here
 	fl_color(FL_WHITE);
-	fl_line_style(FL_SOLID, 2*(int)m_scale);
+	fl_line_style(FL_SOLID, 2*(int)world_scale);
 	fl_begin_line();
 	for (float i = 0; i < w(); i += 0.1f) {
 		Vector wv{ i, std::sin(i * (0.5f * 0.1f)) * 50 };	// world vector
@@ -167,7 +166,7 @@ void ScreenSpace::draw()
 	// // TODO: IMPLEMENT GRID OBJECT
 	// /*
 	// * 
-	// fl_line_style(FL_SOLID, 2.0f*m_scale);
+	// fl_line_style(FL_SOLID, 2.0f*world_scale);
 	// // horizontal lines
 	// float gridx = 100.0f, gridy = 100.0f;
 	// for (double y = 0.0; y <= gridy; y+=gridy/10.0) {
@@ -202,14 +201,14 @@ void ScreenSpace::draw()
     fl_color(FL_WHITE);
     int snap_x;
     int snap_y;
-    world_to_scr(m_mouse_world_snap_pos, snap_x, snap_y);
+    world_to_scr(snap_mouse_world_pos, snap_x, snap_y);
     fl_line_style(FL_SOLID, 1);
 
-    if (m_scale >= 1.0f && m_scale < 15.0f) {
+    if (world_scale >= 1.0f && world_scale < 15.0f) {
         //fl_point(snap_x + ssx, snap_y + ssy);
         fl_point(snap_x, snap_y);
     }
-    else if (m_scale >= 15.0f) {
+    else if (world_scale >= 15.0f) {
         //fl_circle(snap_x + ssx, snap_y + ssy, 5);
         fl_circle(snap_x, snap_y, 5);
     }
@@ -232,10 +231,10 @@ void ScreenSpace::draw()
 	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz));
 	ss_log.str(std::string{""});
 	ss_log.str("");
-	ss_log << "World Offset: " << '(' << m_off.x << " ," << m_off.y << ')';
+	ss_log << "World Offset: " << '(' << world_offset.x << " ," << world_offset.y << ')';
 	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz) * 2);
 	ss_log.str("");
-	ss_log << "Scale: " << m_scale;
+	ss_log << "Scale: " << world_scale;
 	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz) * 3);
 
 	// mode
@@ -256,7 +255,7 @@ void ScreenSpace::draw()
 	mouse_coor.append(" )");
 	fl_draw(mouse_coor.c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz)*2);
 	ss_log.str("");
-	ss_log << "mouse world snap: (" << m_mouse_world_snap_pos.x << ", " << m_mouse_world_snap_pos.y << ')';
+	ss_log << "mouse world snap: (" << snap_mouse_world_pos.x << ", " << snap_mouse_world_pos.y << ')';
 	fl_draw(ss_log.str().c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz));
 	ss_log.str("");
 	ss_log << "mouse screen snap: (" << snap_x << ", " << snap_y << ')';
@@ -352,11 +351,9 @@ int ScreenSpace::handle(int evt)
 		m_mouse_scr_pos.y = Fl::event_y() - y();
 		scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
 
-        if (m_scale >= 1.0f) {
-            //m_mouse_world_snap_pos.x = round((m_mouse_world_pos.x) * grid_snap_interval);
-            //m_mouse_world_snap_pos.y = round((m_mouse_world_pos.y) * grid_snap_interval);
-            m_mouse_world_snap_pos.x = floorf((m_mouse_world_pos.x + 0.5f) * grid_snap_interval);
-            m_mouse_world_snap_pos.y = floorf((m_mouse_world_pos.y + 0.5f) * grid_snap_interval);
+        if (world_scale >= 1.0f) {
+            snap_mouse_world_pos.x = floorf((m_mouse_world_pos.x + 0.5f) * grid_snap_interval);
+            snap_mouse_world_pos.y = floorf((m_mouse_world_pos.y + 0.5f) * grid_snap_interval);
         }
 
 		redraw();
@@ -366,29 +363,38 @@ int ScreenSpace::handle(int evt)
 		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
 			m_wnd->cursor(FL_CURSOR_MOVE);
 		}
-		m_drag_sx = (float)Fl::event_x_root();
-		m_drag_sy = (float)Fl::event_y_root();
-		m_drag_state = true;
+		drag_sx = (float)Fl::event_x_root();
+		drag_sy = (float)Fl::event_y_root();
+		is_dragging = true;
 		ret = 1;
 		break;
-	case FL_DRAG:
-		if (m_drag_state) {
+	case FL_DRAG: {
+		if (is_dragging) {
 			if ((Fl::event_button() == FL_MIDDLE_MOUSE) || m_lm_state == Mode::pan) {
 				pan();
 			}
 			else if (m_lm_state == Mode::zoom) {
-				zoom();
+                float update_mouse_x = static_cast<float>(Fl::event_x_root());
+                float drag_dist_pix = (update_mouse_x - drag_sx);
+                float scale_factor_per_pixel = drag_dist_pix * zooming_sens;
+                float scale_factor_percent = scale_factor_per_pixel + 1.0f;
+
+				zoom(ssw / 2, ssh / 2, scale_factor_percent);
+
+                printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
+                drag_sx = update_mouse_x;
 			}
 			else if (m_lm_state == Mode::draw) {
 				draw_create_shape();
 			}
-			redraw();
+            else
+                redraw();
 		}
 		ret = 1;
-		break;
+    } break;
 	case FL_RELEASE:
 		m_wnd->cursor(FL_CURSOR_DEFAULT);
-		m_drag_state = false;
+		is_dragging = false;
 		ret = 1;
 		break;
 	case FL_MOUSEWHEEL:
@@ -396,34 +402,19 @@ int ScreenSpace::handle(int evt)
 		int mouse_x = Fl::event_x() - x();
 		int mouse_y = Fl::event_y() - y();
 
-		Vector mouse_bf_world;		// mouse coordinates on the world before zoom	
-		scr_to_world(mouse_x, mouse_y, mouse_bf_world);
-
 		int wheel_state = Fl::event_dy();
+        float scale_factor_percent = 0.0f;
 		if (wheel_state < 1) {
-            m_scale *= (1.0f + zooming_factor);
-            if (m_scale > max_zoom) {
-                m_scale = max_zoom;
-            }
-            redraw();
+            scale_factor_percent = 1.0f + zooming_factor;
 		}
 		else if (wheel_state > 0) {
-            m_scale *= (1.0f - zooming_factor);
-            redraw();
-            if (m_scale < min_zoom) {
-                m_scale = min_zoom;
-            }
+            scale_factor_percent = 1.0f - zooming_factor;
 		}
 
-		Vector mouse_af_world;
-		scr_to_world(mouse_x, mouse_y, mouse_af_world);
-
-		m_off.x += (mouse_bf_world.x - mouse_af_world.x);
-		m_off.y += (mouse_bf_world.y - mouse_af_world.y);
+        zoom(mouse_x, mouse_y, scale_factor_percent);
 
 		ret = 1;
-		break;
-	}
+	} break;
 	default:
 		break;
 	}
@@ -458,7 +449,7 @@ int ScreenSpace::handle(int evt)
 				if (m_selected_node == nullptr) m_shapes.push_back(m_temp_shape);
 			}
 			ret = 1;
-			break;
+            break;
 		}
 	}
 
@@ -467,14 +458,14 @@ int ScreenSpace::handle(int evt)
 
 void ScreenSpace::world_to_scr(Vector world, int& scrx, int& scry)
 {
-	scrx = static_cast<int>((world.x - m_off.x) * m_scale);
-	scry = static_cast<int>((world.y - m_off.y) * m_scale);
+	scrx = static_cast<int>((world.x - world_offset.x) * world_scale);
+	scry = static_cast<int>((world.y - world_offset.y) * world_scale);
 }
 
 void ScreenSpace::scr_to_world(int scrx, int scry, Vector& world)
 {
-	world.x = static_cast<float>(scrx) / m_scale + m_off.x;
-	world.y = static_cast<float>(scry) / m_scale + m_off.y;
+	world.x = static_cast<float>(scrx) / world_scale + world_offset.x;
+	world.y = static_cast<float>(scry) / world_scale + world_offset.y;
 }
 
 void ScreenSpace::draw_create_shape()
@@ -487,37 +478,35 @@ void ScreenSpace::pan()
 	float update_mouse_x = static_cast<float>(Fl::event_x_root());
 	float update_mouse_y = static_cast<float>(Fl::event_y_root());
 	// drag difference
-	m_off.x -= (update_mouse_x - m_drag_sx) / m_scale;
-	m_off.y -= (update_mouse_y - m_drag_sy) / m_scale;
-	m_drag_sx = update_mouse_x;
-	m_drag_sy = update_mouse_y;
+	world_offset.x -= (update_mouse_x - drag_sx) / world_scale;
+	world_offset.y -= (update_mouse_y - drag_sy) / world_scale;
+	drag_sx = update_mouse_x;
+	drag_sy = update_mouse_y;
 	// BUG
 	if (m_drag_constraint) {
-		if (m_off.x < -w()) m_off.x = static_cast<float>(-w());
-		else if (m_off.x > m_sspw) m_off.x = static_cast<float>(m_sspw);
-		if (m_off.y < -h()) m_off.y = static_cast<float>(-h());
-		else if (m_off.y > m_ssph) m_off.y = static_cast<float>(m_ssph);
+		if (world_offset.x < -w()) world_offset.x = static_cast<float>(-w());
+		else if (world_offset.x > ssw) world_offset.x = static_cast<float>(ssw);
+		if (world_offset.y < -h()) world_offset.y = static_cast<float>(-h());
+		else if (world_offset.y > ssh) world_offset.y = static_cast<float>(ssh);
 	}
+    redraw();
 }
 
-void ScreenSpace::zoom()
+void ScreenSpace::zoom(int focusx, int focusy, float scale_factor_percent)
 {
-	int sx = 340;
-	int sy = 180;
-	Vector bf_center_axis;
-	scr_to_world(sx, sy, bf_center_axis);
+    Vector bf_center_axis;
+	scr_to_world(focusx, focusy, bf_center_axis);
 
-	// TODO: bug, scale according to percentage
-	float update_mouse_x = static_cast<float>(Fl::event_x_root());
-	m_scale += (update_mouse_x - m_drag_sx) * (m_scale_sens / 20.0f);
-	m_drag_sx = update_mouse_x;
-	redraw();
+	world_scale *= scale_factor_percent;
+    
+    if (world_scale < min_zoom) world_scale = min_zoom;
+    else if (world_scale > max_zoom) world_scale = max_zoom;
 
 	Vector af_center_axis;
-	scr_to_world(sx, sy, af_center_axis);
+	scr_to_world(focusx, focusy, af_center_axis);
 
-	m_off.x += (bf_center_axis.x - af_center_axis.x);
-	m_off.y += (bf_center_axis.y - af_center_axis.y);
+	world_offset.x += (bf_center_axis.x - af_center_axis.x);
+	world_offset.y += (bf_center_axis.y - af_center_axis.y);
 
 	redraw();
 }

@@ -7,7 +7,7 @@
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 
-struct Point_i { int x, y; };
+struct Pointi { int x, y; };
 
 struct Vector { float x, y; };
 
