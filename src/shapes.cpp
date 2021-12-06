@@ -12,6 +12,7 @@ std::ostream& operator<<(std::ostream& os, const Vector& v)
 //	return os << line.get_a() << ", " << line.get_b() << " ----";
 //}
 
+
 double sShape::world_scale{ 1.0 };
 Vector sShape::world_offset{ 0.0, 0.0 };
 
@@ -55,8 +56,9 @@ void sLine::draw_shape()
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
     world_to_scr(nodes[1].pos, ex, ey);
-    fl_color(FL_DARK_GREEN);
-    fl_line_style(FL_SOLID, 2*(int)world_scale);
+    fl_color(sinfo.line_color);
+    fl_line_style(FL_SOLID, sinfo.line_width*(int)world_scale);
+    //fl_line_style(FL_SOLID, 2);
     fl_line(sx, sy, ex, ey);
 }
 
@@ -72,9 +74,20 @@ void sRect::draw_shape()
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
     world_to_scr(nodes[1].pos, ex, ey);
-    fl_color(FL_DARK_GREEN);
-    fl_line_style(FL_SOLID, 2);
-    fl_rect(sx, sy, ex-sx, ey-sy);
+
+    fl_color(sinfo.fill_color);
+    fl_rectf(sx, sy, ex-sx, ey-sy, sinfo.fill_color);
+
+    // NOTE(daniel): The straing foward fl_rect() do not apply the miter state.
+    // The work around is pretty simple use line loop.
+
+    fl_color(sinfo.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_begin_loop();
+    fl_vertex(sx, sy); fl_vertex(ex, sy);
+    fl_vertex(ex, ey); fl_vertex(sx, ey);
+    fl_vertex(sx, sy);
+    fl_end_loop();
 }
 
 sCircle::sCircle()
@@ -89,8 +102,20 @@ void sCircle::draw_shape()
     world_to_scr(nodes[0].pos, sx, sy);
     world_to_scr(nodes[1].pos, ex, ey);
     float r = sqrtf((float)pow((sx-ex), 2) + (float)pow((sy-ey), 2));
-    fl_color(FL_MAGENTA);
-    fl_line_style(FL_SOLID, 2*(int)world_scale);
-    fl_circle((float)sx, (float)sy, r);
+
+    // NOTE(daniel): FLTK seems to have a bug with color assigning stores fill
+    // color state bleeds to the fl_circle() shape that has no fill. The work
+    // around is pretty simple use loop to do the line.
+
+    fl_color(sinfo.fill_color);
+    fl_begin_polygon();
+    fl_arc((float)sx, (float)sy, r, 0, 360);
+    fl_end_polygon();
+
+    fl_color(sinfo.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_begin_loop();
+    fl_arc((float)sx, (float)sy, r, 0, 360);
+    fl_end_loop();
 }
 

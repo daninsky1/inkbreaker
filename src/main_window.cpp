@@ -48,6 +48,20 @@ void circle_state_cb(Fl_Widget* widget, void* mwv)
     mwnd->v2d->state.draw = Draw::circle;
 }
 
+void set_line_color_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    Fl_Color oldcl = mwnd->v2d->sinfo.line_color;
+    Fl_Color c = fl_show_colormap(FL_BLACK);
+    mwnd->v2d->sinfo.line_color = c;
+}
+void set_fill_color_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    Fl_Color oldcl = mwnd->v2d->sinfo.fill_color;
+    Fl_Color c = fl_show_colormap(FL_BLACK);
+    mwnd->v2d->sinfo.fill_color = c;
+}
 
 Fl_Menu_Item menu_items[] = {
     { "INKBREAKER", 0, (Fl_Callback*)about_cb, nullptr, FL_MENU_INACTIVE },
@@ -58,24 +72,36 @@ Fl_Menu_Item menu_items[] = {
         { "Quit", FL_COMMAND + 'q', (Fl_Callback*)quit_cb },
         { 0 },
     // TODO: Implement procedural texture generation after deployment to image support
+    // called InkBlend
     /*
-    { "Generators", 0, nullptr, nullptr, FL_SUBMENU },
+    { "InkBlend", 0, nullptr, nullptr, FL_SUBMENU },
         { "Blank", 0, (Fl_Callback*)blank_cb},
         { "Line Splash Animation", 0, (Fl_Callback*)perlin_noise_anim_cb },
         { "Perlin Noise Animation", 0, (Fl_Callback*)perlin_noise_anim_cb },
         { 0 },
     */
+    { "Mode", 0, nullptr, nullptr, FL_SUBMENU },
+        { "Pan", 0, (Fl_Callback*)pan_state_cb},
+        { "Zoom", 0, (Fl_Callback*)zoom_state_cb},
+        { 0 },
     { "View", 0, nullptr, nullptr, FL_SUBMENU },
         { "Grid", 0, (Fl_Callback*)pan_state_cb},
         { 0 },
-    { "State", 0, nullptr, nullptr, FL_SUBMENU },
-        { "Pan", 0, (Fl_Callback*)pan_state_cb},
-        { "Zoom", 0, (Fl_Callback*)zoom_state_cb},
-        { "Draw", 0, nullptr, nullptr, FL_SUBMENU},
-            { "Line", 0, (Fl_Callback*)line_state_cb},
-            { "Rectangle", 0, (Fl_Callback*)rect_state_cb},
-            { "Circle", 0, (Fl_Callback*)circle_state_cb},
-            { 0 },
+    { "Draw", 0, nullptr, nullptr, FL_SUBMENU },
+        { "Line", 0, (Fl_Callback*)line_state_cb},
+        { "Rectangle", 0, (Fl_Callback*)rect_state_cb},
+        { "Circle", 0, (Fl_Callback*)circle_state_cb},
+        { 0 },
+    { "Shape Style", 0, nullptr, nullptr, FL_SUBMENU },
+    //    { "Line Width", 0, nullptr, nullptr, FL_SUBMENU },
+    //        { "1", 0, (Fl_Callback*)set_line_width_cb },
+    //        { "2", 0, (Fl_Callback*)set_line_width_cb },
+    //        { "3", 0, (Fl_Callback*)set_line_width_cb },
+    //        { "4", 0, (Fl_Callback*)set_line_width_cb },
+    //        { "5", 0, (Fl_Callback*)set_line_width_cb },
+    //        { 0 },
+        { "Line Color", 0, (Fl_Callback*)set_line_color_cb },
+        { "Fill Color", 0, (Fl_Callback*)set_fill_color_cb },
         { 0 },
     { "&Help", 0, nullptr, nullptr, FL_SUBMENU },
         { "Controls", 0, (Fl_Callback*)controls_cd },
@@ -147,24 +173,15 @@ void View2D::draw()
 	world_to_scr(ax, axx, axy);
 	fl_line_style(FL_SOLID, 1);
 	fl_color(FL_RED);
-	//fl_line(0 + ssx, axy + ssy, ssw + ssx, axy + ssy);
-	fl_line(0, axy, ssw, axy);
+	fl_line(axx, axy, ssw, axy);
 	fl_color(FL_GREEN);
-	//fl_line(axx + ssx, 0 + ssy, axx + ssx, ssh + ssy);
-	fl_line(axx, 0, axx, ssh);
+	fl_line(axx, axy, axx, ssh);
+	fl_line_style(FL_DOT, 1);
+	fl_color(FL_RED);
+	fl_line(0, axy, axx, axy);
+	fl_color(FL_GREEN);
+	fl_line(axx, 0, axx, axy);
 
-	// MY LINE
-	// /* HARDCODED sLine
-	// m_line = new sLine();
-	// m_line->get_next_node(Vector{ 0.0, 0.0 });
-	// m_line->get_next_node(Vector{ 100.0, 100.0 });
-	// */
-	// if (!m_shapes.empty()) {
-	// 	for (auto& shape : m_shapes) {
-	// 		shape->draw_shape();
-	// 		//shape->draw_nodes();
-	// 	}
-	// }
 
     // NOTE(daniel): Render queue
     for (int i = 0; i < shapes.size(); ++i) {
@@ -176,6 +193,8 @@ void View2D::draw()
 		//temp_shape->draw_nodes();
 	}
 
+    // NOTE(daniel): Sine wave
+    // TODO(daniel): Wrap this to a function
 	fl_color(FL_WHITE);
 	fl_line_style(FL_SOLID, 2*(int)world_scale);
 	fl_begin_line();
@@ -444,12 +463,18 @@ int View2D::handle(int evt)
 		switch (evt) {
 		case FL_PUSH:
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
-                if (state.draw == Draw::line)
+                if (state.draw == Draw::line) {
                     temp_shape = new sLine();
-                if (state.draw == Draw::rect)
+                    temp_shape->sinfo = sinfo;
+                }
+                if (state.draw == Draw::rect) {
                     temp_shape = new sRect();
-                if (state.draw == Draw::circle)
+                    temp_shape->sinfo = sinfo;
+                }
+                if (state.draw == Draw::circle) {
                     temp_shape = new sCircle();
+                    temp_shape->sinfo = sinfo;
+                }
 
 				// first node at location of left click
 				temp_shape->get_next_node(m_mouse_world_pos);
@@ -475,12 +500,12 @@ int View2D::handle(int evt)
 			if (is_drawing) {
 				m_selected_node = temp_shape->get_next_node(m_mouse_world_pos);
 				if (m_selected_node == nullptr) {
-                    printf("shape push_back");
+                    printf("shape push_back\n");
                     shapes.push_back(temp_shape);
                     temp_shape = nullptr;
                 }
                 else {
-                    printf("failed to store shape");
+                    printf("failed to store shape\n");
                 }
                 is_drawing = false;
 			}

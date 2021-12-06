@@ -12,6 +12,7 @@
 #include <FL/platform.H>
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.h>
+#include <FL/fl_show_colormap.H>
 #include <FL/Enumerations.H>
 
 #include "shapes.h"
@@ -68,7 +69,6 @@ public:
     View2D(int x, int y, int w, int h, Fl_Double_Window* wnd);
 
     void world_to_scr(Vector world, int &scrx, int &screeny);
-
     void scr_to_world(int scrx, int screeny, Vector& world);
 
     void draw();
@@ -96,7 +96,6 @@ public:
 
     View2DState state{ Mode::draw, Draw::circle };
 
-
     // NOTE(daniel): World in relation to the screen
     Vector world_offset{ 0.0, 0.0 };
     float world_scale{ 1.0f };
@@ -123,9 +122,7 @@ public:
     sShape* temp_shape{ nullptr };
 	std::vector<sShape*> shapes;
     sNode* m_selected_node{ nullptr };
-
-    // Canva main state sets the main canva scene manipulation mode(selecting, drawing, zooming, etc)
-    View2DState cv_main_state{Mode::select, Draw::line};
+    ShapeInfo sinfo{ 1, FL_WHITE, FL_BLUE };
 
     float max_zoom = 300.0f;
     float min_zoom = 0.001f;

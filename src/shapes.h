@@ -11,6 +11,13 @@
 struct Pointi { int x, y; };
 struct Vector { float x, y; };
 
+struct ShapeInfo {
+    // TODO(daniel): Add join method after selection is possible
+    int line_width;     // In pixels
+    Fl_Color line_color;
+    Fl_Color fill_color;
+};
+
 struct sShape;
 struct sNode {
 	sShape* parent;
@@ -19,6 +26,8 @@ struct sNode {
 
 struct sShape {
 	// TODO: REPLACE STD::VECTOR WITH STD::ARRAY
+    ShapeInfo sinfo{ 1, FL_WHITE, FL_BLACK };
+
 	std::vector<sNode> nodes;
 	uint32_t max_nodes = 0;
 
@@ -30,6 +39,8 @@ struct sShape {
 	sNode* get_next_node(const Vector& p);
 	void draw_nodes();
 	void world_to_scr(Vector& v, int& scrx, int& scry);
+
+    void set_shape_info(ShapeInfo si) { sinfo = si; };
 };
 
 struct sLine : public sShape {
