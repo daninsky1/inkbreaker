@@ -19,6 +19,17 @@
 // GLOBALS
 //
 static std::vector<sShape*> m_shapes;
+
+constexpr int V2D_DEFAULT_W = 680;
+constexpr int V2D_DEFAULT_H = 360;
+constexpr int MENU_BAR_H = 26;
+
+// TODO(daniel): The main window structure needs to be better thought
+struct MainWindowDefaultLayout {
+    int v2dw = V2D_DEFAULT_W;
+    int v2dh = V2D_DEFAULT_H;
+    int menu_bar_h = MENU_BAR_H;
+};
 //
 // CALLBACKS
 //
@@ -33,7 +44,8 @@ void clear_cb(Fl_Widget* widget, void*);
 //
 enum class Draw {
     line,
-    rect
+    rect,
+    circle
 };
 
 enum class Mode {
@@ -51,9 +63,9 @@ struct View2DState {
 // THE SCREEN CONTEXT
 //
 
-class ScreenSpace : public Fl_Box {
+class View2D : public Fl_Box {
 public:
-    ScreenSpace(int x, int y, int w, int h, Fl_Double_Window* wnd);
+    View2D(int x, int y, int w, int h, Fl_Double_Window* wnd);
 
     void world_to_scr(Vector world, int &scrx, int &screeny);
 
@@ -82,6 +94,8 @@ public:
     int ssx, ssy;
     int ssw, ssh;
 
+    View2DState state{ Mode::draw, Draw::circle };
+
 
     // NOTE(daniel): World in relation to the screen
     Vector world_offset{ 0.0, 0.0 };
@@ -105,8 +119,9 @@ public:
     float grid_snap_interval = pixel_size;
     float visual_grid_interval;
 
-    sShape* m_temp_shape{ nullptr };
-    sLine* m_line{ nullptr };
+    bool is_drawing = false;
+    sShape* temp_shape{ nullptr };
+	std::vector<sShape*> shapes;
     sNode* m_selected_node{ nullptr };
 
     // Canva main state sets the main canva scene manipulation mode(selecting, drawing, zooming, etc)
@@ -129,18 +144,20 @@ private:
 //
 class MainWindow : public Fl_Double_Window {
 public:
+    MainWindow();
     MainWindow(int sspw, int ssph, const char* l = "");
+
+    void set_menu_items_pointer();
 	void set_mode();
 	void set_draw_state();
 
 	/* Widgets */
-    Fl_Menu_Bar menu_bar;
-	ScreenSpace* canvas;
+    Fl_Menu_Bar *menu_bar;
+	View2D *v2d;
 
 	/* States*/
     Mode m_mode_state = Mode::select;
 
-	std::vector<sShape*> m_shapes;
 
 };
 

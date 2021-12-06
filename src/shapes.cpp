@@ -76,3 +76,21 @@ void sRect::draw_shape()
     fl_line_style(FL_SOLID, 2);
     fl_rect(sx, sy, ex-sx, ey-sy);
 }
+
+sCircle::sCircle()
+{
+    max_nodes = 2;
+    nodes.reserve(max_nodes);
+}
+
+void sCircle::draw_shape()
+{
+    int sx, sy, ex, ey;
+    world_to_scr(nodes[0].pos, sx, sy);
+    world_to_scr(nodes[1].pos, ex, ey);
+    float r = sqrtf((float)pow((sx-ex), 2) + (float)pow((sy-ey), 2));
+    fl_color(FL_MAGENTA);
+    fl_line_style(FL_SOLID, 2*(int)world_scale);
+    fl_circle((float)sx, (float)sy, r);
+}
+

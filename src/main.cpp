@@ -78,11 +78,7 @@ static char* glob_sql_shapes_schema = "CREATE TABLE vectorf("
     "REFERENCES vectorf(id));";
 
 
-
-constexpr int SSPW = 680;                 // ScreenSpace w, h
-constexpr int SSPH = 360;
-
-ScreenSpace* screen_space;
+View2D *view2d;
 
 int get_node_id(void*, int, char**, char**)
 {
@@ -259,7 +255,7 @@ void quit_cb(Fl_Widget* widget, void*)
 int main(void)
 {
     // window
-    MainWindow* main_wnd = new MainWindow{ SSPW, SSPH };
+    MainWindow* main_wnd = new MainWindow{ };
     main_wnd->show();
 
     return Fl::run();

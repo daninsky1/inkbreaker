@@ -5,7 +5,6 @@
 #include <math.h>
 #include "main_window.h"
 
-void line_state_cb(Fl_Widget* widget, void*) {}
 
 void controls_cd(Fl_Widget* widget, void*)
 {
@@ -25,10 +24,30 @@ void about_cb(Fl_Widget* widget, void*)
 
 void clear_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
 }
 void pan_state_cb(Fl_Widget* widget, void*);
 void zoom_state_cb(Fl_Widget* widget, void*);
+
+void line_state_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    mwnd->v2d->state.mode = Mode::draw;
+    mwnd->v2d->state.draw = Draw::line;
+}
+void rect_state_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    mwnd->v2d->state.mode = Mode::draw;
+    mwnd->v2d->state.draw = Draw::rect;
+}
+void circle_state_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    mwnd->v2d->state.mode = Mode::draw;
+    mwnd->v2d->state.draw = Draw::circle;
+}
+
 
 Fl_Menu_Item menu_items[] = {
     { "INKBREAKER", 0, (Fl_Callback*)about_cb, nullptr, FL_MENU_INACTIVE },
@@ -46,11 +65,16 @@ Fl_Menu_Item menu_items[] = {
         { "Perlin Noise Animation", 0, (Fl_Callback*)perlin_noise_anim_cb },
         { 0 },
     */
+    { "View", 0, nullptr, nullptr, FL_SUBMENU },
+        { "Grid", 0, (Fl_Callback*)pan_state_cb},
+        { 0 },
     { "State", 0, nullptr, nullptr, FL_SUBMENU },
         { "Pan", 0, (Fl_Callback*)pan_state_cb},
         { "Zoom", 0, (Fl_Callback*)zoom_state_cb},
         { "Draw", 0, nullptr, nullptr, FL_SUBMENU},
             { "Line", 0, (Fl_Callback*)line_state_cb},
+            { "Rectangle", 0, (Fl_Callback*)rect_state_cb},
+            { "Circle", 0, (Fl_Callback*)circle_state_cb},
             { 0 },
         { 0 },
     { "&Help", 0, nullptr, nullptr, FL_SUBMENU },
@@ -73,7 +97,7 @@ Fl_Menu_Item menu_items[] = {
 
 
 
-ScreenSpace::ScreenSpace(int x, int y, int w, int h, Fl_Double_Window* wnd) :
+View2D::View2D(int x, int y, int w, int h, Fl_Double_Window* wnd) :
 	Fl_Box{ x, y, w, h },
 	m_wnd{ wnd }
 {
@@ -81,14 +105,14 @@ ScreenSpace::ScreenSpace(int x, int y, int w, int h, Fl_Double_Window* wnd) :
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     ssx = x; ssy = y;
     ssw = w; ssh = h;
-} // ScreenSpace
+} // View2D
 
-void ScreenSpace::draw()
+void View2D::draw()
 {
     // NOTE(daniel): The drawing functions only works in a limited way, you can
     // only draw on the window coordinates, any other way to control some buffer
     // outside this coordinates in painful or show some artefacts and will not
-    // be implement for now, that said the only way is to pass the ScreenSpace
+    // be implement for now, that said the only way is to pass the View2D
     // widget offsets to every fltk draw function calls.
     
     if (ssw != w() || ssh != h()) {
@@ -142,12 +166,16 @@ void ScreenSpace::draw()
 	// 	}
 	// }
 
-	if (m_temp_shape) {
-		m_temp_shape->draw_shape();
-		//m_temp_shape->draw_nodes();
+    // NOTE(daniel): Render queue
+    for (int i = 0; i < shapes.size(); ++i) {
+        shapes[i]->draw_shape();
+    }
+
+	if (temp_shape) {
+		temp_shape->draw_shape();
+		//temp_shape->draw_nodes();
 	}
 
-	// TODO: A RENDER QUEUE here
 	fl_color(FL_WHITE);
 	fl_line_style(FL_SOLID, 2*(int)world_scale);
 	fl_begin_line();
@@ -204,12 +232,7 @@ void ScreenSpace::draw()
     world_to_scr(snap_mouse_world_pos, snap_x, snap_y);
     fl_line_style(FL_SOLID, 1);
 
-    if (world_scale >= 1.0f && world_scale < 15.0f) {
-        //fl_point(snap_x + ssx, snap_y + ssy);
-        fl_point(snap_x, snap_y);
-    }
-    else if (world_scale >= 15.0f) {
-        //fl_circle(snap_x + ssx, snap_y + ssy, 5);
+    if (world_scale >= 15.0f) {
         fl_circle(snap_x, snap_y, 5);
     }
 
@@ -227,7 +250,7 @@ void ScreenSpace::draw()
 	// screen mouse position
 	std::stringstream ss_log;
 	ss_log << std::fixed;
-	ss_log << "ScreenSpace Size: " << '(' << ssw << " x " << ssh << ')';
+	ss_log << "View2D Size: " << '(' << ssw << " x " << ssh << ')';
 	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz));
 	ss_log.str(std::string{""});
 	ss_log.str("");
@@ -238,14 +261,14 @@ void ScreenSpace::draw()
 	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz) * 3);
 
 	// mode
-	fl_draw(m_md_scr_msg.c_str(), ssx+pad, h()+y() - pad - fl_height(font, font_sz)*4);
+	fl_draw(m_md_scr_msg.c_str(), ssx+pad, h() - pad - fl_height(font, font_sz)*4);
 	std::string mouse_coor;
 	mouse_coor.append("mouse screen (");
 	mouse_coor.append(std::to_string(m_mouse_scr_pos.x));
 	mouse_coor.append(" ,");
 	mouse_coor.append(std::to_string(m_mouse_scr_pos.y));
 	mouse_coor.append(")");
-	fl_draw(mouse_coor.c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz)*3);
+	fl_draw(mouse_coor.c_str(), ssx + pad, h() - pad - fl_height(font, font_sz)*3);
 	// world mouse position
 	mouse_coor = "";
 	mouse_coor.append("mouse world (");
@@ -253,18 +276,17 @@ void ScreenSpace::draw()
 	mouse_coor.append(" ,");
 	mouse_coor.append(std::to_string(m_mouse_world_pos.y));
 	mouse_coor.append(" )");
-	fl_draw(mouse_coor.c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz)*2);
+	fl_draw(mouse_coor.c_str(), ssx + pad, h() - pad - fl_height(font, font_sz)*2);
 	ss_log.str("");
 	ss_log << "mouse world snap: (" << snap_mouse_world_pos.x << ", " << snap_mouse_world_pos.y << ')';
-	fl_draw(ss_log.str().c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz));
+	fl_draw(ss_log.str().c_str(), ssx + pad, h() - pad - fl_height(font, font_sz));
 	ss_log.str("");
 	ss_log << "mouse screen snap: (" << snap_x << ", " << snap_y << ')';
-	fl_draw(ss_log.str().c_str(), ssx + pad, h() + y() - pad);
-
+	fl_draw(ss_log.str().c_str(), ssx + pad, h() - pad);
 }
 
 
-int ScreenSpace::handle(int evt)
+int View2D::handle(int evt)
 {
     // TODO(daniel): Implement system msg intercept with Fl::add_system_handler()
 
@@ -370,10 +392,10 @@ int ScreenSpace::handle(int evt)
 		break;
 	case FL_DRAG: {
 		if (is_dragging) {
-			if ((Fl::event_button() == FL_MIDDLE_MOUSE) || m_lm_state == Mode::pan) {
+			if ((Fl::event_button() == FL_MIDDLE_MOUSE) || state.mode == Mode::pan) {
 				pan();
 			}
-			else if (m_lm_state == Mode::zoom) {
+			else if (state.mode == Mode::zoom) {
                 float update_mouse_x = static_cast<float>(Fl::event_x_root());
                 float drag_dist_pix = (update_mouse_x - drag_sx);
                 float scale_factor_per_pixel = drag_dist_pix * zooming_sens;
@@ -381,11 +403,9 @@ int ScreenSpace::handle(int evt)
 
 				zoom(ssw / 2, ssh / 2, scale_factor_percent);
 
-                printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
+                //Printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
+                //
                 drag_sx = update_mouse_x;
-			}
-			else if (m_lm_state == Mode::draw) {
-				draw_create_shape();
 			}
             else
                 redraw();
@@ -419,19 +439,27 @@ int ScreenSpace::handle(int evt)
 		break;
 	}
 
-	if (m_lm_state == Mode::draw) {
+	if (state.mode == Mode::draw) {
+        // NOTE(daniel): This part only works for shapes that has two nodes max
 		switch (evt) {
 		case FL_PUSH:
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
-				m_temp_shape = new sRect();
+                if (state.draw == Draw::line)
+                    temp_shape = new sLine();
+                if (state.draw == Draw::rect)
+                    temp_shape = new sRect();
+                if (state.draw == Draw::circle)
+                    temp_shape = new sCircle();
 
 				// first node at location of left click
-				m_temp_shape->get_next_node(m_mouse_world_pos);
-				m_selected_node = m_temp_shape->get_next_node(m_mouse_world_pos);
+				temp_shape->get_next_node(m_mouse_world_pos);
+				m_selected_node = temp_shape->get_next_node(m_mouse_world_pos);
+
+                is_drawing = true;
 			}
 			ret = 1;
 			break;
-		case FL_DRAG:
+		case FL_DRAG: {
 			m_mouse_scr_pos.x = Fl::event_x() - x();
 			m_mouse_scr_pos.y = Fl::event_y() - y();
 			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
@@ -442,38 +470,46 @@ int ScreenSpace::handle(int evt)
 			redraw();
 			
 			ret = 1;
-			break;
-		case FL_RELEASE:
-			if (m_temp_shape) {
-				m_selected_node = m_temp_shape->get_next_node(m_mouse_world_pos);
-				if (m_selected_node == nullptr) m_shapes.push_back(m_temp_shape);
+        } break;
+		case FL_RELEASE: {
+			if (is_drawing) {
+				m_selected_node = temp_shape->get_next_node(m_mouse_world_pos);
+				if (m_selected_node == nullptr) {
+                    printf("shape push_back");
+                    shapes.push_back(temp_shape);
+                    temp_shape = nullptr;
+                }
+                else {
+                    printf("failed to store shape");
+                }
+                is_drawing = false;
 			}
 			ret = 1;
-            break;
+        } break;
 		}
 	}
 
 	return ret;
 } // handle member
 
-void ScreenSpace::world_to_scr(Vector world, int& scrx, int& scry)
+void View2D::world_to_scr(Vector world, int& scrx, int& scry)
 {
 	scrx = static_cast<int>((world.x - world_offset.x) * world_scale);
 	scry = static_cast<int>((world.y - world_offset.y) * world_scale);
 }
 
-void ScreenSpace::scr_to_world(int scrx, int scry, Vector& world)
+void View2D::scr_to_world(int scrx, int scry, Vector& world)
 {
 	world.x = static_cast<float>(scrx) / world_scale + world_offset.x;
 	world.y = static_cast<float>(scry) / world_scale + world_offset.y;
 }
 
-void ScreenSpace::draw_create_shape()
+void View2D::draw_create_shape()
 {
     
 }
 
-void ScreenSpace::pan()
+void View2D::pan()
 {
 	float update_mouse_x = static_cast<float>(Fl::event_x_root());
 	float update_mouse_y = static_cast<float>(Fl::event_y_root());
@@ -492,7 +528,7 @@ void ScreenSpace::pan()
     redraw();
 }
 
-void ScreenSpace::zoom(int focusx, int focusy, float scale_factor_percent)
+void View2D::zoom(int focusx, int focusy, float scale_factor_percent)
 {
     Vector bf_center_axis;
 	scr_to_world(focusx, focusy, bf_center_axis);
@@ -511,17 +547,53 @@ void ScreenSpace::zoom(int focusx, int focusy, float scale_factor_percent)
 	redraw();
 }
 
-constexpr int MENU_BAR_H = 26;
-
-MainWindow::MainWindow(int sspw, int ssph, const char* l) :
-    Fl_Double_Window{ sspw, MENU_BAR_H+ssph, l },
-    menu_bar{0, 0, sspw, MENU_BAR_H},
-    canvas{ new ScreenSpace{0, MENU_BAR_H, sspw, ssph, this} }
+MainWindow::MainWindow() :
+    Fl_Double_Window{ V2D_DEFAULT_W, MENU_BAR_H + V2D_DEFAULT_H, "MainWindow" }
 {
-    menu_bar.menu(menu_items);
-    resizable(canvas);
-    menu_bar.redraw();
+    // IMPORTANT(daniel): Passing this pointer to v2d is really shady. For
+    // reasons that I not fully understand. Constructing the v2d after menu bar
+    // causes read violation
+    v2d = new View2D{0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H, this};
+
+    for (int i = 0; i < menu_items->size(); ++i) {
+        if (menu_items[i].label()) {
+            menu_items[i].user_data(this);
+        }
+    }
+    menu_bar = new Fl_Menu_Bar{0, 0, V2D_DEFAULT_W, MENU_BAR_H};
+    menu_bar->menu(menu_items);
+    resizable(v2d);
+    menu_bar->redraw();
 }
+
+
+MainWindow::MainWindow(int w, int h, const char* l) :
+    Fl_Double_Window{ w, MENU_BAR_H + h, l }
+{
+    v2d = new View2D{0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H, this};
+    
+    menu_bar = new Fl_Menu_Bar{0, 0, V2D_DEFAULT_W, MENU_BAR_H};
+    menu_bar->menu(menu_items);
+    resizable(v2d);
+    menu_bar->redraw();
+    set_menu_items_pointer();
+}
+
+
+void MainWindow::set_menu_items_pointer()
+{
+    // IMPORTANT(daniel): This can problematic, menu_bar doesn't allow to change
+    // the state of its menu_items, so const_cast was used, until I find a better
+    // way to pass this object to the menu items callback data
+    for (int i = 0; i < menu_bar->size(); ++i) {
+        if (menu_bar->menu()[i].label()) {
+            Fl_Menu_Item *item = const_cast<Fl_Menu_Item*>(&menu_bar->menu()[i]);
+            item->user_data(this);
+
+        }
+    }
+}
+
 
 void save_cb(Fl_Widget* widget, void*)
 {
