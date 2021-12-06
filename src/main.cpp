@@ -250,9 +250,6 @@ void saveas_cb() {
     }
 }
 
-
-
-
 void quit_cb(Fl_Widget* widget, void*)
 {
     std::cout << "Bye Bye." << std::endl;
@@ -262,8 +259,8 @@ void quit_cb(Fl_Widget* widget, void*)
 int main(void)
 {
     // window
-    MainWindow* main_win = new MainWindow{ SSPW, SSPH };
-    main_win->show();
+    MainWindow* main_wnd = new MainWindow{ SSPW, SSPH };
+    main_wnd->show();
 
     return Fl::run();
 }

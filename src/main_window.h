@@ -8,6 +8,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Box.H>
+#include <FL/Fl_Image_Surface.H>
 #include <FL/platform.H>
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.h>
@@ -52,25 +53,36 @@ struct CanvaState {
 
 class ScreenSpace : public Fl_Box {
 public:
-    ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* wnd);
+    ScreenSpace(int x, int y, int w, int h, Fl_Double_Window* wnd);
 
     void world_to_scr(Vector world, int &scrx, int &screeny);
+
     void scr_to_world(int scrx, int screeny, Vector& world);
 
     void draw();
+    void draw_create_shape();
+
     int handle(int evt);
     void set_cursor();
     void pan();     // change offset values
     void zoom();    // change scale factor
-    void draw_line();   // draw line
+
     // The window that ScreenSpace are
     Fl_Double_Window* m_wnd;
-    // ScreenSpace
-    Fl_Offscreen m_screen_buffer;        // ScreenSpace buffer
-    int m_sspx{ 0 }, m_sspy{ 0 };        // ScreenSpace position
+
+    Fl_Surface_Device *this_surface_device;
+    Fl_Image_Surface *dev_scr_buf;
+
+    int min_w = 680;    // Minimum widget size
+    int min_h = 360;
+    
+
+    // This widget position and size relative to the window
+    int ssx, ssy;
+    int ssw, ssh;
     int m_sspw, m_ssph;                  // ScreanSpace size
-    float m_bg_grid_sz{ 5.0f };          // background grid size
     float m_buffer_scale{ 1.0f };        // m_screen_buffer scale, this is an FLTK implementation detail
+
     Vector m_off{ 0.0, 0.0 };            // world offset
     float m_scale{ 50.0f };               // world scale
     float m_scale_sens{ 1.1f };          // scale sensitivite
@@ -92,12 +104,15 @@ public:
 
     // Canva main state sets the main canva scene manipulation mode(selecting, drawing, zooming, etc)
     CanvaState cv_main_state{Mode::select, Draw::line};
-private:
-    float m_max_zoom_in = 1000.0f;          // Max Zooming
-    float m_max_zoom_out = 0.1f;            // Min zooming
+
+    float max_zoom = 300.0f;          // Max Zooming
+    float min_zoom = 0.001f;            // Min zooming
     // Scrolling and keyboard zooming in and out factor, 1.0 correspont to 100%
     // NOTE(daniel): Ultra imprecise
-    float m_zooming_factor = 0.10f;
+    float zooming_factor = 0.10f;
+private:
+    Fl_Offscreen scr_buf;        // Canvas buffer
+    float scr_buf_scale;        // offscreen scale dpi thing
 };
 //
 // MAIN WINDOW
@@ -110,7 +125,7 @@ public:
 
 	/* Widgets */
     Fl_Menu_Bar menu_bar;
-	ScreenSpace* screensp;
+	ScreenSpace* canvas;
 
 	/* States*/
     Mode m_mode_state = Mode::select;

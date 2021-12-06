@@ -72,59 +72,76 @@ Fl_Menu_Item menu_items[] = {
 //}
 
 
-ScreenSpace::ScreenSpace(int wdx, int wdy, int wdw, int wdh, Fl_Double_Window* wnd) :
-	Fl_Box{ wdx, wdy, wdw, wdh },
+
+ScreenSpace::ScreenSpace(int x, int y, int w, int h, Fl_Double_Window* wnd) :
+	Fl_Box{ x, y, w, h },
 	m_wnd{ wnd },
-	m_sspw{ wdw }, m_ssph{ wdh }
+	m_sspw{ w }, m_ssph{ h }
 {
-	// LOG
-	std::cout << "Create Offscreen\n";
-	m_screen_buffer = fl_create_offscreen(m_sspw, m_ssph);
-	m_buffer_scale = Fl_Graphics_Driver::default_driver().scale();
+    scr_buf = fl_create_offscreen(w, h);
+    scr_buf_scale = Fl_Graphics_Driver::default_driver().scale();
+    ssx = x; ssy = y;
+    ssw = w; ssh = h;
 } // ScreenSpace
 
 void ScreenSpace::draw()
 {
-	int wdx = x();	// gets the widget x position relative to the window
-	int wdy = y();	// gets the widget y position relative to the window
-	int wdw = w();	// gets the widget width
-	int wdh = h();	// gets the widget height
+    // NOTE(daniel): The drawing functions only works in a limited way, you can
+    // only draw on the window coordinates, any other way to control some buffer
+    // outside this coordinates in painful or show some artefacts and will not
+    // be implement for now, that said the only way is to pass the ScreenSpace
+    // widget offsets to every fltk draw function calls.
+    
+    if (ssw != w() || ssh != h()) {
+        ssx = x();
+        ssy = y();
+        ssw = w();
+        ssh = h();
+        fl_delete_offscreen(scr_buf);
+        scr_buf = fl_create_offscreen(ssw, ssh);
+    }
 
-	// DRAW WIDGET BACKGROUND
-	fl_color(FL_BLACK);
-	fl_rectf(wdx , wdy, wdw, wdh);
-	// DRAW BACKGROUND
-	fl_begin_offscreen(m_screen_buffer);
+    if (scr_buf_scale != Fl_Graphics_Driver::default_driver().scale()) {
+        // the screen scaling factor has changed
+        fl_rescale_offscreen(scr_buf);
+        scr_buf_scale = Fl_Graphics_Driver::default_driver().scale();
+    }
+    
+	sShape::world_offset = m_off;
+	sShape::world_scale = m_scale;
+
+    fl_begin_offscreen(scr_buf);
+	// DRAW WORLD BACKGROUND
 	fl_color(FL_DARK3);
-	fl_rectf(m_sspx, m_sspy, m_sspw, m_ssph);
+	//fl_rectf(ssx, ssy, ssw + ssx, ssh + ssy);
+	fl_rectf(0, 0, ssw, ssh);
 	// DRAW GRID
 	// TODO: IMPLEMENT GRID
 
-
 	// DRAW AXES
-	Vector ax{ 1.0, 1.0 };
-	int waxx, waxy;
-	world_to_scr(ax, waxx, waxy);
+	Vector ax{ 0.0, 0.0 };
+	int axx, axy;
+	world_to_scr(ax, axx, axy);
 	fl_line_style(FL_SOLID, 1);
 	fl_color(FL_RED);
-	fl_line(0, waxy, w(), waxy);
+	//fl_line(0 + ssx, axy + ssy, ssw + ssx, axy + ssy);
+	fl_line(0, axy, ssw, axy);
 	fl_color(FL_GREEN);
-	fl_line(waxx, 0, waxx, h());
+	//fl_line(axx + ssx, 0 + ssy, axx + ssx, ssh + ssy);
+	fl_line(axx, 0, axx, ssh);
 
 	// MY LINE
-	sShape::world_offset = m_off;
-	sShape::world_scale = m_scale;
-	/* HARDCODED sLine
-	m_line = new sLine();
-	m_line->get_next_node(Vector{ 0.0, 0.0 });
-	m_line->get_next_node(Vector{ 100.0, 100.0 });
-	*/
-	if (!m_shapes.empty()) {
-		for (auto& shape : m_shapes) {
-			shape->draw_shape();
-			//shape->draw_nodes();
-		}
-	}
+	// /* HARDCODED sLine
+	// m_line = new sLine();
+	// m_line->get_next_node(Vector{ 0.0, 0.0 });
+	// m_line->get_next_node(Vector{ 100.0, 100.0 });
+	// */
+	// if (!m_shapes.empty()) {
+	// 	for (auto& shape : m_shapes) {
+	// 		shape->draw_shape();
+	// 		//shape->draw_nodes();
+	// 	}
+	// }
 
 	if (m_temp_shape) {
 		m_temp_shape->draw_shape();
@@ -140,98 +157,96 @@ void ScreenSpace::draw()
 		int sx, sy;
 		world_to_scr(wv, sx, sy);
 		
+		//fl_vertex(sx + ssx, sy + ssy);
 		fl_vertex(sx, sy);
 	}
 	fl_end_line();
 
 
-	// GRID
-	// TODO: IMPLEMENT GRID OBJECT
-	/*
-	* 
-	fl_line_style(FL_SOLID, 2.0f*m_scale);
-	// horizontal lines
-	float gridx = 100.0f, gridy = 100.0f;
-	for (double y = 0.0; y <= gridy; y+=gridy/10.0) {
-		Vector start{ 0.0, y };
-		Vector end{ gridx, y };
+	// // GRID
+	// // TODO: IMPLEMENT GRID OBJECT
+	// /*
+	// * 
+	// fl_line_style(FL_SOLID, 2.0f*m_scale);
+	// // horizontal lines
+	// float gridx = 100.0f, gridy = 100.0f;
+	// for (double y = 0.0; y <= gridy; y+=gridy/10.0) {
+	// 	Vector start{ 0.0, y };
+	// 	Vector end{ gridx, y };
 
-		// world to screen
-		int start_sspx, start_sspy, end_sspx, end_sspy;
-		world_to_scr(start, start_sspx, start_sspy);
-		world_to_scr(end, end_sspx, end_sspy);
+	// 	// world to screen
+	// 	int start_sspx, start_sspy, end_sspx, end_sspy;
+	// 	world_to_scr(start, start_sspx, start_sspy);
+	// 	world_to_scr(end, end_sspx, end_sspy);
 
-		fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
-	}
+	// 	fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
+	// }
 
-	//// vertical lines
-	for (double x = 0.0; x <= gridx; x+=gridx/10.0) {
-		Vector start{ x, 0.0 };
-		Vector end{ x, gridy };
-		int startx = x, starty = 0.0f;
-		int endx = x, endy = gridy;
+	// //// vertical lines
+	// for (double x = 0.0; x <= gridx; x+=gridx/10.0) {
+	// 	Vector start{ x, 0.0 };
+	// 	Vector end{ x, gridy };
+	// 	int startx = x, starty = 0.0f;
+	// 	int endx = x, endy = gridy;
 
-		// world to screen
-		int start_sspx, start_sspy, end_sspx, end_sspy;
-		world_to_scr(start, start_sspx, start_sspy);
-		world_to_scr(end, end_sspx, end_sspy);
+	// 	// world to screen
+	// 	int start_sspx, start_sspy, end_sspx, end_sspy;
+	// 	world_to_scr(start, start_sspx, start_sspy);
+	// 	world_to_scr(end, end_sspx, end_sspy);
 
-		fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
-	}
-	*/
+	// 	fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
+	// }
+	// */
+    
     // DRAW SNAP CURSOR
     fl_color(FL_WHITE);
     int snap_x;
     int snap_y;
     world_to_scr(m_mouse_world_snap_pos, snap_x, snap_y);
-    if (m_scale >= 1.0f) {
-        fl_circle(snap_x, snap_y, 1);
-        //fl_rect(snap_x - grid_snap_interval, snap_y - grid_snap_interval, snap_x + grid_snap_interval, snap_y + grid_snap_interval);
+    fl_line_style(FL_SOLID, 1);
+
+    if (m_scale >= 1.0f && m_scale < 15.0f) {
+        //fl_point(snap_x + ssx, snap_y + ssy);
+        fl_point(snap_x, snap_y);
+    }
+    else if (m_scale >= 15.0f) {
+        //fl_circle(snap_x + ssx, snap_y + ssy, 5);
+        fl_circle(snap_x, snap_y, 5);
     }
 
-	fl_end_offscreen();
-
-	if (m_buffer_scale != Fl_Graphics_Driver::default_driver().scale()) {
-		fl_rescale_offscreen(m_screen_buffer);
-		m_buffer_scale = Fl_Graphics_Driver::default_driver().scale();
-	}
-	fl_copy_offscreen(wdx, wdy, wdw, wdh, m_screen_buffer, 0, 0);
+    fl_end_offscreen();
+    fl_copy_offscreen(ssx, ssy, ssw, ssh, scr_buf, 0, 0);
 
 
-    // NOTE(daniel): Drawing outsize the offscreen buffer occur in drawing in
-    // the window space coordinates, the drawing only show in the widget but,
-    // again, coordinates are in window space
-
-
+	// SCREEN DEBUG INFO
 	fl_color(FL_WHITE);
 	int font = FL_COURIER;
 	int font_sz = 14;
 	fl_font(font, 15);
 
-	// SCREEN DEBUG INFO
 	int pad = 10;
 	// screen mouse position
 	std::stringstream ss_log;
 	ss_log << std::fixed;
-	ss_log << "ScreenSpace Size: " << '(' << m_sspw << " x " << m_ssph << ')';
-	fl_draw(ss_log.str().c_str(), wdx + pad, wdy + fl_height(font, font_sz));
+	ss_log << "ScreenSpace Size: " << '(' << ssw << " x " << ssh << ')';
+	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz));
 	ss_log.str(std::string{""});
 	ss_log.str("");
 	ss_log << "World Offset: " << '(' << m_off.x << " ," << m_off.y << ')';
-	fl_draw(ss_log.str().c_str(), wdx + pad, wdy + fl_height(font, font_sz) * 2);
+	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz) * 2);
 	ss_log.str("");
 	ss_log << "Scale: " << m_scale;
-	fl_draw(ss_log.str().c_str(), wdx + pad, wdy + fl_height(font, font_sz) * 3);
+	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz) * 3);
 
 	// mode
-	fl_draw(m_md_scr_msg.c_str(), wdx+pad, h()+y() - pad - fl_height(font, font_sz)*4);
+	fl_draw(m_md_scr_msg.c_str(), ssx+pad, h()+y() - pad - fl_height(font, font_sz)*4);
 	std::string mouse_coor;
 	mouse_coor.append("mouse screen (");
 	mouse_coor.append(std::to_string(m_mouse_scr_pos.x));
 	mouse_coor.append(" ,");
 	mouse_coor.append(std::to_string(m_mouse_scr_pos.y));
 	mouse_coor.append(")");
-	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz)*3);
+	fl_draw(mouse_coor.c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz)*3);
 	// world mouse position
 	mouse_coor = "";
 	mouse_coor.append("mouse world (");
@@ -239,18 +254,21 @@ void ScreenSpace::draw()
 	mouse_coor.append(" ,");
 	mouse_coor.append(std::to_string(m_mouse_world_pos.y));
 	mouse_coor.append(" )");
-	fl_draw(mouse_coor.c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz)*2);
+	fl_draw(mouse_coor.c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz)*2);
 	ss_log.str("");
 	ss_log << "mouse world snap: (" << m_mouse_world_snap_pos.x << ", " << m_mouse_world_snap_pos.y << ')';
-	fl_draw(ss_log.str().c_str(), wdx + pad, h() + y() - pad - fl_height(font, font_sz));
+	fl_draw(ss_log.str().c_str(), ssx + pad, h() + y() - pad - fl_height(font, font_sz));
 	ss_log.str("");
 	ss_log << "mouse screen snap: (" << snap_x << ", " << snap_y << ')';
-	fl_draw(ss_log.str().c_str(), wdx + pad, h() + y() - pad);
+	fl_draw(ss_log.str().c_str(), ssx + pad, h() + y() - pad);
 
 }
 
+
 int ScreenSpace::handle(int evt)
 {
+    // TODO(daniel): Implement system msg intercept with Fl::add_system_handler()
+
 	int ret = Fl_Box::handle(evt);
 
 	// focus keyboard events to this widget
@@ -275,6 +293,10 @@ int ScreenSpace::handle(int evt)
 		if (key_code < 128) { // ASCII
 			sprintf_s(buffer, bfsz,"'%c'", key_code);
 			switch (key_code) {
+			case 'r': {
+				std::cout << ssw << ", " << ssh << " " << w() << ", " << h() << std::endl;
+				redraw();
+			} break;
 			case 'z':
 				std::cout << "ZOOM_MODE\n";
 				m_lm_state = Mode::zoom;
@@ -358,7 +380,7 @@ int ScreenSpace::handle(int evt)
 				zoom();
 			}
 			else if (m_lm_state == Mode::draw) {
-				draw_line();
+				draw_create_shape();
 			}
 			redraw();
 		}
@@ -379,12 +401,18 @@ int ScreenSpace::handle(int evt)
 
 		int wheel_state = Fl::event_dy();
 		if (wheel_state < 1) {
-			m_scale *= (1.0f + m_zooming_factor);
-			redraw();
+            m_scale *= (1.0f + zooming_factor);
+            if (m_scale > max_zoom) {
+                m_scale = max_zoom;
+            }
+            redraw();
 		}
 		else if (wheel_state > 0) {
-			m_scale *= (1.0f - m_zooming_factor);
-			redraw();
+            m_scale *= (1.0f - zooming_factor);
+            redraw();
+            if (m_scale < min_zoom) {
+                m_scale = min_zoom;
+            }
 		}
 
 		Vector mouse_af_world;
@@ -449,6 +477,11 @@ void ScreenSpace::scr_to_world(int scrx, int scry, Vector& world)
 	world.y = static_cast<float>(scry) / m_scale + m_off.y;
 }
 
+void ScreenSpace::draw_create_shape()
+{
+    
+}
+
 void ScreenSpace::pan()
 {
 	float update_mouse_x = static_cast<float>(Fl::event_x_root());
@@ -489,19 +522,16 @@ void ScreenSpace::zoom()
 	redraw();
 }
 
-void ScreenSpace::draw_line()
-{
-
-}
-
-constexpr int MENU_BAR_H = 30;
+constexpr int MENU_BAR_H = 26;
 
 MainWindow::MainWindow(int sspw, int ssph, const char* l) :
     Fl_Double_Window{ sspw, MENU_BAR_H+ssph, l },
     menu_bar{0, 0, sspw, MENU_BAR_H},
-    screensp{ new ScreenSpace{0, MENU_BAR_H, sspw, ssph, this} }
+    canvas{ new ScreenSpace{0, MENU_BAR_H, sspw, ssph, this} }
 {
     menu_bar.menu(menu_items);
+    resizable(canvas);
+    menu_bar.redraw();
 }
 
 void save_cb(Fl_Widget* widget, void*)
