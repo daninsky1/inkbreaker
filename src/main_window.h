@@ -23,7 +23,7 @@ constexpr int MENU_BAR_H = 26;
 //
 // GLOBALS
 //
-static std::vector<sShape*> m_shapes;
+static std::vector<Shape*> m_shapes;
 
 
 // TODO(daniel): The main window structure needs to be better thought

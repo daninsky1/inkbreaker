@@ -13,13 +13,13 @@ std::ostream& operator<<(std::ostream& os, const Vector& v)
 //}
 
 
-double sShape::world_scale{ 1.0 };
-Vector sShape::world_offset{ 0.0, 0.0 };
+double Shape::world_scale{ 1.0 };
+Vector Shape::world_offset{ 0.0, 0.0 };
 
-sNode* sShape::get_next_node(const Vector& p)
+Node* Shape::get_next_node(const Vector& p)
 {
     if (nodes.size() == max_nodes) return nullptr;
-    sNode n;
+    Node n;
     n.parent = this;
     n.pos = p;
     nodes.push_back(n);
@@ -27,7 +27,7 @@ sNode* sShape::get_next_node(const Vector& p)
     return &nodes[nodes.size() - 1];
 }
 
-void sShape::draw_nodes()
+void Shape::draw_nodes()
 {
     for (auto& n : nodes) {
         int sx, sy;
@@ -38,20 +38,20 @@ void sShape::draw_nodes()
     }
 }
 
-void sShape::world_to_scr(Vector& v, int& scrx, int& scry)
+void Shape::world_to_scr(Vector& v, int& scrx, int& scry)
 {
     scrx = static_cast<int>((v.x - world_offset.x) * world_scale);
     scry = static_cast<int>((v.y - world_offset.y) * world_scale);
 }
 
-sSelectBox::sSelectBox()
+SelectBox::SelectBox()
 {
     max_nodes = 2;
-    // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: sShape::get_next_node definition
+    // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: Shape::get_next_node definition
     nodes.reserve(max_nodes);
 }
 
-void sSelectBox::draw_shape()
+void SelectBox::draw_shape()
 {
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
@@ -84,17 +84,20 @@ void sSelectBox::draw_shape()
         normaley = sy;
     }
 
+    scrw = normalsx - normalex;
+    scrh = normalsy - normaley;
+
     fl_rect(normalsx, normalsy, abs(normalex-normalsx), abs(normaley-normalsy));
 }
 
-sLine::sLine()
+Line::Line()
 {
     max_nodes = 2;
-    // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: sShape::get_next_node definition
+    // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: Shape::get_next_node definition
     nodes.reserve(max_nodes);
 }
 
-void sLine::draw_shape()
+void Line::draw_shape()
 {
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
@@ -105,7 +108,7 @@ void sLine::draw_shape()
     fl_line(sx, sy, ex, ey);
 }
 
-void sLine::draw_bbox()
+void Line::draw_bbox()
 {
     int sx, sy, ex, ey;
     world_to_scr(bboxs, sx, sy);
@@ -120,7 +123,7 @@ void sLine::draw_bbox()
     fl_end_loop();
 }
 
-void sLine::update_bbox()
+void Line::update_bbox()
 {
     if (nodes[0].pos.x < nodes[1].pos.x) {
         bboxs.x = nodes[0].pos.x;
@@ -140,14 +143,14 @@ void sLine::update_bbox()
     }
 }
 
-sRect::sRect()
+Rect::Rect()
 {
     max_nodes = 2;
-    // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: sShape::get_next_node definition
+    // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: Shape::get_next_node definition
     nodes.reserve(max_nodes);
 }
 
-void sRect::update_bbox()
+void Rect::update_bbox()
 {
     bboxs.x = nodes[0].pos.x;
     bboxs.y = nodes[0].pos.y;
@@ -155,7 +158,7 @@ void sRect::update_bbox()
     bboxe.y = nodes[1].pos.y;
 }
 
-void sRect::draw_shape()
+void Rect::draw_shape()
 {
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
@@ -179,7 +182,7 @@ void sRect::draw_shape()
     fl_end_loop();
 }
 
-void sRect::draw_bbox()
+void Rect::draw_bbox()
 {
     int sx, sy, ex, ey;
     world_to_scr(bboxs, sx, sy);
@@ -194,13 +197,26 @@ void sRect::draw_bbox()
     fl_end_loop();
 }
 
-sCircle::sCircle()
+bool Rect::is_inside_bbox(Vector &v)
+{
+    update_bbox();
+    printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
+    if (((v.x > bboxs.x) && (v.x < bboxe.x))
+        && ((v.y > bboxs.y) && (v.y < bboxe.y))) {
+        printf("is inside\n");
+        return true;
+    }
+    printf("is outside\n");
+    return false;
+}
+
+Circle::Circle()
 {
     max_nodes = 2;
     nodes.reserve(max_nodes);
 }
 
-void sCircle::update_bbox()
+void Circle::update_bbox()
 {
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
@@ -214,7 +230,7 @@ void sCircle::update_bbox()
     bboxe.y = nodes[0].pos.y + r;
 }
 
-void sCircle::draw_shape()
+void Circle::draw_shape()
 {
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
@@ -237,7 +253,7 @@ void sCircle::draw_shape()
     fl_end_loop();
 }
 
-void sCircle::draw_bbox()
+void Circle::draw_bbox()
 {
     int sx, sy, ex, ey;
     world_to_scr(bboxs, sx, sy);

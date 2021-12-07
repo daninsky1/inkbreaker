@@ -1,5 +1,7 @@
 #include "view2d.h"
 
+constexpr int SELECTION_THRESHOLD = 5;
+
 View2D::View2D(int x, int y, int w, int h, Fl_Double_Window* wnd) :
 	Fl_Box{ x, y, w, h },
 	m_wnd{ wnd }
@@ -33,8 +35,8 @@ void View2D::draw()
         fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     }
     
-	sShape::world_offset = world_offset;
-	sShape::world_scale = world_scale;
+	Shape::world_offset = world_offset;
+	Shape::world_scale = world_scale;
 
     fl_begin_offscreen(scr_buf);
 	// DRAW WORLD BACKGROUND
@@ -63,8 +65,6 @@ void View2D::draw()
     // NOTE(daniel): Render queue
     for (int i = 0; i < shapes.size(); ++i) {
         shapes[i]->draw_shape();
-        shapes[i]->update_bbox();
-		shapes[i]->draw_bbox();
     }
 
 	if (temp_shape) {
@@ -74,6 +74,10 @@ void View2D::draw()
 
     if (is_selecting) {
         select_box->draw_shape();
+    }
+
+    if (active_selection) {
+        active_selection->draw_bbox();
     }
 
     // NOTE(daniel): Sine wave
@@ -346,7 +350,7 @@ int View2D::handle(int evt)
 		case FL_PUSH: {
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
                 if (!select_box) {
-                    select_box = new sSelectBox();
+                    select_box = new SelectBox();
                     // first node at location of left click
                     select_box->get_next_node(m_mouse_world_pos);
                     select_box->get_next_node(m_mouse_world_pos);
@@ -370,7 +374,27 @@ int View2D::handle(int evt)
         } break;
 		case FL_RELEASE: {
             // TODO(daniel): Finish and store selection
+            if (select_box->scrw > SELECTION_THRESHOLD || select_box->scrh > SELECTION_THRESHOLD) {
+                // Do box selection
+            }
+            else {
+                // Do click seletion
+                active_selection = nullptr;
+                scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+                for (std::vector<Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
+                    if ((*it)->is_inside_bbox(m_mouse_world_pos)) {
+                        active_selection = *it;
+                        break;
+                    }
+                    //(*it)->update_bbox();
+                    //if (((m_mouse_world_pos.x > (*it)->bboxs.x) && (m_mouse_world_pos.x < (*it)->bboxe.x))
+                    //    && ((m_mouse_world_pos.y > (*it)->bboxs.y) && (m_mouse_world_pos.x < (*it)->bboxe.y))) {
+                    //}
+                }
+            }
+
             is_selecting = false;
+            redraw();
             
 			ret = 1;
         } break;
@@ -383,15 +407,15 @@ int View2D::handle(int evt)
 		case FL_PUSH:
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
                 if (state.draw == Draw::line) {
-                    temp_shape = new sLine();
+                    temp_shape = new Line();
                     temp_shape->sinfo = sinfo;
                 }
                 if (state.draw == Draw::rect) {
-                    temp_shape = new sRect();
+                    temp_shape = new Rect();
                     temp_shape->sinfo = sinfo;
                 }
                 if (state.draw == Draw::circle) {
-                    temp_shape = new sCircle();
+                    temp_shape = new Circle();
                     temp_shape->sinfo = sinfo;
                 }
 

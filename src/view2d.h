@@ -64,7 +64,7 @@ public:
     int ssx, ssy;
     int ssw, ssh;
 
-    View2DState state{ Mode::draw, Draw::circle };
+    View2DState state{ Mode::draw, Draw::rect };
 
     // NOTE(daniel): World in relation to the screen
     Vector world_offset{ 0.0, 0.0 };
@@ -88,14 +88,17 @@ public:
     float grid_snap_interval = pixel_size;
     float visual_grid_interval;
 
-    sSelectBox *select_box = nullptr;
+    SelectBox *select_box = nullptr;
     bool is_selecting = false;
 
+    Shape *active_selection = nullptr;
+    std::vector<Shape*> selected_shapes;
+
     bool is_drawing        = false;
-    sNode *m_selected_node = nullptr;
-    sShape *temp_shape     = nullptr;
-    std::vector<sShape*> shapes;
-    ShapeInfo sinfo{ 1, FL_WHITE, FL_BLUE };
+    Node *m_selected_node = nullptr;
+    Shape *temp_shape     = nullptr;
+    std::vector<Shape*> shapes;
+    ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE };
 
     float max_zoom = 300.0f;
     float min_zoom = 0.001f;
