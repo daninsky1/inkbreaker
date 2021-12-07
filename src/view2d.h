@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sstream>
+
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Image_Surface.H>
@@ -86,10 +88,13 @@ public:
     float grid_snap_interval = pixel_size;
     float visual_grid_interval;
 
-    bool is_drawing = false;
-    sShape* temp_shape{ nullptr };
-	std::vector<sShape*> shapes;
-    sNode* m_selected_node{ nullptr };
+    sSelectBox *select_box = nullptr;
+    bool is_selecting = false;
+
+    bool is_drawing        = false;
+    sNode *m_selected_node = nullptr;
+    sShape *temp_shape     = nullptr;
+    std::vector<sShape*> shapes;
     ShapeInfo sinfo{ 1, FL_WHITE, FL_BLUE };
 
     float max_zoom = 300.0f;

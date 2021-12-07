@@ -2,7 +2,7 @@
 .IGNORE:
 # Source
 SRC_DIR=src
-SRC=src\main.cpp src\main_window.cpp src\shapes.cpp vendor\sqlite\sqlite3.c
+SRC=src\main.cpp src\main_window.cpp src\view2d.cpp src\shapes.cpp vendor\sqlite\sqlite3.c
 
 # Objects
 OBJ=win32.obj

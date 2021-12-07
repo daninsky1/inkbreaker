@@ -1,3 +1,4 @@
+#include "view2d.h"
 
 View2D::View2D(int x, int y, int w, int h, Fl_Double_Window* wnd) :
 	Fl_Box{ x, y, w, h },
@@ -62,12 +63,18 @@ void View2D::draw()
     // NOTE(daniel): Render queue
     for (int i = 0; i < shapes.size(); ++i) {
         shapes[i]->draw_shape();
+        shapes[i]->update_bbox();
+		shapes[i]->draw_bbox();
     }
 
 	if (temp_shape) {
 		temp_shape->draw_shape();
 		//temp_shape->draw_nodes();
 	}
+
+    if (is_selecting) {
+        select_box->draw_shape();
+    }
 
     // NOTE(daniel): Sine wave
     // TODO(daniel): Wrap this to a function
@@ -334,7 +341,43 @@ int View2D::handle(int evt)
 		break;
 	}
 
-	if (state.mode == Mode::draw) {
+	if (state.mode == Mode::select) {
+		switch (evt) {
+		case FL_PUSH: {
+			if (Fl::event_button() == FL_LEFT_MOUSE) {
+                if (!select_box) {
+                    select_box = new sSelectBox();
+                    // first node at location of left click
+                    select_box->get_next_node(m_mouse_world_pos);
+                    select_box->get_next_node(m_mouse_world_pos);
+                }
+                else {
+                    select_box->nodes[0].pos = m_mouse_world_pos;
+                }
+                is_selecting = true;
+			}
+			ret = 1;
+        } break;
+		case FL_DRAG: {
+			m_mouse_scr_pos.x = Fl::event_x() - x();
+			m_mouse_scr_pos.y = Fl::event_y() - y();
+			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+			// second node
+            select_box->nodes[1].pos = m_mouse_world_pos;
+			redraw();
+			
+			ret = 1;
+        } break;
+		case FL_RELEASE: {
+            // TODO(daniel): Finish and store selection
+            is_selecting = false;
+            
+			ret = 1;
+        } break;
+		}
+	}
+
+    else if (state.mode == Mode::draw) {
         // NOTE(daniel): This part only works for shapes that has two nodes max
 		switch (evt) {
 		case FL_PUSH:

@@ -9,16 +9,22 @@
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/fl_ask.h>
 #include <FL/fl_show_colormap.H>
+#include <FL/Fl.H>
+#include <FL/filename.H>
+#include <FL/Fl_Native_File_Chooser.H>
+
+#include <sqlite/sqlite3.h>
 
 #include "view2d.h"
+
+constexpr int V2D_DEFAULT_W = 680;
+constexpr int V2D_DEFAULT_H = 360;
+constexpr int MENU_BAR_H = 26;
 //
 // GLOBALS
 //
 static std::vector<sShape*> m_shapes;
 
-constexpr int V2D_DEFAULT_W = 680;
-constexpr int V2D_DEFAULT_H = 360;
-constexpr int MENU_BAR_H = 26;
 
 // TODO(daniel): The main window structure needs to be better thought
 struct MainWindowDefaultLayout {
