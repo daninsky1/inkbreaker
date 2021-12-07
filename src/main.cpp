@@ -75,6 +75,15 @@ static char* glob_sql_shapes_schema = "CREATE TABLE vectorf("
     "FOREIGN KEY(vectorf_id_1)"
     "REFERENCES vectorf(id),"
     "FOREIGN KEY(vectorf_id_2)"
+    "REFERENCES vectorf(id));"
+
+    "CREATE TABLE circle("
+    "id INT PRIMARY KEY NOT NULL,"
+    "vectorf_id_1 INTEGER,"
+    "vectorf_id_2 INTEGER,"
+    "FOREIGN KEY(vectorf_id_1)"
+    "REFERENCES vectorf(id),"
+    "FOREIGN KEY(vectorf_id_2)"
     "REFERENCES vectorf(id));";
 
 
@@ -192,9 +201,13 @@ bool check_save()
     }
 }
 
-void new_cb(Fl_Widget* widget, void*)
+void new_cb(Fl_Widget* widget, void* mwv)
 {
     std::cout << "New\n";
+
+    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+    mwnd->v2d->shapes.clear();
+
 
     if (!check_save()) return;
 
@@ -251,6 +264,7 @@ void quit_cb(Fl_Widget* widget, void*)
     std::cout << "Bye Bye." << std::endl;
     exit(0);
 }
+
 
 int main(void)
 {
