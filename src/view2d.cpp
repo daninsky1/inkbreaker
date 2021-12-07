@@ -2,9 +2,9 @@
 
 constexpr int SELECTION_THRESHOLD = 5;
 
-View2D::View2D(int x, int y, int w, int h, Fl_Double_Window* wnd) :
+View2D::View2D(int x, int y, int w, int h, Fl_Double_Window *wnd) :
 	Fl_Box{ x, y, w, h },
-	m_wnd{ wnd }
+	mwnd{ wnd }
 {
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -289,7 +289,7 @@ int View2D::handle(int evt)
 		break;
 	case FL_PUSH:
 		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			m_wnd->cursor(FL_CURSOR_MOVE);
+			mwnd->cursor(FL_CURSOR_MOVE);
 		}
 		drag_sx = (float)Fl::event_x_root();
 		drag_sy = (float)Fl::event_y_root();
@@ -319,7 +319,7 @@ int View2D::handle(int evt)
 		ret = 1;
     } break;
 	case FL_RELEASE:
-		m_wnd->cursor(FL_CURSOR_DEFAULT);
+		mwnd->cursor(FL_CURSOR_DEFAULT);
 		is_dragging = false;
 		ret = 1;
 		break;
@@ -348,6 +348,8 @@ int View2D::handle(int evt)
 	if (state.mode == Mode::select) {
 		switch (evt) {
 		case FL_PUSH: {
+			m_mouse_scr_pos.x = Fl::event_x() - x();
+			m_mouse_scr_pos.y = Fl::event_y() - y();
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
                 if (!select_box) {
                     select_box = new SelectBox();
@@ -358,39 +360,70 @@ int View2D::handle(int evt)
                 else {
                     select_box->nodes[0].pos = m_mouse_world_pos;
                 }
-                is_selecting = true;
 			}
+            is_selecting = true;
+            if (active_selection) {
+                if (active_selection->is_inside_bbox(m_mouse_world_pos)) {
+                    drag_world_start_pos = m_mouse_world_pos;
+                    is_selecting = false;
+                    is_moving = true;
+                    changed = true;
+                }
+            }
 			ret = 1;
         } break;
 		case FL_DRAG: {
 			m_mouse_scr_pos.x = Fl::event_x() - x();
 			m_mouse_scr_pos.y = Fl::event_y() - y();
 			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
-			// second node
-            select_box->nodes[1].pos = m_mouse_world_pos;
-			redraw();
-			
+
+            if (is_selecting) {
+                // second node
+                select_box->nodes[1].pos = m_mouse_world_pos;
+            }
+            else if (is_moving) {
+                for (int i = 0; i < active_selection->nodes.size(); ++i) {
+                    active_selection->nodes[i].pos.x += (m_mouse_world_pos.x - drag_world_start_pos.x);
+                    active_selection->nodes[i].pos.y += (m_mouse_world_pos.y - drag_world_start_pos.y);
+                }
+                drag_world_start_pos.x = m_mouse_world_pos.x;
+                drag_world_start_pos.y = m_mouse_world_pos.y;
+                active_selection->update_bbox();
+                //printf("drag world distance: %f, %f\n", (drag_world_start_pos.x - m_mouse_world_pos.x), (drag_world_start_pos.y - m_mouse_world_pos.y));
+                //printf("%s position: %f, %f - %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y, active_selection->nodes[1].pos.x, active_selection->nodes[1].pos.y);
+            }
+            redraw();
 			ret = 1;
         } break;
 		case FL_RELEASE: {
             // TODO(daniel): Finish and store selection
-            if (select_box->scrw > SELECTION_THRESHOLD || select_box->scrh > SELECTION_THRESHOLD) {
-                // Do box selection
-            }
-            else {
-                // Do click seletion
-                active_selection = nullptr;
-                scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
-                for (std::vector<Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
-                    if ((*it)->is_inside_bbox(m_mouse_world_pos)) {
-                        active_selection = *it;
-                        break;
-                    }
-                    //(*it)->update_bbox();
-                    //if (((m_mouse_world_pos.x > (*it)->bboxs.x) && (m_mouse_world_pos.x < (*it)->bboxe.x))
-                    //    && ((m_mouse_world_pos.y > (*it)->bboxs.y) && (m_mouse_world_pos.x < (*it)->bboxe.y))) {
-                    //}
+            if (is_selecting) {
+                if (select_box->scrw > SELECTION_THRESHOLD || select_box->scrh > SELECTION_THRESHOLD) {
+                    // Do box selection
                 }
+                else {
+                    // Do click seletion
+                    scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+                    for (std::vector<Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
+                        if ((*it)->is_inside_bbox(m_mouse_world_pos)) {
+                            last_selection = active_selection;
+                            active_selection = *it;
+                            printf("%s position: %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y);
+                            if (last_selection)
+                                printf("last selection: %s\n", last_selection->type().c_str());
+                            break;
+                        }
+                        active_selection = nullptr;
+                        //(*it)->update_bbox();
+                        //if (((m_mouse_world_pos.x > (*it)->bboxs.x) && (m_mouse_world_pos.x < (*it)->bboxe.x))
+                        //    && ((m_mouse_world_pos.y > (*it)->bboxs.y) && (m_mouse_world_pos.x < (*it)->bboxe.y))) {
+                        //}
+                    }
+                }
+            }
+            else if (is_moving) {
+                printf("stop moving\n");
+                is_moving = false;
             }
 
             is_selecting = false;
@@ -445,6 +478,7 @@ int View2D::handle(int evt)
 				if (m_selected_node == nullptr) {
                     printf("shape push_back\n");
                     shapes.push_back(temp_shape);
+                    changed = true;
                     temp_shape = nullptr;
                 }
                 else {

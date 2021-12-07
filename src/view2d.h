@@ -13,12 +13,6 @@
 //
 // VIEW 2D STATE
 //
-enum class Draw {
-    line,
-    rect,
-    circle
-};
-
 enum class Mode {
     select,
     pan,
@@ -26,23 +20,37 @@ enum class Mode {
     draw
 };
 
+enum class Draw {
+    line,
+    rect,
+    circle
+};
+
+enum class Select{
+    move,
+    scale,
+    rotate
+};
+
 struct View2DState {
     Mode mode;
     Draw draw;
+    Select select;
 };
 //
 // THE SCREEN CONTEXT
 //
-
 class View2D : public Fl_Box {
 public:
-    View2D(int x, int y, int w, int h, Fl_Double_Window* wnd);
+    View2D(int x, int y, int w, int h, Fl_Double_Window *wnd);
 
     void world_to_scr(Vector world, int &scrx, int &screeny);
     void scr_to_world(int scrx, int screeny, Vector& world);
 
     void draw();
     void draw_create_shape();
+
+    void clear() { shapes.clear(); redraw(); }
 
     int handle(int evt);
     void set_cursor();
@@ -51,7 +59,7 @@ public:
     void zoom(int focusx, int focusy, float scale_factor_percent);
 
     // NOTE(daniel): The window that we are
-    Fl_Double_Window* m_wnd;
+    Fl_Double_Window *mwnd;
 
     Fl_Surface_Device *this_surface_device;
     Fl_Image_Surface *dev_scr_buf;
@@ -65,6 +73,7 @@ public:
     int ssw, ssh;
 
     View2DState state{ Mode::draw, Draw::rect };
+    bool changed = false;
 
     // NOTE(daniel): World in relation to the screen
     Vector world_offset{ 0.0, 0.0 };
@@ -79,6 +88,7 @@ public:
 
     // TODO(daniel): Make a structure with the mouse states
     bool m_drag_constraint = false;
+    Vector drag_world_start_pos;
     float drag_sx = 0, drag_sy = 0;// drag start position
     bool is_dragging = false;
     Mode m_lm_state{ Mode::zoom };
@@ -90,8 +100,10 @@ public:
 
     SelectBox *select_box = nullptr;
     bool is_selecting = false;
+    bool is_moving = false;
 
     Shape *active_selection = nullptr;
+    Shape *last_selection = nullptr;
     std::vector<Shape*> selected_shapes;
 
     bool is_drawing        = false;

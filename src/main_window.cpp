@@ -36,6 +36,7 @@ void select_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow *mwnd = static_cast<MainWindow*>(mwv);
     mwnd->v2d->state.mode = Mode::select;
+    mwnd->v2d->state.select = Select::move;
 }
 
 void pan_state_cb(Fl_Widget* widget, void* mwv)
@@ -244,39 +245,43 @@ void save_cb()
     else save_file();
 }
 
-bool check_save()
+bool check_save(bool changed)
 {
-    // prompt the user if file has pending issues
-    // 1 safe to continue, 0 user will not continue;
-    if (!glob_changed) return true;
-
+    // prompt the user if file has pending issues,
+    // true safe to continue, false user will not continue;
+    if (!changed) return true;
     else {
-        int c = fl_choice("The current file has not been saved.\n"
+        int choice = fl_choice("The current file has not been saved.\n"
             "Would you like to save it now?",
             "Cancel", "Save", "Don't Save");
-        if (c == 1) {
+        //printf("%d\n", choice);
+        if (choice == 0) {
+            return false;
+        }
+        else if (choice == 1) {
             save_cb();
             return true;
         }
-        return (c == 2) ? 1 : 0;
+        else return true;
     }
 }
 
 void new_cb(Fl_Widget* widget, void* mwv)
 {
-    std::cout << "New\n";
-
     MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->shapes.clear();
 
-
-    if (!check_save()) return;
-
-    strcpy_s(glob_filename, sizeof(glob_filename),"");
-    glob_changed = false;
+    if (check_save(mwnd->changed())) {
+        mwnd->v2d->clear();
+        return;
+    }
+    else {
+        // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
+        strcpy_s(glob_filename, sizeof(glob_filename), "");
+        mwnd->changed(false);
+    }
 }
 
-char* get_file_ext(char* filename, size_t sz)
+inline char* get_file_ext(char* filename, size_t sz)
 {
     while (sz--) {
         if (filename[sz] == '.') return &filename[sz];
@@ -426,4 +431,14 @@ MainWindow::MainWindow(int w, int h, const char* l) :
     }
 }
 
+bool MainWindow::changed()
+{
+    main_state.changed = v2d->changed;
+    return main_state.changed;
+}
 
+void MainWindow::changed(bool c)
+{
+    main_state.changed = c;
+    v2d->changed = c;
+}

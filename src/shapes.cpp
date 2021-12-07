@@ -200,13 +200,13 @@ void Rect::draw_bbox()
 bool Rect::is_inside_bbox(Vector &v)
 {
     update_bbox();
-    printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
+    //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
     if (((v.x > bboxs.x) && (v.x < bboxe.x))
         && ((v.y > bboxs.y) && (v.y < bboxe.y))) {
-        printf("is inside\n");
+        //printf("is inside\n");
         return true;
     }
-    printf("is outside\n");
+    //printf("is outside\n");
     return false;
 }
 
@@ -251,6 +251,19 @@ void Circle::draw_shape()
     fl_begin_loop();
     fl_arc((float)sx, (float)sy, r, 0, 360);
     fl_end_loop();
+}
+
+bool Circle::is_inside_bbox(Vector &v)
+{
+    update_bbox();
+    //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
+    if (((v.x > bboxs.x) && (v.x < bboxe.x))
+        && ((v.y > bboxs.y) && (v.y < bboxe.y))) {
+        //printf("is inside\n");
+        return true;
+    }
+    //printf("is outside\n");
+    return false;
 }
 
 void Circle::draw_bbox()

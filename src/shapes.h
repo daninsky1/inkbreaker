@@ -44,6 +44,10 @@ struct Shape {
     virtual void draw_bbox() { };
     virtual bool is_inside_bbox(Vector &r) { return false; };
 
+    virtual void translate() { };
+    virtual void rotate() { };
+    virtual void scale() { };
+
     virtual std::string type() { return std::string{"Shape"}; };
 	Node* get_next_node(const Vector& p);
 	void draw_nodes();
@@ -82,5 +86,6 @@ struct Circle : public Shape {
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
+    bool is_inside_bbox(Vector &v) override;
     std::string type() override { return std::string{"circle"}; }
 };

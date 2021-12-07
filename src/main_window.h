@@ -43,11 +43,9 @@ void new_cb(Fl_Widget* widget, void*);
 void save_cb();
 void saveas_cb();
 void quit_cb(Fl_Widget* widget, void*);
+
 void about_cb(Fl_Widget* widget, void*);
 void clear_cb(Fl_Widget* widget, void*);
-
-
-
 //
 // MAIN WINDOW
 //
@@ -60,12 +58,15 @@ public:
 	void set_mode();
 	void set_draw_state();
 
+    bool changed();
+    void changed(bool c);
+
 	/* Widgets */
     Fl_Menu_Bar *menu_bar;
 	View2D *v2d;
 
+private:
 	/* States*/
-    InkbreakerState *main_state;
-    Mode m_mode_state = Mode::select;
+    InkbreakerState main_state = { };
 };
 
