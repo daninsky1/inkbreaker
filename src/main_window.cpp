@@ -7,10 +7,6 @@
 
 #include "view2d.h"
 
-void save_cb(Fl_Widget* widget, void*)
-{
-}
-
 void controls_cd(Fl_Widget* widget, void*)
 {
     fl_message("change left mouse button mode:\n"
@@ -156,7 +152,7 @@ int get_node_id(void*, int, char**, char**)
     return 0;
 }
 
-void save_file()
+void save_file(std::vector<Shape*> shapes)
 {
     char* z_err_msg = 0;
 
@@ -183,16 +179,16 @@ void save_file()
     char sql_insert[sql_insert_sz];
 
     std::vector<int> shape_nodes_ids;
-    for (size_t i = 0; i < m_shapes.size(); ++i) {
+    for (size_t i = 0; i < shapes.size(); ++i) {
         // NOTE(daniel): insert nodes
 
-        for (size_t j = 0; j < m_shapes[i]->max_nodes; ++j) {
+        for (size_t j = 0; j < shapes[i]->max_nodes; ++j) {
             int node_id = (int)i*10 + (int)j;
 
             // NOTE(daniel): insert node statement
             shape_nodes_ids.push_back(node_id);
             sprintf_s(sql_insert, sql_insert_sz, "INSERT INTO vectorf(id, x, y) VALUES(%d, %f, %f);",
-                node_id, m_shapes[i]->nodes[j].pos.x, m_shapes[i]->nodes[j].pos.y);
+                node_id, shapes[i]->nodes[j].pos.x, shapes[i]->nodes[j].pos.y);
 
             // NOTE(daniel): execute node statement
             if (sqlite3_exec(glob_db, sql_insert, NULL, NULL, &z_err_msg) != SQLITE_OK) {
@@ -204,7 +200,7 @@ void save_file()
         }
 
         // TODO(daniel): insert shape
-        if (m_shapes[i]->type().c_str() == "line") {
+        if (shapes[i]->type().c_str() == "line") {
             sql_insert[0] = '\0';
             sprintf_s(sql_insert, sql_insert_sz, "INSERT INTO line(vectorf_id_1, vectorf_id_1) VALUES(%d, %d);",
                 shape_nodes_ids[0], shape_nodes_ids[1]);
@@ -216,7 +212,7 @@ void save_file()
             else
                 std::cout << "SQL insert line executed successfully\n";
         }
-        else if (m_shapes[i]->type().c_str() == "rect") {
+        else if (shapes[i]->type().c_str() == "rect") {
             sql_insert[0] = '\0';
             sprintf_s(sql_insert, sql_insert_sz, "INSERT INTO rect(vectorf_id_1, vectorf_id_1) VALUES(%d, %d);",
                 shape_nodes_ids[0], shape_nodes_ids[1]);
@@ -235,50 +231,79 @@ void save_file()
     glob_changed = 0;
 }
 
-void save_cb()
+void save_cb(Fl_Widget* widget, void* mwv)
 {
+    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+
     if (glob_filename[0] == '\0') {
         // No filename - get one!
-        saveas_cb();
+        saveas_cb(widget, mwv);
         return;
     }
-    else save_file();
+    else save_file(mwnd->v2d->shapes);
 }
 
-bool check_save(bool changed)
+int check_save_popup()
 {
     // prompt the user if file has pending issues,
     // true safe to continue, false user will not continue;
-    if (!changed) return true;
-    else {
-        int choice = fl_choice("The current file has not been saved.\n"
-            "Would you like to save it now?",
-            "Cancel", "Save", "Don't Save");
-        //printf("%d\n", choice);
-        if (choice == 0) {
-            return false;
-        }
-        else if (choice == 1) {
-            save_cb();
-            return true;
-        }
-        else return true;
-    }
+    return fl_choice("The current file has not been saved.\n"
+        "Would you like to save it now?",
+        "Cancel", "Save", "Don't Save");
 }
 
 void new_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow *mwnd = static_cast<MainWindow*>(mwv);
 
-    if (check_save(mwnd->changed())) {
-        mwnd->v2d->clear();
-        return;
+    if (mwnd->changed()) {
+        int choice = check_save_popup();
+        //printf("%d\n", choice);
+        // TODO(daniel): Name this magic numbers CANCEL = 0 SAVE = 1 DONT_SAVE = 3
+        if (choice == 0) return;
+        else if (choice == 1) {
+            save_cb(widget, mwv);
+        }
     }
     else {
         // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
         strcpy_s(glob_filename, sizeof(glob_filename), "");
         mwnd->changed(false);
     }
+    mwnd->v2d->clear();
+}
+
+void load_file(const char *file)
+{
+    
+}
+
+void open_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+
+    if (mwnd->changed()) {
+        int choice = check_save_popup();
+        //printf("%d\n", choice);
+        // TODO(daniel): Name this magic numbers CANCEL = 0 SAVE = 1 DONT_SAVE = 3
+        if (choice == 0) return;
+        else if (choice == 1) {
+            save_cb(widget, mwv);
+        }
+    }
+    else {
+        // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
+        strcpy_s(glob_filename, sizeof(glob_filename), "");
+        mwnd->changed(false);
+    }
+
+    mwnd->v2d->clear();
+
+    Fl_Native_File_Chooser fnfc;
+    fnfc.title("Open file");
+    fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
+    if (fnfc.show()) return;
+    load_file(fnfc.filename());
 }
 
 inline char* get_file_ext(char* filename, size_t sz)
@@ -289,14 +314,17 @@ inline char* get_file_ext(char* filename, size_t sz)
     return NULL;
 }
 
-void saveas_cb() {
-    Fl_Native_File_Chooser fnfc;
-    fnfc.title("Save File As?");
+void saveas_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+
+    Fl_Native_File_Chooser fnfc = { };
+    fnfc.title("Save As");
     fnfc.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
     fnfc.filter("sqlite3\t*.{sqlite3,sqlite,db}");
     fnfc.options(Fl_Native_File_Chooser::Option::USE_FILTER_EXT);
     fnfc.directory("./");
-
+    
     int r = fnfc.show();
 
     if (r == -1) {
@@ -314,11 +342,11 @@ void saveas_cb() {
         if (ext_val == 0) {
             if (!fileext || (strcmp(fileext, ".sqlite3") && strcmp(fileext, ".sqlite") && strcmp(fileext, ".db"))) {
                 strcat_s(glob_filename, sizeof(glob_filename), ".sqlite3");
-                save_file();
+                save_file(mwnd->v2d->shapes);
             }
         }
         else {
-            save_file();
+            save_file(mwnd->v2d->shapes);
         }
 
         std::cout << "FILE_NAME: " << glob_filename << '\n';
@@ -347,6 +375,7 @@ Fl_Menu_Item menu_items[] = {
     { "INKBREAKER", 0, (Fl_Callback*)about_cb, nullptr, FL_MENU_INACTIVE },
     { "&File",      0, nullptr, nullptr, FL_SUBMENU },
         { "&New",        FL_COMMAND + 'n', (Fl_Callback*)new_cb },
+        { "&Open",       FL_COMMAND + 'o', (Fl_Callback*)open_cb },
         { "&Save",       FL_COMMAND + 's', (Fl_Callback*)save_cb },
         { "&Save as...", FL_COMMAND + FL_ALT + 's', (Fl_Callback*)saveas_cb },
         { "Quit", FL_COMMAND + 'q', (Fl_Callback*)quit_cb },

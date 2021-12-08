@@ -20,11 +20,6 @@
 constexpr int V2D_DEFAULT_W = 680;
 constexpr int V2D_DEFAULT_H = 360;
 constexpr int MENU_BAR_H = 26;
-//
-// GLOBALS
-//
-static std::vector<Shape*> m_shapes;
-
 
 // TODO(daniel): The main window structure needs to be better thought
 struct MainWindowDefaultLayout {
@@ -39,10 +34,10 @@ struct InkbreakerState {
 //
 // CALLBACKS
 //
-void new_cb(Fl_Widget* widget, void*);
-void save_cb();
-void saveas_cb();
-void quit_cb(Fl_Widget* widget, void*);
+void new_cb(Fl_Widget* widget, void *mwv);
+void save_cb(Fl_Widget* widget, void *mwv);
+void saveas_cb(Fl_Widget* widget, void *mwv);
+void quit_cb(Fl_Widget* widget, void *mwv);
 
 void about_cb(Fl_Widget* widget, void*);
 void clear_cb(Fl_Widget* widget, void*);
