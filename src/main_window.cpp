@@ -86,7 +86,6 @@ void set_fill_color_cb(Fl_Widget* widget, void* mwv)
 static bool glob_changed = false;
 static char glob_filename[FL_PATH_MAX] = "";
 static char glob_title[FL_PATH_MAX];
-static sqlite3 *glob_db;
 
 // TODO(daniel): create a data structure to save
 /*
@@ -129,7 +128,7 @@ static char* glob_sql_shapes_schema = "CREATE TABLE vectorf("
     "REFERENCES vectorf(id));"
 
     "CREATE TABLE rect("
-    "id INT PRIMARY KEY NOT NULL,"
+    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
     "vectorf_id_1 INTEGER,"
     "vectorf_id_2 INTEGER,"
     "FOREIGN KEY(vectorf_id_1)"
@@ -138,7 +137,7 @@ static char* glob_sql_shapes_schema = "CREATE TABLE vectorf("
     "REFERENCES vectorf(id));"
 
     "CREATE TABLE circle("
-    "id INT PRIMARY KEY NOT NULL,"
+    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
     "vectorf_id_1 INTEGER,"
     "vectorf_id_2 INTEGER,"
     "FOREIGN KEY(vectorf_id_1)"
@@ -154,80 +153,133 @@ int get_node_id(void*, int, char**, char**)
 
 void save_file(std::vector<Shape*> shapes)
 {
+    // https://www.sqlite.org/backup.html
     char* z_err_msg = 0;
 
-    // Initialize new glob_db
-    if (sqlite3_open(glob_filename, &glob_db) != SQLITE_OK) {
+    sqlite3 *in_mem_db;
+    sqlite3 *file_db;
+
+    int rc = 0;
+
+    // In memory database
+    rc = sqlite3_open(":memory:", &in_mem_db);
+    if (rc != SQLITE_OK) {
         // LOG
-        std::cerr << "Failed to Open: " << sqlite3_errmsg(glob_db) << '\n';
+        std::cerr << "Failed to Open: " << sqlite3_errmsg(in_mem_db) << '\n';
+        std::cerr << "Error code: " << rc << '\n';
+        sqlite3_free(z_err_msg);
         return;
     }
-    else {
-        // LOG success
+
+    // Initialize new file_db
+    rc = sqlite3_open(glob_filename, &file_db);
+    if (rc != SQLITE_OK) {
+        // LOG
+        std::cerr << "Failed to Open: " << sqlite3_errmsg(file_db) << '\n';
+        std::cerr << "Error code: " << rc << '\n';
+        sqlite3_free(z_err_msg);
+        return;
     }
 
-
-    if (sqlite3_exec(glob_db, glob_sql_shapes_schema, NULL, NULL, &z_err_msg) != SQLITE_OK) {
+    // Execute schema
+    if (sqlite3_exec(in_mem_db, glob_sql_shapes_schema, NULL, NULL, &z_err_msg) != SQLITE_OK) {
         std::cout << "SQL error: " << z_err_msg << '\n';
         sqlite3_free(z_err_msg);
     }
-    else
-        std::cout << "SQL new script executed successfully\n";
 
-    // Add shapes
-    constexpr int sql_insert_sz = 256;
-    char sql_insert[sql_insert_sz];
+    // Insert statements
+    constexpr int sql_stmt_sz = 1024;
+    char sql_stmt[sql_stmt_sz];
 
-    std::vector<int> shape_nodes_ids;
     for (size_t i = 0; i < shapes.size(); ++i) {
-        // NOTE(daniel): insert nodes
+        // NOTE(daniel): Naive approach to inserting shapes hardcoded, for now
+        // we only have shapes with 2 nodes points
 
-        for (size_t j = 0; j < shapes[i]->max_nodes; ++j) {
-            int node_id = (int)i*10 + (int)j;
-
-            // NOTE(daniel): insert node statement
-            shape_nodes_ids.push_back(node_id);
-            sprintf_s(sql_insert, sql_insert_sz, "INSERT INTO vectorf(id, x, y) VALUES(%d, %f, %f);",
-                node_id, shapes[i]->nodes[j].pos.x, shapes[i]->nodes[j].pos.y);
-
-            // NOTE(daniel): execute node statement
-            if (sqlite3_exec(glob_db, sql_insert, NULL, NULL, &z_err_msg) != SQLITE_OK) {
-                std::cout << "SQL error: Inserting nodes" << z_err_msg << '\n';
-                sqlite3_free(z_err_msg);
-            }
-            else
-                std::cout << "SQL insert nodes executed successfully\n";
+        // Insert nodes statement
+        float node0x = shapes[i]->nodes[0].pos.x;   // Nodes pos alias
+        float node0y = shapes[i]->nodes[0].pos.y;
+        float node1x = shapes[i]->nodes[1].pos.x;
+        float node1y = shapes[i]->nodes[1].pos.y;
+        sprintf_s(sql_stmt, sql_stmt_sz,
+            "INSERT INTO vectorf(x, y) VALUES(%f, %f);"
+            "INSERT INTO vectorf(x, y) VALUES(%f, %f);",
+            node0x, node0y, node1x, node1y);
+            
+        // Execute nodes statement
+        if (sqlite3_exec(in_mem_db, sql_stmt, NULL, NULL, &z_err_msg) != SQLITE_OK) {
+            std::cout << "SQL error: Inserting nodes: " << z_err_msg << '\n';
+            sqlite3_free(z_err_msg);
+        }
+        else {
+            std::cout << "SQL success: Insert nodes\n";
         }
 
-        // TODO(daniel): insert shape
-        if (shapes[i]->type().c_str() == "line") {
-            sql_insert[0] = '\0';
-            sprintf_s(sql_insert, sql_insert_sz, "INSERT INTO line(vectorf_id_1, vectorf_id_1) VALUES(%d, %d);",
-                shape_nodes_ids[0], shape_nodes_ids[1]);
+        // Get nodes ids
+        // Get nodes statement
+        sqlite3_stmt *comp_stmt = NULL;
+        strcpy_s(sql_stmt, sql_stmt_sz, "SELECT * FROM vectorf ORDER BY id DESC LIMIT 2;");
+        rc = sqlite3_prepare_v2(in_mem_db, sql_stmt, -1, &comp_stmt, NULL);
 
-            if (sqlite3_exec(glob_db, sql_insert, NULL, NULL, &z_err_msg) != SQLITE_OK) {
+        if (!comp_stmt) {
+            std::cout << "SQL error: Retrieving nodes id: " << rc << '\n';
+        }
+
+        // Fetch ids, the order are inverted
+        sqlite3_step(comp_stmt);
+        int nid1 = sqlite3_column_int(comp_stmt, 0);
+        sqlite3_step(comp_stmt);
+        int nid0 = sqlite3_column_int(comp_stmt, 0);
+        if (sqlite3_step(comp_stmt) != SQLITE_DONE) {
+            printf("Something gone wrong, fetching nodes\n");
+        }
+
+        // Insert shape  statement
+        std::cout << shapes[i]->type() << std::endl;
+        if (shapes[i]->type() == "line") {
+            sprintf_s(sql_stmt, sql_stmt_sz,
+                "INSERT INTO line(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
+                nid0, nid1);
+
+            if (sqlite3_exec(in_mem_db, sql_stmt, NULL, NULL, &z_err_msg) != SQLITE_OK) {
                 std::cout << "SQL error: Inserting nodes" << z_err_msg << '\n';
                 sqlite3_free(z_err_msg);
             }
             else
                 std::cout << "SQL insert line executed successfully\n";
         }
-        else if (shapes[i]->type().c_str() == "rect") {
-            sql_insert[0] = '\0';
-            sprintf_s(sql_insert, sql_insert_sz, "INSERT INTO rect(vectorf_id_1, vectorf_id_1) VALUES(%d, %d);",
-                shape_nodes_ids[0], shape_nodes_ids[1]);
+        else if (shapes[i]->type() == "rect") {
+            sql_stmt[0] = '\0';
+            sprintf_s(sql_stmt, sql_stmt_sz, "INSERT INTO rect(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
+                nid0, nid1);
 
-            if (sqlite3_exec(glob_db, sql_insert, NULL, NULL, &z_err_msg) != SQLITE_OK) {
+            if (sqlite3_exec(in_mem_db, sql_stmt, NULL, NULL, &z_err_msg) != SQLITE_OK) {
                 std::cout << "SQL error: Inserting nodes" << z_err_msg << '\n';
                 sqlite3_free(z_err_msg);
             }
             else
                 std::cout << "SQL insert rect executed successfully\n";
         }
+        else if (shapes[i]->type() == "circle") {
+            sql_stmt[0] = '\0';
+            sprintf_s(sql_stmt, sql_stmt_sz, "INSERT INTO circle(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
+                nid0, nid1);
 
-        shape_nodes_ids.clear();
+            if (sqlite3_exec(in_mem_db, sql_stmt, NULL, NULL, &z_err_msg) != SQLITE_OK) {
+                std::cout << "SQL error: Inserting nodes" << z_err_msg << '\n';
+                sqlite3_free(z_err_msg);
+            }
+            else
+                std::cout << "SQL insert circle executed successfully\n";
+        }
     }
 
+    sqlite3_backup *backup = sqlite3_backup_init(file_db, "main", in_mem_db, "main");
+    if (backup) {
+        sqlite3_backup_step(backup, -1);
+        sqlite3_backup_finish(backup);
+    }
+    sqlite3_close(file_db);
+    sqlite3_close(in_mem_db);
     glob_changed = 0;
 }
 
@@ -240,7 +292,11 @@ void save_cb(Fl_Widget* widget, void* mwv)
         saveas_cb(widget, mwv);
         return;
     }
-    else save_file(mwnd->v2d->shapes);
+    else {
+        printf("changed false\n");
+        mwnd->changed(false);
+        save_file(mwnd->v2d->shapes);
+    }
 }
 
 int check_save_popup()
@@ -270,12 +326,131 @@ void new_cb(Fl_Widget* widget, void* mwv)
         strcpy_s(glob_filename, sizeof(glob_filename), "");
         mwnd->changed(false);
     }
+    mwnd->changed(false);
     mwnd->v2d->clear();
 }
 
-void load_file(const char *file)
+void load_file(std::vector<Shape*> &shapes)
 {
-    
+    // https://www.sqlite.org/backup.html
+    char* z_err_msg = 0;
+
+    sqlite3 *file_db;
+
+    int rc = 0;
+
+    // Initialize new file_db
+    rc = sqlite3_open(glob_filename, &file_db);
+    if (rc != SQLITE_OK) {
+        // LOG
+        std::cerr << "Failed to Open: " << sqlite3_errmsg(file_db) << '\n';
+        std::cerr << "Error code: " << rc << '\n';
+        sqlite3_free(z_err_msg);
+        return;
+    }
+
+    // sql select statement
+    constexpr int sql_stmt_sz = 1024;
+    char sql_stmt[sql_stmt_sz];
+
+
+    sqlite3_stmt *comp_stmt = NULL;
+    float n0x, n0y, n1x, n1y;
+
+    // Get lines
+    strcpy_s(sql_stmt, sql_stmt_sz,
+        "SELECT v1.x, v1.y, v2.x, v2.y FROM line"
+        " INNER JOIN vectorf AS v1 ON line.vectorf_id_1=v1.id"
+        " INNER JOIN vectorf AS v2 ON line.vectorf_id_2=v2.id;"
+        );
+    rc = sqlite3_prepare_v2(file_db, sql_stmt, -1, &comp_stmt, NULL);
+
+    if (!comp_stmt) {
+        std::cout << "SQL error: Compiling statement: " << rc << '\n';
+    }
+
+    // NOTE(daniel): This can be error prone, better way is to store the error code
+    // node_0 and node_1
+
+    do {
+        rc = sqlite3_step(comp_stmt);
+        Shape *shape = new Line();
+        n0x = static_cast<float>(sqlite3_column_double(comp_stmt, 0));
+        n0y = static_cast<float>(sqlite3_column_double(comp_stmt, 1));
+        n1x = static_cast<float>(sqlite3_column_double(comp_stmt, 2));
+        n1y = static_cast<float>(sqlite3_column_double(comp_stmt, 3));
+
+        Vector n0{n0x, n0y};
+        Vector n1{n1x, n1y};
+
+        shape->get_next_node(n0);
+        shape->get_next_node(n1);
+        shapes.push_back(shape);
+    } while (rc != SQLITE_DONE);
+
+    // Get rect
+    strcpy_s(sql_stmt, sql_stmt_sz,
+        "SELECT v1.x, v1.y, v2.x, v2.y FROM rect"
+        " INNER JOIN vectorf AS v1 ON rect.vectorf_id_1=v1.id"
+        " INNER JOIN vectorf AS v2 ON rect.vectorf_id_2=v2.id;"
+        );
+    rc = sqlite3_prepare_v2(file_db, sql_stmt, -1, &comp_stmt, NULL);
+
+    if (!comp_stmt) {
+        std::cout << "SQL error: Compiling statement: " << rc << '\n';
+    }
+
+    // NOTE(daniel): This can be error prone, better way is to store the error code
+    // node_0 and node_1
+
+    do {
+        rc = sqlite3_step(comp_stmt);
+        Shape *shape = new Rect();
+        n0x = static_cast<float>(sqlite3_column_double(comp_stmt, 0));
+        n0y = static_cast<float>(sqlite3_column_double(comp_stmt, 1));
+        n1x = static_cast<float>(sqlite3_column_double(comp_stmt, 2));
+        n1y = static_cast<float>(sqlite3_column_double(comp_stmt, 3));
+
+        Vector n0{n0x, n0y};
+        Vector n1{n1x, n1y};
+
+        shape->get_next_node(n0);
+        shape->get_next_node(n1);
+        shapes.push_back(shape);
+    } while (rc != SQLITE_DONE);
+
+    // Get circle
+    strcpy_s(sql_stmt, sql_stmt_sz,
+        "SELECT v1.x, v1.y, v2.x, v2.y FROM circle"
+        " INNER JOIN vectorf AS v1 ON circle.vectorf_id_1=v1.id"
+        " INNER JOIN vectorf AS v2 ON circle.vectorf_id_2=v2.id;"
+        );
+    rc = sqlite3_prepare_v2(file_db, sql_stmt, -1, &comp_stmt, NULL);
+
+    if (!comp_stmt) {
+        std::cout << "SQL error: Compiling statement: " << rc << '\n';
+    }
+
+    // NOTE(daniel): This can be error prone, better way is to store the error code
+    // node_0 and node_1
+
+    do {
+        rc = sqlite3_step(comp_stmt);
+        Shape *shape = new Circle();
+        n0x = static_cast<float>(sqlite3_column_double(comp_stmt, 0));
+        n0y = static_cast<float>(sqlite3_column_double(comp_stmt, 1));
+        n1x = static_cast<float>(sqlite3_column_double(comp_stmt, 2));
+        n1y = static_cast<float>(sqlite3_column_double(comp_stmt, 3));
+
+        Vector n0{n0x, n0y};
+        Vector n1{n1x, n1y};
+
+        shape->get_next_node(n0);
+        shape->get_next_node(n1);
+        shapes.push_back(shape);
+    } while (rc != SQLITE_DONE);
+
+    sqlite3_close(file_db);
 }
 
 void open_cb(Fl_Widget* widget, void* mwv)
@@ -289,6 +464,7 @@ void open_cb(Fl_Widget* widget, void* mwv)
         if (choice == 0) return;
         else if (choice == 1) {
             save_cb(widget, mwv);
+            mwnd->changed(false);
         }
     }
     else {
@@ -298,12 +474,15 @@ void open_cb(Fl_Widget* widget, void* mwv)
     }
 
     mwnd->v2d->clear();
+    mwnd->changed(false);
 
     Fl_Native_File_Chooser fnfc;
     fnfc.title("Open file");
     fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
     if (fnfc.show()) return;
-    load_file(fnfc.filename());
+    strcpy_s(glob_filename, 2048, fnfc.filename());
+
+    load_file(mwnd->v2d->shapes);
 }
 
 inline char* get_file_ext(char* filename, size_t sz)
@@ -345,10 +524,7 @@ void saveas_cb(Fl_Widget* widget, void* mwv)
                 save_file(mwnd->v2d->shapes);
             }
         }
-        else {
-            save_file(mwnd->v2d->shapes);
-        }
-
+        save_file(mwnd->v2d->shapes);
         std::cout << "FILE_NAME: " << glob_filename << '\n';
     }
 }
