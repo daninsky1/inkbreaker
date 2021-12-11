@@ -4,6 +4,11 @@
 #define INKBREAKER_VERSION_MINOR 0
 #define INKBREAKER_VERSION_PATCH 1
 
+#include "shapes.h"
+
+//struct Space2D {
+//    Vector2f offset;
+//};
 
 struct InkbreakerState {
     bool changed;

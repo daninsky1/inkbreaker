@@ -377,8 +377,8 @@ void load_file(std::vector<Shape*> &shapes)
         n1x = static_cast<float>(sqlite3_column_double(comp_stmt, 2));
         n1y = static_cast<float>(sqlite3_column_double(comp_stmt, 3));
 
-        Vector n0{n0x, n0y};
-        Vector n1{n1x, n1y};
+        Vector2f n0{n0x, n0y};
+        Vector2f n1{n1x, n1y};
 
         shape->get_next_node(n0);
         shape->get_next_node(n1);
@@ -408,8 +408,8 @@ void load_file(std::vector<Shape*> &shapes)
         n1x = static_cast<float>(sqlite3_column_double(comp_stmt, 2));
         n1y = static_cast<float>(sqlite3_column_double(comp_stmt, 3));
 
-        Vector n0{n0x, n0y};
-        Vector n1{n1x, n1y};
+        Vector2f n0{n0x, n0y};
+        Vector2f n1{n1x, n1y};
 
         shape->get_next_node(n0);
         shape->get_next_node(n1);
@@ -439,8 +439,8 @@ void load_file(std::vector<Shape*> &shapes)
         n1x = static_cast<float>(sqlite3_column_double(comp_stmt, 2));
         n1y = static_cast<float>(sqlite3_column_double(comp_stmt, 3));
 
-        Vector n0{n0x, n0y};
-        Vector n1{n1x, n1y};
+        Vector2f n0{n0x, n0y};
+        Vector2f n1{n1x, n1y};
 
         shape->get_next_node(n0);
         shape->get_next_node(n1);

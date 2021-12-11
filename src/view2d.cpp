@@ -8,8 +8,13 @@ View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
 {
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
-    ssx = x; ssy = y;
-    ssw = w; ssh = h;
+
+    v2d_x = x; v2d_y = y;
+    v2d_w = w; v2d_h = h;
+
+	//Shape::world_offset = world_offset;
+	//Shape::world_scale = world_scale;
+
 } // View2D
 
 void View2D::draw()
@@ -20,37 +25,28 @@ void View2D::draw()
     // be implement for now, that said the only way is to pass the View2D
     // widget offsets to every fltk draw function calls.
     
-    if (ssw != w() || ssh != h()) {
-        ssx = x();
-        ssy = y();
-        ssw = w();
-        ssh = h();
+    if (v2d_w != w() || v2d_h != h()) {
+        v2d_x = x();
+        v2d_y = y();
+        v2d_w = w();
+        v2d_h = h();
         fl_delete_offscreen(scr_buf);
-        scr_buf = fl_create_offscreen(ssw, ssh);
+        scr_buf = fl_create_offscreen(v2d_w, v2d_h);
     }
-
     if (fl_offscr_scale != Fl_Graphics_Driver::default_driver().scale()) {
         // the screen scaling factor has changed
         fl_rescale_offscreen(scr_buf);
         fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     }
-    
-	Shape::world_offset = world_offset;
-	Shape::world_scale = world_scale;
 
-    fl_begin_offscreen(scr_buf);
 	// DRAW WORLD BACKGROUND
+    fl_begin_offscreen(scr_buf);
 	fl_color(FL_DARK3);
-	//fl_rectf(ssx, ssy, ssw + ssx, ssh + ssy);
-	fl_rectf(0, 0, ssw, ssh);
-	// DRAW GRID
-	// TODO: IMPLEMENT GRID
-
+	fl_rectf(0, 0, v2d_w, v2d_h);
 	// DRAW AXES
-	Vector ax{ 0.0, 0.0 };
 	int axx, axy;
-	world_to_scr(ax, axx, axy);
-    View2D::axes(axx, axy, ssw, ssw, 1);
+	world_to_scr(axes_center, axx, axy);
+    View2D::draw_axes(axx, axy, v2d_w, v2d_w, 1);
 
 
     // NOTE(daniel): Render queue
@@ -71,22 +67,7 @@ void View2D::draw()
         app_state->active_selection->draw_bbox();
     }
 
-    // NOTE(daniel): Sine wave
-    // TODO(daniel): Wrap this to a function
-	//fl_color(FL_WHITE);
-	//fl_line_style(FL_SOLID, 2*(int)world_scale);
-	//fl_begin_line();
-	//for (float i = 0; i < w(); i += 0.1f) {
-	//	Vector wv{ i, std::sin(i * (0.5f * 0.1f)) * 50 };	// world vector
-	//	int sx, sy;
-	//	world_to_scr(wv, sx, sy);
-	//	
-	//	//fl_vertex(sx + ssx, sy + ssy);
-	//	fl_vertex(sx, sy);
-	//}
-	//fl_end_line();
-
-
+	// TODO: IMPLEMENT GRID
 	// // GRID
 	// // TODO: IMPLEMENT GRID OBJECT
 	// /*
@@ -95,8 +76,8 @@ void View2D::draw()
 	// // horizontal lines
 	// float gridx = 100.0f, gridy = 100.0f;
 	// for (double y = 0.0; y <= gridy; y+=gridy/10.0) {
-	// 	Vector start{ 0.0, y };
-	// 	Vector end{ gridx, y };
+	// 	Vector2f start{ 0.0, y };
+	// 	Vector2f end{ gridx, y };
 
 	// 	// world to screen
 	// 	int start_sspx, start_sspy, end_sspx, end_sspy;
@@ -108,8 +89,8 @@ void View2D::draw()
 
 	// //// vertical lines
 	// for (double x = 0.0; x <= gridx; x+=gridx/10.0) {
-	// 	Vector start{ x, 0.0 };
-	// 	Vector end{ x, gridy };
+	// 	Vector2f start{ x, 0.0 };
+	// 	Vector2f end{ x, gridy };
 	// 	int startx = x, starty = 0.0f;
 	// 	int endx = x, endy = gridy;
 
@@ -122,19 +103,27 @@ void View2D::draw()
 	// }
 	// */
     
-    // DRAW SNAP CURSOR
-    fl_color(FL_WHITE);
-    int snap_x;
-    int snap_y;
-    world_to_scr(snap_mouse_world_pos, snap_x, snap_y);
-    fl_line_style(FL_SOLID, 1);
+    // DRAW SNAP CURSOR AND GRID
+    int snap_cx;
+    int snap_cy;
+    world_to_scr(mouse_snap_world, snap_cx, snap_cy);
+
+    Vector2f scr_origin_to_world;
+    scr_to_world(0, 0, scr_origin_to_world);
+    Vector2f scr_size_to_world;
+    scr_to_world(v2d_w, v2d_h, scr_size_to_world);
 
     if (world_scale >= 15.0f) {
-        fl_circle(snap_x, snap_y, 5);
+        // Draw snap cursor
+        fl_line_style(FL_SOLID, 1);
+        fl_color(FL_YELLOW);
+        fl_circle(snap_cx, snap_cy, 1);
+        // Draw grid
+        draw_grid(5);
     }
 
     fl_end_offscreen();
-    fl_copy_offscreen(ssx, ssy, ssw, ssh, scr_buf, 0, 0);
+    fl_copy_offscreen(v2d_x, v2d_y, v2d_w, v2d_h, scr_buf, 0, 0);
 
 
 	// SCREEN DEBUG INFO
@@ -147,39 +136,39 @@ void View2D::draw()
 	// screen mouse position
 	std::stringstream ss_log;
 	ss_log << std::fixed;
-	ss_log << "View2D Size: " << '(' << ssw << " x " << ssh << ')';
-	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz));
+	ss_log << "View2D Size: " << '(' << v2d_w << " x " << v2d_h << ')';
+	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_y + fl_height(font, font_sz));
 	ss_log.str(std::string{""});
 	ss_log.str("");
 	ss_log << "World Offset: " << '(' << world_offset.x << " ," << world_offset.y << ')';
-	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz) * 2);
+	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_y + fl_height(font, font_sz) * 2);
 	ss_log.str("");
 	ss_log << "Scale: " << world_scale;
-	fl_draw(ss_log.str().c_str(), ssx + pad, ssy + fl_height(font, font_sz) * 3);
+	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_y + fl_height(font, font_sz) * 3);
 
 	// mode
-	fl_draw(m_md_scr_msg.c_str(), ssx+pad, h() - pad - fl_height(font, font_sz)*4);
+    //fl_draw(m_md_scr_msg.c_str(), v2d_x+pad, h() - pad - fl_height(font, font_sz)*4);
 	std::string mouse_coor;
 	mouse_coor.append("mouse screen (");
-	mouse_coor.append(std::to_string(m_mouse_scr_pos.x));
+	mouse_coor.append(std::to_string(mouse_v2d.x));
 	mouse_coor.append(" ,");
-	mouse_coor.append(std::to_string(m_mouse_scr_pos.y));
+	mouse_coor.append(std::to_string(mouse_v2d.y));
 	mouse_coor.append(")");
-	fl_draw(mouse_coor.c_str(), ssx + pad, h() - pad - fl_height(font, font_sz)*3);
+	fl_draw(mouse_coor.c_str(), v2d_x + pad, h() - pad - fl_height(font, font_sz)*3);
 	// world mouse position
 	mouse_coor = "";
 	mouse_coor.append("mouse world (");
-	mouse_coor.append(std::to_string(m_mouse_world_pos.x));
+	mouse_coor.append(std::to_string(mouse_world.x));
 	mouse_coor.append(" ,");
-	mouse_coor.append(std::to_string(m_mouse_world_pos.y));
+	mouse_coor.append(std::to_string(mouse_world.y));
 	mouse_coor.append(" )");
-	fl_draw(mouse_coor.c_str(), ssx + pad, h() - pad - fl_height(font, font_sz)*2);
+	fl_draw(mouse_coor.c_str(), v2d_x + pad, v2d_h - pad - fl_height(font, font_sz)*2);
 	ss_log.str("");
-	ss_log << "mouse world snap: (" << snap_mouse_world_pos.x << ", " << snap_mouse_world_pos.y << ')';
-	fl_draw(ss_log.str().c_str(), ssx + pad, h() - pad - fl_height(font, font_sz));
+	ss_log << "mouse world snap: (" << mouse_snap_world.x << ", " << mouse_snap_world.y << ')';
+	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_h - pad - fl_height(font, font_sz));
 	ss_log.str("");
-	ss_log << "mouse screen snap: (" << snap_x << ", " << snap_y << ')';
-	fl_draw(ss_log.str().c_str(), ssx + pad, h() - pad);
+	ss_log << "mouse screen snap: (" << snap_cx << ", " << snap_cy << ')';
+	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_h - pad);
 }
 
 
@@ -201,79 +190,77 @@ int View2D::handle(int evt)
 	}
 
 	// test and print keys
-	int key_code = 0;
-	if (evt == FL_KEYBOARD) {
-        constexpr int bfsz = 100;
-		char buffer[bfsz];
-		const char* keyname = buffer;
-		key_code = Fl::event_key();
-		// ONLY HANDLES ASCII EVENT KEYS !!!!!!!
-		if (key_code < 128) { // ASCII
-			sprintf_s(buffer, bfsz,"'%c'", key_code);
-			switch (key_code) {
-			case 'r': {
-				std::cout << ssw << ", " << ssh << " " << w() << ", " << h() << std::endl;
-				redraw();
-			} break;
-			case 'z':
-				std::cout << "ZOOM_MODE\n";
-				m_lm_state = Mode::zoom;
-				m_md_scr_msg = "zoom";
-				redraw();
-				break;
-			case 'h': case ' ':
-				std::cout << "DRAG_MODE\n";
-				m_lm_state = Mode::pan;
-				m_md_scr_msg = "pan";
-				redraw();
-				break;
-			case 'l':
-				std::cout << "DRAW_MODE\n";
-				m_lm_state = Mode::draw;
-				m_md_scr_msg = "draw";
-				redraw();
-				break;
-			case '0':
-				std::cout << "ZERO_MODE\n";
-				m_lm_state = Mode::select;
-				m_md_scr_msg = "default";
-				redraw();
-				break;
-			}
-		}
-		else if (evt >= 0xa0 && evt <= 0xff) { // ISO-8859-1 (international keyboards)
-			char key_buf[8];
-			int kl = fl_utf8encode((unsigned)evt, key_buf);
-			key_buf[kl] = '\0';
-			sprintf_s(buffer, bfsz,"'%d'", key_code);
-			ret = 1;
-		}
-		else if (key_code > FL_F && key_code <= FL_F_Last) {
-			sprintf_s(buffer, bfsz,"FL_F+%d", key_code - FL_F);
-			ret = 1;
-		}
-		else if (key_code >= FL_KP && key_code <= FL_KP_Last) {
-			sprintf_s(buffer, bfsz, "FL_KP+'%c'", key_code - FL_KP);
-			ret = 1;
-		}
-		else if (key_code >= FL_Button && key_code <= FL_Button + 7) {
-			sprintf_s(buffer, "FL_Button+%d", key_code - FL_Button);
-			ret = 1;
-		}
-		std::cout << keyname << '\t' << key_code << '\n';
-	}
+	//int key_code = 0;
+	//if (evt == FL_KEYBOARD) {
+    //    constexpr int bfsz = 100;
+	//	char buffer[bfsz];
+	//	const char* keyname = buffer;
+	//	key_code = Fl::event_key();
+	//	// ONLY HANDLES ASCII EVENT KEYS !!!!!!!
+	//	if (key_code < 128) { // ASCII
+	//		sprintf_s(buffer, bfsz,"'%c'", key_code);
+	//		switch (key_code) {
+	//		case 'r': {
+	//			std::cout << v2d_w << ", " << v2d_h << " " << w() << ", " << h() << std::endl;
+	//			redraw();
+	//		} break;
+	//		case 'z':
+	//			std::cout << "ZOOM_MODE\n";
+	//			m_lm_state = Mode::zoom;
+	//			m_md_scr_msg = "zoom";
+	//			redraw();
+	//			break;
+	//		case 'h': case ' ':
+	//			std::cout << "DRAG_MODE\n";
+	//			m_lm_state = Mode::pan;
+	//			m_md_scr_msg = "pan";
+	//			redraw();
+	//			break;
+	//		case 'l':
+	//			std::cout << "DRAW_MODE\n";
+	//			m_lm_state = Mode::draw;
+	//			m_md_scr_msg = "draw";
+	//			redraw();
+	//			break;
+	//		case '0':
+	//			std::cout << "ZERO_MODE\n";
+	//			m_lm_state = Mode::select;
+	//			m_md_scr_msg = "default";
+	//			redraw();
+	//			break;
+	//		}
+	//	}
+	//	else if (evt >= 0xa0 && evt <= 0xff) { // ISO-8859-1 (international keyboards)
+	//		char key_buf[8];
+	//		int kl = fl_utf8encode((unsigned)evt, key_buf);
+	//		key_buf[kl] = '\0';
+	//		sprintf_s(buffer, bfsz,"'%d'", key_code);
+	//		ret = 1;
+	//	}
+	//	else if (key_code > FL_F && key_code <= FL_F_Last) {
+	//		sprintf_s(buffer, bfsz,"FL_F+%d", key_code - FL_F);
+	//		ret = 1;
+	//	}
+	//	else if (key_code >= FL_KP && key_code <= FL_KP_Last) {
+	//		sprintf_s(buffer, bfsz, "FL_KP+'%c'", key_code - FL_KP);
+	//		ret = 1;
+	//	}
+	//	else if (key_code >= FL_Button && key_code <= FL_Button + 7) {
+	//		sprintf_s(buffer, "FL_Button+%d", key_code - FL_Button);
+	//		ret = 1;
+	//	}
+	//	std::cout << keyname << '\t' << key_code << '\n';
+	//}
 
 
 	switch (evt) {
 	case FL_MOVE:
-		m_mouse_scr_pos.x = Fl::event_x() - x();
-		m_mouse_scr_pos.y = Fl::event_y() - y();
-		scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
 
-        if (world_scale >= 1.0f) {
-            snap_mouse_world_pos.x = floorf((m_mouse_world_pos.x + 0.5f) * grid_snap_interval);
-            snap_mouse_world_pos.y = floorf((m_mouse_world_pos.y + 0.5f) * grid_snap_interval);
-        }
+        //if (world_scale >= 1.0f) {
+        //    mouse_snap_world = get_snap_grid(mouse_world);
+        //}
 
 		redraw();
 		ret = 1;
@@ -298,7 +285,7 @@ int View2D::handle(int evt)
                 float scale_factor_per_pixel = drag_dist_pix * zooming_sens;
                 float scale_factor_percent = scale_factor_per_pixel + 1.0f;
 
-				zoom(ssw / 2, ssh / 2, scale_factor_percent);
+				zoom(v2d_w / 2, v2d_h / 2, scale_factor_percent);
 
                 //Printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
                 //
@@ -339,23 +326,23 @@ int View2D::handle(int evt)
 	if (state.mode == Mode::select) {
 		switch (evt) {
 		case FL_PUSH: {
-			m_mouse_scr_pos.x = Fl::event_x() - x();
-			m_mouse_scr_pos.y = Fl::event_y() - y();
+			mouse_v2d.x = Fl::event_x() - x();
+			mouse_v2d.y = Fl::event_y() - y();
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
                 if (!select_box) {
                     select_box = new SelectBox();
                     // first node at location of left click
-                    select_box->get_next_node(m_mouse_world_pos);
-                    select_box->get_next_node(m_mouse_world_pos);
+                    select_box->get_next_node(mouse_world);
+                    select_box->get_next_node(mouse_world);
                 }
                 else {
-                    select_box->nodes[0].pos = m_mouse_world_pos;
+                    select_box->nodes[0].pos = mouse_world;
                 }
 			}
             is_selecting = true;
             if (app_state->active_selection) {
-                if (app_state->active_selection->is_inside_bbox(m_mouse_world_pos)) {
-                    drag_world_start_pos = m_mouse_world_pos;
+                if (app_state->active_selection->is_inside_bbox(mouse_world)) {
+                    drag_world_start_pos = mouse_world;
                     is_selecting = false;
                     is_moving = true;
                     changed = true;
@@ -364,23 +351,23 @@ int View2D::handle(int evt)
 			ret = 1;
         } break;
 		case FL_DRAG: {
-			m_mouse_scr_pos.x = Fl::event_x() - x();
-			m_mouse_scr_pos.y = Fl::event_y() - y();
-			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+			mouse_v2d.x = Fl::event_x() - x();
+			mouse_v2d.y = Fl::event_y() - y();
+			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
 
             if (is_selecting) {
                 // second node
-                select_box->nodes[1].pos = m_mouse_world_pos;
+                select_box->nodes[1].pos = mouse_world;
             }
             else if (is_moving) {
                 for (int i = 0; i < app_state->active_selection->nodes.size(); ++i) {
-                    app_state->active_selection->nodes[i].pos.x += (m_mouse_world_pos.x - drag_world_start_pos.x);
-                    app_state->active_selection->nodes[i].pos.y += (m_mouse_world_pos.y - drag_world_start_pos.y);
+                    app_state->active_selection->nodes[i].pos.x += (mouse_world.x - drag_world_start_pos.x);
+                    app_state->active_selection->nodes[i].pos.y += (mouse_world.y - drag_world_start_pos.y);
                 }
-                drag_world_start_pos.x = m_mouse_world_pos.x;
-                drag_world_start_pos.y = m_mouse_world_pos.y;
+                drag_world_start_pos.x = mouse_world.x;
+                drag_world_start_pos.y = mouse_world.y;
                 app_state->active_selection->update_bbox();
-                //printf("drag world distance: %f, %f\n", (drag_world_start_pos.x - m_mouse_world_pos.x), (drag_world_start_pos.y - m_mouse_world_pos.y));
+                //printf("drag world distance: %f, %f\n", (drag_world_start_pos.x - mouse_world.x), (drag_world_start_pos.y - mouse_world.y));
                 //printf("%s position: %f, %f - %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y, active_selection->nodes[1].pos.x, active_selection->nodes[1].pos.y);
             }
             redraw();
@@ -394,9 +381,9 @@ int View2D::handle(int evt)
                 }
                 else {
                     // Do click seletion
-                    scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+                    scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
                     for (std::vector<Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
-                        if ((*it)->is_inside_bbox(m_mouse_world_pos)) {
+                        if ((*it)->is_inside_bbox(mouse_world)) {
                             *it = app_state->active_selection;
                             app_state->active_selection = *it;
                             printf("%s position: %f, %f\n", app_state->active_selection->type().c_str(), app_state->active_selection->nodes[0].pos.x, app_state->active_selection->nodes[0].pos.y);
@@ -404,8 +391,8 @@ int View2D::handle(int evt)
                             }
                         app_state->active_selection = nullptr;
                         //(*it)->update_bbox();
-                        //if (((m_mouse_world_pos.x > (*it)->bboxs.x) && (m_mouse_world_pos.x < (*it)->bboxe.x))
-                        //    && ((m_mouse_world_pos.y > (*it)->bboxs.y) && (m_mouse_world_pos.x < (*it)->bboxe.y))) {
+                        //if (((mouse_world.x > (*it)->bboxs.x) && (mouse_world.x < (*it)->bboxe.x))
+                        //    && ((mouse_world.y > (*it)->bboxs.y) && (mouse_world.x < (*it)->bboxe.y))) {
                         //}
                     }
                 }
@@ -442,20 +429,19 @@ int View2D::handle(int evt)
                 }
 
 				// first node at location of left click
-				temp_shape->get_next_node(m_mouse_world_pos);
-				m_selected_node = temp_shape->get_next_node(m_mouse_world_pos);
+				temp_shape->get_next_node(mouse_world);
+				m_selected_node = temp_shape->get_next_node(mouse_world);
 
                 is_drawing = true;
 			}
 			ret = 1;
 			break;
 		case FL_DRAG: {
-			m_mouse_scr_pos.x = Fl::event_x() - x();
-			m_mouse_scr_pos.y = Fl::event_y() - y();
-			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
+            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
 			// second node
 			if (m_selected_node != nullptr) {
-				m_selected_node->pos = m_mouse_world_pos;
+				m_selected_node->pos = mouse_world;
 			}
 			redraw();
 			
@@ -463,7 +449,7 @@ int View2D::handle(int evt)
         } break;
 		case FL_RELEASE: {
 			if (is_drawing) {
-				m_selected_node = temp_shape->get_next_node(m_mouse_world_pos);
+				m_selected_node = temp_shape->get_next_node(mouse_world);
 				if (m_selected_node == nullptr) {
                     printf("shape push_back\n");
                     shapes.push_back(temp_shape);
@@ -483,13 +469,13 @@ int View2D::handle(int evt)
 	return ret;
 } // handle member
 
-void View2D::world_to_scr(Vector world, int& scrx, int& scry)
+void View2D::world_to_scr(Vector2f world, int& scrx, int& scry)
 {
 	scrx = static_cast<int>((world.x - world_offset.x) * world_scale);
 	scry = static_cast<int>((world.y - world_offset.y) * world_scale);
 }
 
-void View2D::scr_to_world(int scrx, int scry, Vector& world)
+void View2D::scr_to_world(int scrx, int scry, Vector2f& world)
 {
 	world.x = static_cast<float>(scrx) / world_scale + world_offset.x;
 	world.y = static_cast<float>(scry) / world_scale + world_offset.y;
@@ -512,16 +498,16 @@ void View2D::pan()
 	// BUG
 	if (m_drag_constraint) {
 		if (world_offset.x < -w()) world_offset.x = static_cast<float>(-w());
-		else if (world_offset.x > ssw) world_offset.x = static_cast<float>(ssw);
+		else if (world_offset.x > v2d_w) world_offset.x = static_cast<float>(v2d_w);
 		if (world_offset.y < -h()) world_offset.y = static_cast<float>(-h());
-		else if (world_offset.y > ssh) world_offset.y = static_cast<float>(ssh);
+		else if (world_offset.y > v2d_h) world_offset.y = static_cast<float>(v2d_h);
 	}
     redraw();
 }
 
 void View2D::zoom(int focusx, int focusy, float scale_factor_percent)
 {
-    Vector bf_center_axis;
+    Vector2f bf_center_axis;
 	scr_to_world(focusx, focusy, bf_center_axis);
 
 	world_scale *= scale_factor_percent;
@@ -529,7 +515,7 @@ void View2D::zoom(int focusx, int focusy, float scale_factor_percent)
     if (world_scale < min_zoom) world_scale = min_zoom;
     else if (world_scale > max_zoom) world_scale = max_zoom;
 
-	Vector af_center_axis;
+	Vector2f af_center_axis;
 	scr_to_world(focusx, focusy, af_center_axis);
 
 	world_offset.x += (bf_center_axis.x - af_center_axis.x);
@@ -547,16 +533,45 @@ void View2D::change_cursor(Fl_Cursor c)
 }
 
 
-void View2D::axes(int centerx, int centery, int w, int h, int line_width)
+void View2D::draw_axes(int centerx, int centery, int w, int h, int line_width)
 {
-	fl_line_style(FL_SOLID, 1);
+    // Draw axes
 	fl_color(FL_RED);
+	fl_line_style(FL_SOLID, line_width);
 	fl_line(centerx, centery, w, centery);
-	fl_color(FL_GREEN);
-	fl_line(centerx, centery, centerx, h);
-	fl_line_style(FL_DOT, 1);
-	fl_color(FL_RED);
+	fl_line_style(FL_DOT, line_width);
 	fl_line(0, centery, centerx, centery);
+
 	fl_color(FL_GREEN);
+	fl_line_style(FL_SOLID, line_width);
+	fl_line(centerx, centery, centerx, h);
+	fl_color(FL_GREEN);
+	fl_line_style(FL_DOT, line_width);
 	fl_line(centerx, 0, centerx, centery);
+}
+
+void View2D::get_cursor_v2d_position(int &cx, int &cy)
+{
+    cx = Fl::event_x() - x();
+    cy = Fl::event_y() - y();
+}
+
+Vector2f View2D::get_snap_grid(Vector2f vec2d_world)
+{
+    Vector2f result;
+    result.x = floorf((vec2d_world.x + 0.5f) * snap_grid_interval);
+    result.y = floorf((vec2d_world.y + 0.5f) * snap_grid_interval);
+    return result;
+}
+
+void View2D::draw_grid(int point_sz)
+{
+    Vector2f v2d_origin_world;
+    scr_to_world(v2d_x, v2d_y, v2d_origin_world);
+    Vector2f v2d_size_world;
+    scr_to_world(v2d_w, v2d_h, v2d_size_world);
+    
+    while (v2d_origin_world.x < v2d_size_world.x) {
+        
+    }
 }

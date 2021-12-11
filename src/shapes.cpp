@@ -1,7 +1,7 @@
 #include "shapes.h"
 
 
-std::ostream& operator<<(std::ostream& os, const Vector& v)
+std::ostream& operator<<(std::ostream& os, const Vector2f& v)
 {
     return os << '[' << v.x
         << ", " << v.y << ']';
@@ -12,11 +12,10 @@ std::ostream& operator<<(std::ostream& os, const Vector& v)
 //	return os << line.get_a() << ", " << line.get_b() << " ----";
 //}
 
-
+Vector2f Shape::world_offset{ 0.0, 0.0 };
 double Shape::world_scale{ 1.0 };
-Vector Shape::world_offset{ 0.0, 0.0 };
 
-Node* Shape::get_next_node(const Vector& p)
+Node* Shape::get_next_node(const Vector2f &p)
 {
     if (nodes.size() == max_nodes) return nullptr;
     Node n;
@@ -38,7 +37,7 @@ void Shape::draw_nodes()
     }
 }
 
-void Shape::world_to_scr(Vector& v, int& scrx, int& scry)
+void Shape::world_to_scr(Vector2f &v, int& scrx, int& scry)
 {
     scrx = static_cast<int>((v.x - world_offset.x) * world_scale);
     scry = static_cast<int>((v.y - world_offset.y) * world_scale);
@@ -197,7 +196,7 @@ void Rect::draw_bbox()
     fl_end_loop();
 }
 
-bool Rect::is_inside_bbox(Vector &v)
+bool Rect::is_inside_bbox(Vector2f &v)
 {
     update_bbox();
     //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
@@ -253,7 +252,7 @@ void Circle::draw_shape()
     fl_end_loop();
 }
 
-bool Circle::is_inside_bbox(Vector &v)
+bool Circle::is_inside_bbox(Vector2f &v)
 {
     update_bbox();
     //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);

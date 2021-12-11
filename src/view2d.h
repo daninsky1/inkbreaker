@@ -27,28 +27,66 @@ enum class Draw {
     circle
 };
 
-enum class Select{
+enum class Select {
     move,
     scale,
     rotate
 };
 
+
 struct View2DState {
     Mode mode;
+
     Draw draw;
     Select select;
+    bool is_grid_snap;
 };
 //
 // THE SCREEN CONTEXT
 //
+static void draw_sine_wave()
+{
+    // NOTE(daniel): Sine wave
+    // TODO(daniel): Wrap this to a function
+	//fl_color(FL_WHITE);
+	//fl_line_style(FL_SOLID, 2*(int)world_scale);
+	//fl_begin_line();
+	//for (float i = 0; i < w(); i += 0.1f) {
+	//	Vector2f wv{ i, std::sin(i * (0.5f * 0.1f)) * 50 };	// world vector
+	//	int sx, sy;
+	//	world_to_scr(wv, sx, sy);
+	//	
+	//	//fl_vertex(sx + ssx, sy + ssy);
+	//	fl_vertex(sx, sy);
+	//}
+	//fl_end_line();
+}
+
+// NOTE(daniel): [something]_<space2d>_[position]
+//                    ^           ^         ^
+// --------------------
+//                                |         | 
+// --------------------------------
+//                                          |
+// ------------------------------------------
+// something: mouse, screen, shape.
+// space2d: ex: screen space(scr), world space(world)
+// position or coordinate: x, y, w, h, vector, point
+
 class View2D : public Fl_Box {
 public:
     View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes);
 
-    void world_to_scr(Vector world, int &scrx, int &screeny);
-    void scr_to_world(int scrx, int screeny, Vector& world);
+    void world_to_scr(Vector2f world, int &scrx, int &screeny);
+    void scr_to_world(int scrx, int screeny, Vector2f& world);
 
-    static void axes(int centerx, int centery, int w, int h, int line_width);
+    void get_cursor_v2d_position(int &cx, int &cy);
+
+    static void draw_axes(int centerx, int centery, int w, int h, int line_width);
+    Vector2f get_snap_grid(Vector2f vec2d_world);
+    void draw_grid(int point_sz);
+
+    void get_mouse();
 
     void draw();
     void draw_create_shape();
@@ -72,22 +110,23 @@ public:
     int min_h = 360;
 
     // NOTE(daniel): This widget position are relative to the window
-    int ssx, ssy;
-    int ssw, ssh;
+    int v2d_x, v2d_y;
+    int v2d_w, v2d_h;
 
     View2DState state{ Mode::draw, Draw::rect };
     bool changed = false;
 
-    // NOTE(daniel): World in relation to the screen
-    Vector world_offset{ 0.0, 0.0 };
+    Vector2f axes_center { 0.0f, 0.0f };       // Axes center point
+
+    Vector2f world_offset{ 0.0f, 0.0f };
     float world_scale{ 1.0f };
 
     // NOTE(daniel): Mouse states, the screen coordinates are relative to this
     // widget
-    Pointi m_mouse_scr_pos{ 0, 0 };
-    Vector m_mouse_world_pos;
+    Pointi mouse_v2d{ 0, 0 };
+    Vector2f mouse_world;
     Pointi snap_mouse_scr_pos{ 0, 0 };
-    Vector snap_mouse_world_pos;
+    Vector2f mouse_snap_world;
 
     /* Cursor */
     Fl_Cursor current_cursor = FL_CURSOR_DEFAULT;
@@ -96,15 +135,19 @@ public:
 
     // TODO(daniel): Make a structure with the mouse states
     bool m_drag_constraint = false;
-    Vector drag_world_start_pos;
+    Vector2f drag_world_start_pos;
     float drag_sx = 0, drag_sy = 0;// drag start position
     bool is_dragging = false;
     Mode m_lm_state{ Mode::zoom };
 
     std::string m_md_scr_msg{ "zoom" };
     float pixel_size = 1.0f;
-    float grid_snap_interval = pixel_size;
-    float visual_grid_interval;
+
+    // Grid
+    float grid_interval = pixel_size;
+    float snap_grid_interval = grid_interval;
+    bool is_snap_grid;
+
 
     SelectBox *select_box = nullptr;
     bool is_selecting = false;

@@ -8,8 +8,9 @@
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 
+
 struct Pointi { int x, y; };
-struct Vector { float x, y; };
+struct Vector2f { float x, y; };
 
 struct ShapeInfo {
     // TODO(daniel): Add join method after selection is possible
@@ -21,13 +22,13 @@ struct ShapeInfo {
 struct Shape;
 struct Node {
 	Shape* parent;
-	Vector pos;
+	Vector2f pos;
 };
 
 struct Shape {
 	// TODO: REPLACE STD::VECTOR WITH STD::ARRAY
 	static double world_scale;
-	static Vector world_offset;
+	static Vector2f world_offset;
 
     ShapeInfo sinfo{ 1, FL_WHITE, FL_BLACK };
 
@@ -35,23 +36,23 @@ struct Shape {
 	uint32_t max_nodes = 0;
 
     // NOTE(daniel): Bounding box start point and end point
-    Vector bboxs{ 0.0f, 0.0f };
-    Vector bboxe{ 0.0f, 0.0f };
+    Vector2f bboxs{ 0.0f, 0.0f };
+    Vector2f bboxe{ 0.0f, 0.0f };
 
     virtual void update_bbox() { };
 
 	virtual void draw_shape() = 0;
     virtual void draw_bbox() { };
-    virtual bool is_inside_bbox(Vector &r) { return false; };
+    virtual bool is_inside_bbox(Vector2f &r) { return false; };
 
     virtual void translate() { };
     virtual void rotate() { };
     virtual void scale() { };
 
     virtual std::string type() { return std::string{"Shape"}; };
-	Node* get_next_node(const Vector& p);
+	Node* get_next_node(const Vector2f& p);
 	void draw_nodes();
-	void world_to_scr(Vector& v, int& scrx, int& scry);
+	void world_to_scr(Vector2f& v, int& scrx, int& scry);
 
     void set_shape_info(ShapeInfo si) { sinfo = si; };
 };
@@ -77,7 +78,7 @@ struct Rect : public Shape {
     void update_bbox() override;
 	void draw_shape() override;
     void draw_bbox() override;
-    bool is_inside_bbox(Vector &v) override;
+    bool is_inside_bbox(Vector2f &v) override;
     std::string type() override { return std::string{"rect"}; };
 };
 
@@ -86,6 +87,6 @@ struct Circle : public Shape {
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
-    bool is_inside_bbox(Vector &v) override;
+    bool is_inside_bbox(Vector2f &v) override;
     std::string type() override { return std::string{"circle"}; }
 };
