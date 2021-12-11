@@ -30,8 +30,7 @@ all: $(DEBUG_PROGRAM)
 
 $(DEBUG_PROGRAM): $(SRC)
 	if not exist $(BUILD_DIR) mkdir build
-	if not exist $(BUILD_DIR)debug mkdir $(BUILD_DIR)debug
-	$(CC) $(DCFLAGS) $(SRC) $(SYS_LIBS) $(INCLUDE_DIR) $(FLTK_LIB) /Fo$(BUILD_DIR)debug/ /Fe$(BUILD_DIR)debug/$(DEBUG_PROGRAM) /link /PDB:$(BUILD_DIR)debug/$(DEBUG_PROGRAM_NAME).pdb
+	$(CC) $(DCFLAGS) $(SRC) $(SYS_LIBS) $(INCLUDE_DIR) $(FLTK_LIB) /Fo$(BUILD_DIR) /Fe$(BUILD_DIR)$(DEBUG_PROGRAM) /link /PDB:$(BUILD_DIR)$(DEBUG_PROGRAM_NAME).pdb
 
 $(PROGRAM): $(SRC)
 	if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
