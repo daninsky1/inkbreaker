@@ -1,9 +1,6 @@
-#define INKBREAKER_VERSION_MAJOR 0
-#define INKBREAKER_VERSION_MINOR 0
-#define INKBREAKER_VERSION_PATCH 1
-
 #include <math.h>
 #include "main_window.h"
+#include "state.h"
 
 #include "view2d.h"
 
@@ -596,34 +593,22 @@ Fl_Menu_Item menu_items[] = {
     { 0 }
 };
 
-MainWindow::MainWindow() :
-    Fl_Double_Window{ V2D_DEFAULT_W, MENU_BAR_H + V2D_DEFAULT_H, "MainWindow" }
+MainWindow::MainWindow(int w, int h) :
+    Fl_Double_Window{ w, MENU_BAR_H + h, "InkBreaker" }
 {
-    // IMPORTANT(daniel): Passing this pointer to v2d is really shady. For
-    // reasons that I not fully understand. Constructing the v2d after menu bar
-    // causes read violation
-    v2d = new View2D{ 0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H, shapes };
+    // View2D
+    v2d = new View2D{ 0, h+MENU_BAR_H, w, h, shapes };
+    v2d->app_state = &app_state;
+    add(v2d);
 
-    for (int i = 0; i < menu_items->size(); ++i) {
-        if (menu_items[i].label()) {
-            menu_items[i].user_data(this);
-        }
-    }
-    menu_bar = new Fl_Menu_Bar{0, 0, V2D_DEFAULT_W, MENU_BAR_H};
-    menu_bar->menu(menu_items);
-    resizable(v2d);
-    menu_bar->redraw();
-}
+    // InkbreakerState
+    app_state.changed = false;
+    app_state.active_selection = nullptr;
 
-MainWindow::MainWindow(int w, int h, const char* l) :
-    Fl_Double_Window{ w, MENU_BAR_H + h, l }
-{
-    v2d = new View2D{ 0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H, shapes };
-    
+    // Fl_Menu_Bar
     menu_bar = new Fl_Menu_Bar{ 0, 0, V2D_DEFAULT_W, MENU_BAR_H };
     menu_bar->menu(menu_items);
     resizable(v2d);
-    menu_bar->redraw();
 
     // IMPORTANT(daniel): This can problematic, menu_bar doesn't allow to change
     // the state of its menu_items, so const_cast was used, until I find a better
@@ -634,17 +619,19 @@ MainWindow::MainWindow(int w, int h, const char* l) :
             item->user_data(this);
         }
     }
+
+    add(menu_bar);
 }
 
 bool MainWindow::changed()
 {
-    main_state.changed = v2d->changed;
-    return main_state.changed;
+    app_state.changed = v2d->changed;
+    return app_state.changed;
 }
 
 void MainWindow::changed(bool c)
 {
-    main_state.changed = c;
+    app_state.changed = c;
     v2d->changed = c;
 }
 

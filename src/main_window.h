@@ -27,10 +27,6 @@ struct MainWindowDefaultLayout {
     int v2dh = V2D_DEFAULT_H;
     int menu_bar_h = MENU_BAR_H;
 };
-
-struct InkbreakerState {
-    bool changed;
-};
 //
 // CALLBACKS
 //
@@ -47,7 +43,7 @@ void clear_cb(Fl_Widget* widget, void*);
 class MainWindow : public Fl_Double_Window {
 public:
     MainWindow();
-    MainWindow(int sspw, int ssph, const char* l = "");
+    MainWindow(int sspw, int ssph);
 
     void set_menu_items_pointer();
 	void set_mode();
@@ -57,7 +53,7 @@ public:
     void changed(bool c);
 
     /* Shapes */
-    bool is_drawing        = false;
+    bool is_drawing       = false;
     Node *m_selected_node = nullptr;
     Shape *temp_shape     = nullptr;
     std::vector<Shape*> shapes;
@@ -68,7 +64,6 @@ public:
 	View2D *v2d;
 
 	/* States*/
-    InkbreakerState main_state = { };
-
+    InkbreakerState app_state = { };
 };
 

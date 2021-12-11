@@ -3,13 +3,13 @@
 constexpr int SELECTION_THRESHOLD = 5;
 
 View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
-	Fl_Box{ x, y, w, h }
+	Fl_Box{ x, y, w, h },
+    shapes { p_shapes }
 {
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     ssx = x; ssy = y;
     ssw = w; ssh = h;
-    shapes = p_shapes;
 } // View2D
 
 void View2D::draw()
@@ -76,8 +76,8 @@ void View2D::draw()
         select_box->draw_shape();
     }
 
-    if (active_selection) {
-        active_selection->draw_bbox();
+    if (app_state->active_selection) {
+        app_state->active_selection->draw_bbox();
     }
 
     // NOTE(daniel): Sine wave
@@ -362,8 +362,8 @@ int View2D::handle(int evt)
                 }
 			}
             is_selecting = true;
-            if (active_selection) {
-                if (active_selection->is_inside_bbox(m_mouse_world_pos)) {
+            if (app_state->active_selection) {
+                if (app_state->active_selection->is_inside_bbox(m_mouse_world_pos)) {
                     drag_world_start_pos = m_mouse_world_pos;
                     is_selecting = false;
                     is_moving = true;
@@ -382,13 +382,13 @@ int View2D::handle(int evt)
                 select_box->nodes[1].pos = m_mouse_world_pos;
             }
             else if (is_moving) {
-                for (int i = 0; i < active_selection->nodes.size(); ++i) {
-                    active_selection->nodes[i].pos.x += (m_mouse_world_pos.x - drag_world_start_pos.x);
-                    active_selection->nodes[i].pos.y += (m_mouse_world_pos.y - drag_world_start_pos.y);
+                for (int i = 0; i < app_state->active_selection->nodes.size(); ++i) {
+                    app_state->active_selection->nodes[i].pos.x += (m_mouse_world_pos.x - drag_world_start_pos.x);
+                    app_state->active_selection->nodes[i].pos.y += (m_mouse_world_pos.y - drag_world_start_pos.y);
                 }
                 drag_world_start_pos.x = m_mouse_world_pos.x;
                 drag_world_start_pos.y = m_mouse_world_pos.y;
-                active_selection->update_bbox();
+                app_state->active_selection->update_bbox();
                 //printf("drag world distance: %f, %f\n", (drag_world_start_pos.x - m_mouse_world_pos.x), (drag_world_start_pos.y - m_mouse_world_pos.y));
                 //printf("%s position: %f, %f - %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y, active_selection->nodes[1].pos.x, active_selection->nodes[1].pos.y);
             }
@@ -406,14 +406,12 @@ int View2D::handle(int evt)
                     scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), m_mouse_world_pos);
                     for (std::vector<Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
                         if ((*it)->is_inside_bbox(m_mouse_world_pos)) {
-                            last_selection = active_selection;
-                            active_selection = *it;
-                            printf("%s position: %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y);
-                            if (last_selection)
-                                printf("last selection: %s\n", last_selection->type().c_str());
+                            *it = app_state->active_selection;
+                            app_state->active_selection = *it;
+                            printf("%s position: %f, %f\n", app_state->active_selection->type().c_str(), app_state->active_selection->nodes[0].pos.x, app_state->active_selection->nodes[0].pos.y);
                             break;
-                        }
-                        active_selection = nullptr;
+                            }
+                        app_state->active_selection = nullptr;
                         //(*it)->update_bbox();
                         //if (((m_mouse_world_pos.x > (*it)->bboxs.x) && (m_mouse_world_pos.x < (*it)->bboxe.x))
                         //    && ((m_mouse_world_pos.y > (*it)->bboxs.y) && (m_mouse_world_pos.x < (*it)->bboxe.y))) {

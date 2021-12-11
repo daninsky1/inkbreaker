@@ -13,10 +13,10 @@
 // #define STB_IMAGE_IMPLEMENTATION
 // #include "stb/stb_image.h"
 
-int main(void)
+int main()
 {
     // window
-    MainWindow* main_wnd = new MainWindow{ };
+    MainWindow* main_wnd = new MainWindow{ V2D_DEFAULT_W, V2D_DEFAULT_H };
     main_wnd->show();
 
     return Fl::run();

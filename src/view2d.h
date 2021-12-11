@@ -10,6 +10,7 @@
 #include <FL/Enumerations.H>
 
 #include "shapes.h"
+#include "state.h"
 //
 // VIEW 2D STATE
 //
@@ -43,6 +44,7 @@ struct View2DState {
 class View2D : public Fl_Box {
 public:
     View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes);
+
 
     void world_to_scr(Vector world, int &scrx, int &screeny);
     void scr_to_world(int scrx, int screeny, Vector& world);
@@ -107,15 +109,14 @@ public:
     bool is_selecting = false;
     bool is_moving = false;
 
-    Shape *active_selection = nullptr;
-    Shape *last_selection = nullptr;
-    std::vector<Shape*> selected_shapes;
+    InkbreakerState *app_state;
 
-    bool is_drawing        = false;
+    bool is_drawing       = false;
     Node *m_selected_node = nullptr;
     Shape *temp_shape     = nullptr;
+
     // IMPORTANT(daniel): This is a reference to a parent container shapes
-    std::vector<Shape*> shapes;
+    std::vector<Shape*> &shapes;
     ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE };
 
     float max_zoom = 300.0f;
