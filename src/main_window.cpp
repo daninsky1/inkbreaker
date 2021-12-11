@@ -593,13 +593,12 @@ Fl_Menu_Item menu_items[] = {
     { 0 }
 };
 
-MainWindow::MainWindow(int w, int h) :
-    Fl_Double_Window{ w, MENU_BAR_H + h, "InkBreaker" }
+MainWindow::MainWindow(int v2d_w, int v2d_h) :
+    Fl_Double_Window{ v2d_w, MENU_BAR_H + v2d_h, "InkBreaker" }
 {
     // View2D
-    v2d = new View2D{ 0, h+MENU_BAR_H, w, h, shapes };
+    v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, shapes};
     v2d->app_state = &app_state;
-    add(v2d);
 
     // InkbreakerState
     app_state.changed = false;
@@ -619,8 +618,6 @@ MainWindow::MainWindow(int w, int h) :
             item->user_data(this);
         }
     }
-
-    add(menu_bar);
 }
 
 bool MainWindow::changed()

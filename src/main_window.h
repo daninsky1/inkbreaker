@@ -42,8 +42,7 @@ void clear_cb(Fl_Widget* widget, void*);
 //
 class MainWindow : public Fl_Double_Window {
 public:
-    MainWindow();
-    MainWindow(int sspw, int ssph);
+    MainWindow(int v2d_w, int v2d_h);
 
     void set_menu_items_pointer();
 	void set_mode();

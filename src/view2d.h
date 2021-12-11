@@ -116,7 +116,7 @@ public:
     Shape *temp_shape     = nullptr;
 
     // IMPORTANT(daniel): This is a reference to a parent container shapes
-    std::vector<Shape*> &shapes;
+    std::vector<Shape*> shapes;
     ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE };
 
     float max_zoom = 300.0f;
