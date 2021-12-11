@@ -45,9 +45,10 @@ class View2D : public Fl_Box {
 public:
     View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes);
 
-
     void world_to_scr(Vector world, int &scrx, int &screeny);
     void scr_to_world(int scrx, int screeny, Vector& world);
+
+    static void axes(int centerx, int centery, int w, int h, int line_width);
 
     void draw();
     void draw_create_shape();

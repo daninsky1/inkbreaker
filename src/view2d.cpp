@@ -50,16 +50,7 @@ void View2D::draw()
 	Vector ax{ 0.0, 0.0 };
 	int axx, axy;
 	world_to_scr(ax, axx, axy);
-	fl_line_style(FL_SOLID, 1);
-	fl_color(FL_RED);
-	fl_line(axx, axy, ssw, axy);
-	fl_color(FL_GREEN);
-	fl_line(axx, axy, axx, ssh);
-	fl_line_style(FL_DOT, 1);
-	fl_color(FL_RED);
-	fl_line(0, axy, axx, axy);
-	fl_color(FL_GREEN);
-	fl_line(axx, 0, axx, axy);
+    View2D::axes(axx, axy, ssw, ssw, 1);
 
 
     // NOTE(daniel): Render queue
@@ -553,4 +544,19 @@ void View2D::change_cursor(Fl_Cursor c)
     last_cursor = current_cursor;
     current_cursor = c;
     window()->cursor(c);
+}
+
+
+void View2D::axes(int centerx, int centery, int w, int h, int line_width)
+{
+	fl_line_style(FL_SOLID, 1);
+	fl_color(FL_RED);
+	fl_line(centerx, centery, w, centery);
+	fl_color(FL_GREEN);
+	fl_line(centerx, centery, centerx, h);
+	fl_line_style(FL_DOT, 1);
+	fl_color(FL_RED);
+	fl_line(0, centery, centerx, centery);
+	fl_color(FL_GREEN);
+	fl_line(centerx, 0, centerx, centery);
 }
