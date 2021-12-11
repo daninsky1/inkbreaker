@@ -2,13 +2,14 @@
 
 constexpr int SELECTION_THRESHOLD = 5;
 
-View2D::View2D(int x, int y, int w, int h) :
+View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
 	Fl_Box{ x, y, w, h }
 {
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     ssx = x; ssy = y;
     ssw = w; ssh = h;
+    shapes = p_shapes;
 } // View2D
 
 void View2D::draw()

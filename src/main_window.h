@@ -56,13 +56,19 @@ public:
     bool changed();
     void changed(bool c);
 
+    /* Shapes */
+    bool is_drawing        = false;
+    Node *m_selected_node = nullptr;
+    Shape *temp_shape     = nullptr;
+    std::vector<Shape*> shapes;
+    ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE };
 
 	/* Widgets */
     Fl_Menu_Bar *menu_bar;
 	View2D *v2d;
 
-private:
 	/* States*/
     InkbreakerState main_state = { };
+
 };
 

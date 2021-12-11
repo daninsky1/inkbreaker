@@ -42,7 +42,7 @@ struct View2DState {
 //
 class View2D : public Fl_Box {
 public:
-    View2D(int x, int y, int w, int h);
+    View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes);
 
     void world_to_scr(Vector world, int &scrx, int &screeny);
     void scr_to_world(int scrx, int screeny, Vector& world);
@@ -89,7 +89,6 @@ public:
     /* Cursor */
     Fl_Cursor current_cursor = FL_CURSOR_DEFAULT;
     Fl_Cursor last_cursor = current_cursor;
-
     void change_cursor(Fl_Cursor c);
 
     // TODO(daniel): Make a structure with the mouse states
@@ -115,6 +114,7 @@ public:
     bool is_drawing        = false;
     Node *m_selected_node = nullptr;
     Shape *temp_shape     = nullptr;
+    // IMPORTANT(daniel): This is a reference to a parent container shapes
     std::vector<Shape*> shapes;
     ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE };
 
