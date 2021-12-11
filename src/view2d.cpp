@@ -2,9 +2,8 @@
 
 constexpr int SELECTION_THRESHOLD = 5;
 
-View2D::View2D(int x, int y, int w, int h, Fl_Double_Window *wnd) :
-	Fl_Box{ x, y, w, h },
-	mwnd{ wnd }
+View2D::View2D(int x, int y, int w, int h) :
+	Fl_Box{ x, y, w, h }
 {
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -289,7 +288,7 @@ int View2D::handle(int evt)
 		break;
 	case FL_PUSH:
 		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-			mwnd->cursor(FL_CURSOR_MOVE);
+            change_cursor(FL_CURSOR_MOVE);
 		}
 		drag_sx = (float)Fl::event_x_root();
 		drag_sy = (float)Fl::event_y_root();
@@ -319,7 +318,7 @@ int View2D::handle(int evt)
 		ret = 1;
     } break;
 	case FL_RELEASE:
-		mwnd->cursor(FL_CURSOR_DEFAULT);
+        change_cursor(FL_CURSOR_DEFAULT);
 		is_dragging = false;
 		ret = 1;
 		break;
@@ -547,4 +546,12 @@ void View2D::zoom(int focusx, int focusy, float scale_factor_percent)
 	world_offset.y += (bf_center_axis.y - af_center_axis.y);
 
 	redraw();
+}
+
+void View2D::change_cursor(Fl_Cursor c)
+{
+    if (c == current_cursor) return;
+    last_cursor = current_cursor;
+    current_cursor = c;
+    window()->cursor(c);
 }

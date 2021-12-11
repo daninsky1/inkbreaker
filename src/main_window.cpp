@@ -602,7 +602,7 @@ MainWindow::MainWindow() :
     // IMPORTANT(daniel): Passing this pointer to v2d is really shady. For
     // reasons that I not fully understand. Constructing the v2d after menu bar
     // causes read violation
-    v2d = new View2D{0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H, this};
+    v2d = new View2D{0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H};
 
     for (int i = 0; i < menu_items->size(); ++i) {
         if (menu_items[i].label()) {
@@ -618,7 +618,7 @@ MainWindow::MainWindow() :
 MainWindow::MainWindow(int w, int h, const char* l) :
     Fl_Double_Window{ w, MENU_BAR_H + h, l }
 {
-    v2d = new View2D{0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H, this};
+    v2d = new View2D{0, MENU_BAR_H, V2D_DEFAULT_W, V2D_DEFAULT_H + MENU_BAR_H};
     
     menu_bar = new Fl_Menu_Bar{0, 0, V2D_DEFAULT_W, MENU_BAR_H};
     menu_bar->menu(menu_items);
@@ -647,3 +647,4 @@ void MainWindow::changed(bool c)
     main_state.changed = c;
     v2d->changed = c;
 }
+

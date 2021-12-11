@@ -42,7 +42,7 @@ struct View2DState {
 //
 class View2D : public Fl_Box {
 public:
-    View2D(int x, int y, int w, int h, Fl_Double_Window *wnd);
+    View2D(int x, int y, int w, int h);
 
     void world_to_scr(Vector world, int &scrx, int &screeny);
     void scr_to_world(int scrx, int screeny, Vector& world);
@@ -59,7 +59,7 @@ public:
     void zoom(int focusx, int focusy, float scale_factor_percent);
 
     // NOTE(daniel): The window that we are
-    Fl_Double_Window *mwnd;
+    //Fl_Double_Window *mwnd;
 
     Fl_Surface_Device *this_surface_device;
     Fl_Image_Surface *dev_scr_buf;
@@ -85,6 +85,12 @@ public:
     Vector m_mouse_world_pos;
     Pointi snap_mouse_scr_pos{ 0, 0 };
     Vector snap_mouse_world_pos;
+
+    /* Cursor */
+    Fl_Cursor current_cursor = FL_CURSOR_DEFAULT;
+    Fl_Cursor last_cursor = current_cursor;
+
+    void change_cursor(Fl_Cursor c);
 
     // TODO(daniel): Make a structure with the mouse states
     bool m_drag_constraint = false;

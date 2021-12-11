@@ -56,6 +56,7 @@ public:
     bool changed();
     void changed(bool c);
 
+
 	/* Widgets */
     Fl_Menu_Bar *menu_bar;
 	View2D *v2d;
