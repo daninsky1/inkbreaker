@@ -158,7 +158,6 @@ public:
     bool show_grid = true;
     bool is_snap_grid = true;
 
-
     BBox *select_shape_bbox = nullptr;
     bool is_selecting = false;
     bool is_moving = false;

@@ -63,6 +63,13 @@ void circle_state_cb(Fl_Widget* widget, void* mwv)
     mwnd->v2d->state.draw = Draw::circle;
 }
 
+void poly_state_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    mwnd->v2d->state.mode = Mode::draw;
+    mwnd->v2d->state.draw = Draw::poly;
+}
+
 void set_line_color_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
@@ -574,6 +581,7 @@ Fl_Menu_Item menu_items[] = {
         { "Line", 0, (Fl_Callback*)line_state_cb},
         { "Rectangle", 0, (Fl_Callback*)rect_state_cb},
         { "Circle", 0, (Fl_Callback*)circle_state_cb},
+        { "Polygon", 0, (Fl_Callback*)poly_state_cb},
         { 0 },
     { "Shape Style", 0, nullptr, nullptr, FL_SUBMENU },
     //    { "Line Width", 0, nullptr, nullptr, FL_SUBMENU },
@@ -596,13 +604,14 @@ Fl_Menu_Item menu_items[] = {
 MainWindow::MainWindow(int v2d_w, int v2d_h) :
     Fl_Double_Window{ v2d_w, MENU_BAR_H + v2d_h, "InkBreaker" }
 {
+    // InkbreakerState
+    app_state.changed = false;
+    app_state.active_selection = nullptr;
+
     // View2D
     v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, shapes};
     v2d->app_state = &app_state;
 
-    // InkbreakerState
-    app_state.changed = false;
-    app_state.active_selection = nullptr;
 
     // Fl_Menu_Bar
     menu_bar = new Fl_Menu_Bar{ 0, 0, V2D_DEFAULT_W, MENU_BAR_H };

@@ -10,6 +10,19 @@ std::ostream& operator<<(std::ostream& os, const Vector2f& v)
 Vector2f Shape::world_offset{ 0.0, 0.0 };
 double Shape::world_scale{ 1.0 };
 
+void translate(float offx, float offy, Shape *s)
+{
+    for (int i = 0; i < s->nodes.size(); ++i) {
+        s->nodes[i].pos.x += offx;
+        s->nodes[i].pos.y += offy;
+    }
+}
+
+void scale(float factor, float centerx, float centery)
+{
+    // TODO
+}
+
 Node* Shape::get_next_node(const Vector2f &p)
 {
     if (nodes.size() == max_nodes) return nullptr;
@@ -158,11 +171,19 @@ void Rect::draw_shape()
     world_to_scr(nodes[0].pos, sx, sy);
     world_to_scr(nodes[1].pos, ex, ey);
 
-    // BUG(daniel): The order that this is drawn causes problems if the user
-    // do the drawing in the oposite order
+    int normalsx = sx, normalsy = sy;
+    int normalex = ex, normaley = ey;
+    if (normalsx > normalex) {
+        normalsx = ex;
+        normalex = sx;
+    }
+    if (normalsy > normaley) {
+        normalsy = ey;
+        normaley = sy;
+    }
 
     fl_color(sinfo.fill_color);
-    fl_rectf(sx, sy, ex-sx, ey-sy, sinfo.fill_color);
+    fl_rectf(normalsx, normalsy, normalex-normalsx, normaley-normalsy, sinfo.fill_color);
 
     // NOTE(daniel): The straing foward fl_rect() do not apply the miter state.
     // The work around is pretty simple use line loop.
@@ -170,9 +191,9 @@ void Rect::draw_shape()
     fl_color(sinfo.line_color);
     fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
     fl_begin_loop();
-    fl_vertex(sx, sy); fl_vertex(ex, sy);
-    fl_vertex(ex, ey); fl_vertex(sx, ey);
-    fl_vertex(sx, sy);
+    fl_vertex(normalsx, normalsy); fl_vertex(normalex, normalsy);
+    fl_vertex(normalex, normaley); fl_vertex(normalsx, normaley);
+    fl_vertex(normalsx, normalsy);
     fl_end_loop();
 }
 
@@ -314,6 +335,7 @@ void Poly::draw_shape()
 
 void Poly::update_bbox()
 {
+    // TODO(daniel)
 }
 
 void Poly::draw_bbox()

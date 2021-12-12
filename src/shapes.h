@@ -12,6 +12,7 @@
 struct Pointi { int x, y; };
 struct Vector2f { float x, y; };
 
+
 struct ShapeInfo {
     // TODO(daniel): Add join method after selection is possible
     int line_width;     // In pixels
@@ -103,3 +104,6 @@ struct Poly : public Shape {
     bool is_inside_bbox(Vector2f &v) override;
     std::string type() override { return std::string{"polygon"}; }
 };
+
+
+void translate(float offx, float offy, Shape *s);

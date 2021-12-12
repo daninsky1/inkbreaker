@@ -382,10 +382,8 @@ int View2D::handle(int evt)
                 select_shape_bbox->nodes[1].pos = mouse_world;
             }
             else if (is_moving) {
-                for (int i = 0; i < app_state->active_selection->nodes.size(); ++i) {
-                    app_state->active_selection->nodes[i].pos.x += (mouse_world.x - drag_start_world.x);
-                    app_state->active_selection->nodes[i].pos.y += (mouse_world.y - drag_start_world.y);
-                }
+                translate((mouse_world.x - drag_start_world.x), (mouse_world.y - drag_start_world.y),
+                    app_state->active_selection);
                 drag_start_world.x = mouse_world.x;
                 drag_start_world.y = mouse_world.y;
                 app_state->active_selection->update_bbox();
@@ -397,25 +395,25 @@ int View2D::handle(int evt)
         } break;
 		case FL_RELEASE: {
             // TODO(daniel): Finish and store selection
+            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+            scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+            mouse_snap_world = get_snap_grid(mouse_world);
+            world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
             if (is_selecting) {
                 if (select_shape_bbox->scrw > DRAG_THRESHOLD || select_shape_bbox->scrh > DRAG_THRESHOLD) {
                     // Do box selection
                 }
                 else {
                     // Do click seletion
-                    scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
                     for (std::vector<Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
                         if ((*it)->is_inside_bbox(mouse_world)) {
                             *it = app_state->active_selection;
                             app_state->active_selection = *it;
                             printf("%s position: %f, %f\n", app_state->active_selection->type().c_str(), app_state->active_selection->nodes[0].pos.x, app_state->active_selection->nodes[0].pos.y);
                             break;
-                            }
+                        }
                         app_state->active_selection = nullptr;
-                        //(*it)->update_bbox();
-                        //if (((mouse_world.x > (*it)->bboxs.x) && (mouse_world.x < (*it)->bboxe.x))
-                        //    && ((mouse_world.y > (*it)->bboxs.y) && (mouse_world.x < (*it)->bboxe.y))) {
-                        //}
                     }
                 }
             }
