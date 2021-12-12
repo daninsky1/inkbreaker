@@ -97,7 +97,8 @@ public:
     void set_cursor();
 
     void pan();
-    void zoom(int focusx, int focusy, float scale_factor_percent);
+    void pan(int scrx, int scry);
+    void zoom(float scale_factor_percent, int centerx, int centery);
 
     // NOTE(daniel): The window that we are
     //Fl_Double_Window *mwnd;
@@ -125,7 +126,7 @@ public:
     // widget
     Pointi mouse_v2d{ 0, 0 };
     Vector2f mouse_world;
-    Pointi mouse_snap_v2d{ 0, 0 };
+    Pointi snap_cursor_v2d{ 0, 0 };
     Pointi snap_mouse_scr_pos{ 0, 0 };
     Vector2f mouse_snap_world{ 0.0f, 0.0f };
 
@@ -136,8 +137,10 @@ public:
 
     // TODO(daniel): Make a structure with the mouse states
     bool m_drag_constraint = false;
-    Vector2f drag_world_start_pos;
+    Vector2f drag_start_world;
+
     float drag_sx = 0, drag_sy = 0;// drag start position
+    int drag_sxi = 0, drag_syi = 0;// drag start whole screen position
     bool is_dragging = false;
     Mode m_lm_state{ Mode::zoom };
 
