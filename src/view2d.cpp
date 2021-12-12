@@ -49,7 +49,6 @@ void View2D::draw()
 	world_to_scr(axes_center, axx, axy);
     View2D::draw_axes(axx, axy, v2d_w, v2d_w, 1);
 
-
     // NOTE(daniel): Render queue
     for (int i = 0; i < shapes.size(); ++i) {
         shapes[i]->draw_shape();
@@ -304,8 +303,7 @@ int View2D::handle(int evt)
 		break;
 	case FL_MOUSEWHEEL:
 	{
-		int mouse_x = Fl::event_x() - x();
-		int mouse_y = Fl::event_y() - y();
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 
 		int wheel_state = Fl::event_dy();
         float scale_factor_percent = 0.0f;
@@ -316,7 +314,7 @@ int View2D::handle(int evt)
             scale_factor_percent = 1.0f - zooming_factor;
 		}
 
-        zoom(mouse_x, mouse_y, scale_factor_percent);
+        zoom(mouse_v2d.x, mouse_v2d.y, scale_factor_percent);
 
 		ret = 1;
 	} break;
@@ -327,8 +325,7 @@ int View2D::handle(int evt)
 	if (state.mode == Mode::select) {
 		switch (evt) {
 		case FL_PUSH: {
-			mouse_v2d.x = Fl::event_x() - x();
-			mouse_v2d.y = Fl::event_y() - y();
+            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
                 if (!select_box) {
                     select_box = new SelectBox();
@@ -352,9 +349,8 @@ int View2D::handle(int evt)
 			ret = 1;
         } break;
 		case FL_DRAG: {
-			mouse_v2d.x = Fl::event_x() - x();
-			mouse_v2d.y = Fl::event_y() - y();
-			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
+            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+			scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
 
             if (is_selecting) {
                 // second node
@@ -567,12 +563,26 @@ Vector2f View2D::get_snap_grid(Vector2f vec2d_world)
 
 void View2D::draw_grid(int point_sz)
 {
+    // TODO(daniel): performance really poor
     Vector2f v2d_origin_world;
     scr_to_world(v2d_x, v2d_y, v2d_origin_world);
+    v2d_origin_world.x -= snap_grid_interval;
+    v2d_origin_world.y -= snap_grid_interval;
+
     Vector2f v2d_size_world;
     scr_to_world(v2d_w, v2d_h, v2d_size_world);
-    
-    while (v2d_origin_world.x < v2d_size_world.x) {
-        
+    v2d_size_world.x += snap_grid_interval;
+    v2d_size_world.y += snap_grid_interval;
+
+    v2d_origin_world = get_snap_grid(v2d_origin_world);
+
+    int scrx, scry;
+    for (float xf = v2d_origin_world.x; xf < v2d_size_world.x; xf += snap_grid_interval) {
+        for (float yf = v2d_origin_world.y; yf < v2d_size_world.y; yf += snap_grid_interval) {
+            world_to_scr(Vector2f{ xf, yf }, scrx, scry);
+            fl_point(scrx, scry);
+            //fl_circle(scrx, scry, 2);
+        }
     }
+    //printf("%d - %f, %f - %f, %f\n", point_counter, v2d_origin_world.x, v2d_size_world.x, v2d_origin_world.y, v2d_size_world.y);
 }
