@@ -447,18 +447,6 @@ void View2D::pan(int scrx, int scry)
     float scryf = static_cast<float>(scry);
     world_offset.x -= scrxf / world_scale;
     world_offset.y -= scryf / world_scale;
-    redraw();
-}
-
-void View2D::pan()
-{
-	float update_mouse_x = static_cast<float>(Fl::event_x_root());
-	float update_mouse_y = static_cast<float>(Fl::event_y_root());
-	// drag difference
-	world_offset.x -= (update_mouse_x - drag_sx) / world_scale;
-	world_offset.y -= (update_mouse_y - drag_sy) / world_scale;
-	drag_sx = update_mouse_x;
-	drag_sy = update_mouse_y;
 	// BUG
 	if (m_drag_constraint) {
 		if (world_offset.x < -w()) world_offset.x = static_cast<float>(-w());
@@ -495,7 +483,6 @@ void View2D::change_cursor(Fl_Cursor c)
     current_cursor = c;
     window()->cursor(c);
 }
-
 
 void View2D::draw_axes(int centerx, int centery, int w, int h, int line_width)
 {

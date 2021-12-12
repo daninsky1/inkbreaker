@@ -96,7 +96,6 @@ public:
     int handle(int evt);
     void set_cursor();
 
-    void pan();
     void pan(int scrx, int scry);
     void zoom(float scale_factor_percent, int centerx, int centery);
 
