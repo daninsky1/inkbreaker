@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assert.h>
+
 #include <sstream>
 
 #include <FL/Fl_Box.H>
@@ -24,7 +26,8 @@ enum class Mode {
 enum class Draw {
     line,
     rect,
-    circle
+    circle,
+    poly
 };
 
 enum class Select {
@@ -113,13 +116,13 @@ public:
     int v2d_x, v2d_y;
     int v2d_w, v2d_h;
 
-    View2DState state{ Mode::draw, Draw::rect };
+    View2DState state{ Mode::draw, Draw::poly };
     bool changed = false;
 
     Vector2f axes_center { 0.0f, 0.0f };       // Axes center point
 
     Vector2f world_offset{ 0.0f, 0.0f };
-    float world_scale{ 1.0f };
+    float world_scale{ 15.0f };
 
     // NOTE(daniel): Mouse states, the screen coordinates are relative to this
     // widget
@@ -139,6 +142,8 @@ public:
     Vector2f drag_start_world;
 
     float drag_sx = 0, drag_sy = 0;// drag start position
+    int drag_start_scr_x = 0, drag_start_scr_y = 0; 
+
     int drag_sxi = 0, drag_syi = 0;// drag start whole screen position
     bool is_dragging = false;
     Mode m_lm_state{ Mode::zoom };
@@ -151,22 +156,22 @@ public:
     float grid_interval = pixel_size;
     float snap_grid_interval = grid_interval;
     bool show_grid = true;
-    bool is_snap_grid;
+    bool is_snap_grid = true;
 
 
-    SelectBox *select_box = nullptr;
+    BBox *select_shape_bbox = nullptr;
     bool is_selecting = false;
     bool is_moving = false;
 
     InkbreakerState *app_state;
 
     bool is_drawing       = false;
-    Node *m_selected_node = nullptr;
+    Node *active_node_select = nullptr;
     Shape *temp_shape     = nullptr;
 
     // IMPORTANT(daniel): This is a reference to a parent container shapes
     std::vector<Shape*> shapes;
-    ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE };
+    ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE, true, true };
 
     float max_zoom = 300.0f;
     float min_zoom = 0.001f;

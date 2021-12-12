@@ -7,11 +7,6 @@ std::ostream& operator<<(std::ostream& os, const Vector2f& v)
         << ", " << v.y << ']';
 }
 
-//std::ostream& operator<<(std::ostream& os, const Line& line)
-//{
-//	return os << line.get_a() << ", " << line.get_b() << " ----";
-//}
-
 Vector2f Shape::world_offset{ 0.0, 0.0 };
 double Shape::world_scale{ 1.0 };
 
@@ -43,14 +38,14 @@ void Shape::world_to_scr(Vector2f &v, int& scrx, int& scry)
     scry = static_cast<int>((v.y - world_offset.y) * world_scale);
 }
 
-SelectBox::SelectBox()
+BBox::BBox()
 {
     max_nodes = 2;
     // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: Shape::get_next_node definition
     nodes.reserve(max_nodes);
 }
 
-void SelectBox::draw_shape()
+void BBox::draw_shape()
 {
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
@@ -280,3 +275,53 @@ void Circle::draw_bbox()
     fl_end_loop();
 }
 
+Poly::Poly()
+{
+    max_nodes = 2;
+    nodes.reserve(max_nodes);
+}
+
+Node* Poly::get_next_node(const Vector2f &p)
+{
+    Node n;
+    n.parent = this;
+    n.pos = p;
+    nodes.push_back(n);
+    return &nodes[nodes.size() - 1];
+}
+
+void Poly::draw_shape()
+{
+    int px, py;
+
+    fl_color(sinfo.fill_color);
+    fl_begin_polygon();
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        world_to_scr(nodes[i].pos, px, py);
+        fl_vertex(px, py);
+    }
+    fl_end_polygon();
+
+    fl_color(sinfo.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_begin_line();
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        world_to_scr(nodes[i].pos, px, py);
+        fl_vertex(px, py);
+    }
+    fl_end_line();
+}
+
+void Poly::update_bbox()
+{
+}
+
+void Poly::draw_bbox()
+{
+    //int sx, sy, ex, ey;
+}
+
+bool Poly::is_inside_bbox(Vector2f &v)
+{
+    return false;
+}

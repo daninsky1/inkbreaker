@@ -1,6 +1,6 @@
 #include "view2d.h"
 
-constexpr int SELECTION_THRESHOLD = 5;
+constexpr int DRAG_THRESHOLD = 5;
 
 View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
 	Fl_Box{ x, y, w, h },
@@ -53,23 +53,25 @@ void View2D::draw()
         // Draw grid
         draw_grid(5);
     }
-    // NOTE(daniel): Render queue
-    for (int i = 0; i < shapes.size(); ++i) {
-        shapes[i]->draw_shape();
-    }
 
 	if (temp_shape) {
 		temp_shape->draw_shape();
 		//temp_shape->draw_nodes();
 	}
 
-    if (is_selecting) {
-        select_box->draw_shape();
+    // NOTE(daniel): Render queue
+    for (int i = 0; i < shapes.size(); ++i) {
+        shapes[i]->draw_shape();
     }
 
-    if (app_state->active_selection) {
-        app_state->active_selection->draw_bbox();
-    }
+
+    //if (is_selecting) {
+    //    select_shape_bbox->draw_shape();
+    //}
+
+    //if (app_state->active_selection) {
+    //    app_state->active_selection->draw_bbox();
+    //}
 
     // DRAW SNAP CURSOR
     Vector2f scr_origin_to_world;
@@ -126,15 +128,13 @@ int View2D::handle(int evt)
 	// focus keyboard events to this widget
 	switch (evt) {
 	case FL_FOCUS:
-		return 1;
-		break;
 	case FL_UNFOCUS:
+		return 1;
 		break;
 	default:
 		break;
 	}
 
-	// test and print keys
 	//int key_code = 0;
 	//if (evt == FL_KEYBOARD) {
     //    constexpr int bfsz = 100;
@@ -204,59 +204,124 @@ int View2D::handle(int evt)
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
         world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+        if (active_node_select) {
+            if (is_snap_grid) {
+                active_node_select->pos = mouse_snap_world;
+
+            }
+            else {
+                active_node_select->pos = mouse_world;
+            }
+        }
 
 		redraw();
 		ret = 1;
     } break;
-	case FL_PUSH:
-		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
-            change_cursor(FL_CURSOR_MOVE);
-		}
-        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-        scr_to_world(mouse_v2d.x, mouse_v2d.y, drag_start_world);
-        drag_start_world = get_snap_grid(drag_start_world);
-		drag_sx = (float)Fl::event_x_root();
-		drag_sy = (float)Fl::event_y_root();
-		drag_sxi = Fl::event_x_root();
-		drag_syi = Fl::event_y_root();
-		is_dragging = true;
-		ret = 1;
-		break;
-	case FL_DRAG: {
+	case FL_PUSH: {
         get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
         world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
 
-		if (is_dragging) {
-            int drag_update_x = Fl::event_x_root();
-            int drag_update_y = Fl::event_y_root();
-			if ((Fl::event_button() == FL_MIDDLE_MOUSE) || (state.mode == Mode::pan && Fl::event_button() == FL_LEFT_MOUSE)) {
-				pan(drag_update_x - drag_sxi, drag_update_y - drag_syi);
-			}
-			else if (state.mode == Mode::zoom && Fl::event_button() == FL_LEFT_MOUSE) {
-                float drag_dist_pix = static_cast<float>(drag_update_x - drag_sxi);
-                float scale_factor_per_pixel = drag_dist_pix * zooming_sens;
-                float scale_factor_percent = scale_factor_per_pixel + 1.0f;
-
-                // NOTE(daniel): Maybe use drag start to center zoom
-				zoom(scale_factor_percent, v2d_w / 2, v2d_h / 2);
-
-                world_to_scr(drag_start_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-
-                //Printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
-			}
-            drag_sxi = drag_update_x;
-            drag_syi = drag_update_y;
+		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
+            change_cursor(FL_CURSOR_MOVE);
 		}
+        else if (Fl::event_button() == FL_LEFT_MOUSE) {
+                is_drawing = true;
+            }
+            else if (state.mode == Mode::select) {
+            }
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+        scr_to_world(mouse_v2d.x, mouse_v2d.y, drag_start_world);
+        drag_start_world = get_snap_grid(drag_start_world);
+		drag_start_scr_x = Fl::event_x_root();
+		drag_start_scr_y = Fl::event_y_root();
+		ret = 1;
+    } break;
+	case FL_DRAG: {
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+		is_dragging = true;
+
+        int drag_update_scrx = Fl::event_x_root();
+        int drag_update_scry = Fl::event_y_root();
+
+        if ((Fl::event_button() == FL_MIDDLE_MOUSE) || (state.mode == Mode::pan && Fl::event_button() == FL_LEFT_MOUSE)) {
+            pan(drag_update_scrx - drag_start_scr_x, drag_update_scry - drag_start_scr_y);
+        }
+        else if (state.mode == Mode::zoom && Fl::event_button() == FL_LEFT_MOUSE) {
+            float drag_dist_pix = static_cast<float>(drag_update_scrx - drag_start_scr_x);
+            float scale_factor_per_pixel = drag_dist_pix * zooming_sens;
+            float scale_factor_percent = scale_factor_per_pixel + 1.0f;
+
+            // NOTE(daniel): Maybe use drag start to center zoom
+            zoom(scale_factor_percent, v2d_w / 2, v2d_h / 2);
+
+            world_to_scr(drag_start_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
+            //Printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
+        }
+
+        drag_start_scr_x = drag_update_scrx;
+        drag_start_scr_y = drag_update_scry;
         redraw();
 		ret = 1;
     } break;
-	case FL_RELEASE:
-        change_cursor(FL_CURSOR_DEFAULT);
-		is_dragging = false;
+	case FL_RELEASE: {
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
+        if (is_drawing && Fl::event_button() == FL_LEFT_MOUSE) {
+            // first node at location of left click
+            if (!temp_shape) {
+                if (state.draw == Draw::line) {
+                    temp_shape = new Line();
+                    temp_shape->sinfo = sinfo;
+                }
+                else if (state.draw == Draw::rect) {
+                    temp_shape = new Rect();
+                    temp_shape->sinfo = sinfo;
+                }
+                else if (state.draw == Draw::circle) {
+                    temp_shape = new Circle();
+                    temp_shape->sinfo = sinfo;
+                }
+                else if (state.draw == Draw::poly) {
+                    temp_shape = new Poly();
+                    temp_shape->sinfo = sinfo;
+                }
+            }
+            assert(temp_shape);
+            printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);
+            if (is_snap_grid) {
+                temp_shape->get_next_node(mouse_snap_world);
+                active_node_select = temp_shape->get_next_node(mouse_snap_world);
+            }
+            else {
+                temp_shape->get_next_node(mouse_world);
+                active_node_select = temp_shape->get_next_node(mouse_world);
+            }
+
+            if (active_node_select == nullptr) {
+                shapes.push_back(temp_shape);
+                printf("Shape stored: %s\n", temp_shape->type().c_str());
+                printf("%f, %f - %f, %f\n", temp_shape->nodes[0].pos.x, temp_shape->nodes[0].pos.y, temp_shape->nodes[1].pos.x, temp_shape->nodes[1].pos.y);
+                is_drawing = false;
+                changed = true;
+                temp_shape = nullptr;
+            }
+        }
+        if (is_dragging) {
+            is_dragging = false;
+            change_cursor(FL_CURSOR_DEFAULT);
+        }
+        redraw();
 		ret = 1;
-		break;
+    } break;
 	case FL_MOUSEWHEEL: {
         get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
@@ -280,19 +345,21 @@ int View2D::handle(int evt)
 		break;
 	}
 
+
+    // NOTE(daniel): Draw shapes by dragging
 	if (state.mode == Mode::select) {
 		switch (evt) {
 		case FL_PUSH: {
             get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 			if (Fl::event_button() == FL_LEFT_MOUSE) {
-                if (!select_box) {
-                    select_box = new SelectBox();
+                if (!select_shape_bbox) {
+                    select_shape_bbox = new BBox();
                     // first node at location of left click
-                    select_box->get_next_node(mouse_world);
-                    select_box->get_next_node(mouse_world);
+                    select_shape_bbox->get_next_node(mouse_world);
+                    select_shape_bbox->get_next_node(mouse_world);
                 }
                 else {
-                    select_box->nodes[0].pos = mouse_world;
+                    select_shape_bbox->nodes[0].pos = mouse_world;
                 }
 			}
             is_selecting = true;
@@ -312,7 +379,7 @@ int View2D::handle(int evt)
 
             if (is_selecting) {
                 // second node
-                select_box->nodes[1].pos = mouse_world;
+                select_shape_bbox->nodes[1].pos = mouse_world;
             }
             else if (is_moving) {
                 for (int i = 0; i < app_state->active_selection->nodes.size(); ++i) {
@@ -331,7 +398,7 @@ int View2D::handle(int evt)
 		case FL_RELEASE: {
             // TODO(daniel): Finish and store selection
             if (is_selecting) {
-                if (select_box->scrw > SELECTION_THRESHOLD || select_box->scrh > SELECTION_THRESHOLD) {
+                if (select_shape_bbox->scrw > DRAG_THRESHOLD || select_shape_bbox->scrh > DRAG_THRESHOLD) {
                     // Do box selection
                 }
                 else {
@@ -365,61 +432,36 @@ int View2D::handle(int evt)
 		}
 	}
 
-    else if (state.mode == Mode::draw) {
-        // NOTE(daniel): This part only works for shapes that has two nodes max
-		switch (evt) {
-		case FL_PUSH:
-			if (Fl::event_button() == FL_LEFT_MOUSE) {
-                if (state.draw == Draw::line) {
-                    temp_shape = new Line();
-                    temp_shape->sinfo = sinfo;
-                }
-                if (state.draw == Draw::rect) {
-                    temp_shape = new Rect();
-                    temp_shape->sinfo = sinfo;
-                }
-                if (state.draw == Draw::circle) {
-                    temp_shape = new Circle();
-                    temp_shape->sinfo = sinfo;
-                }
-
-				// first node at location of left click
-				temp_shape->get_next_node(mouse_world);
-				m_selected_node = temp_shape->get_next_node(mouse_world);
-
-                is_drawing = true;
-			}
-			ret = 1;
-			break;
-		case FL_DRAG: {
-            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-			scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
-			// second node
-			if (m_selected_node != nullptr) {
-				m_selected_node->pos = mouse_world;
-			}
-			redraw();
-			
-			ret = 1;
-        } break;
-		case FL_RELEASE: {
-			if (is_drawing) {
-				m_selected_node = temp_shape->get_next_node(mouse_world);
-				if (m_selected_node == nullptr) {
-                    printf("shape push_back\n");
-                    shapes.push_back(temp_shape);
-                    changed = true;
-                    temp_shape = nullptr;
-                }
-                else {
-                    printf("failed to store shape\n");
-                }
-                is_drawing = false;
-			}
-			ret = 1;
-        } break;
-		}
-	}
+    //else if (state.mode == Mode::draw) {
+    //    // NOTE(daniel): This part only works for shapes that has two nodes max
+	//	switch (evt) {
+	//	case FL_PUSH:
+	//		if (Fl::event_button() == FL_LEFT_MOUSE) {
+	//		}
+	//		ret = 1;
+	//		break;
+	//	case FL_DRAG: {
+    //        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+	//		scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
+	//		// second node
+	//		if (active_node_select != nullptr) {
+	//			active_node_select->pos = mouse_world;
+	//		}
+	//		redraw();
+	//		
+	//		ret = 1;
+    //    } break;
+	//	case FL_RELEASE: {
+    //        
+    //        
+	//		if (is_drawing) {
+	//			active_node_select = temp_shape->get_next_node(mouse_world);
+    //            is_drawing = false;
+	//		}
+	//		ret = 1;
+    //    } break;
+	//	}
+	//}
 
 	return ret;
 } // handle member

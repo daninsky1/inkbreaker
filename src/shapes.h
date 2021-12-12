@@ -16,7 +16,9 @@ struct ShapeInfo {
     // TODO(daniel): Add join method after selection is possible
     int line_width;     // In pixels
     Fl_Color line_color;
-    Fl_Color fill_color;
+    Fl_Color fill_color;    // If Shape has no fill this is ignored
+    bool show_line; 
+    bool show_fill;
 };
 
 struct Shape;
@@ -30,7 +32,8 @@ struct Shape {
 	static double world_scale;
 	static Vector2f world_offset;
 
-    ShapeInfo sinfo{ 1, FL_WHITE, FL_BLACK };
+    //ShapeInfo sinfo{ 1, FL_WHITE, FL_BLACK, true, true };
+    ShapeInfo sinfo{ 1, FL_WHITE, FL_BLACK, true, true };
 
 	std::vector<Node> nodes;
 	uint32_t max_nodes = 0;
@@ -50,18 +53,18 @@ struct Shape {
     virtual void scale() { };
 
     virtual std::string type() { return std::string{"Shape"}; };
-	Node* get_next_node(const Vector2f& p);
+	virtual Node* get_next_node(const Vector2f& p);
 	void draw_nodes();
 	void world_to_scr(Vector2f& v, int& scrx, int& scry);
 
     void set_shape_info(ShapeInfo si) { sinfo = si; };
 };
 
-struct SelectBox : public Shape {
-    // NOTE(daniel): SelectBox occur in world space like any other shape and
-    // shown in screen space but we may want 
+struct BBox : public Shape {
+    // NOTE(daniel): Bounding box, BBox occur in world space like any other
+    // shape and shown in screen space but we may want 
     int scrw, scrh;
-	SelectBox();
+	BBox();
 	void draw_shape() override;
 };
 
@@ -89,4 +92,14 @@ struct Circle : public Shape {
     void update_bbox() override;
     bool is_inside_bbox(Vector2f &v) override;
     std::string type() override { return std::string{"circle"}; }
+};
+
+struct Poly : public Shape {
+    Poly();
+    Node* get_next_node(const Vector2f &p) override;
+    void draw_shape() override;
+    void draw_bbox() override;
+    void update_bbox() override;
+    bool is_inside_bbox(Vector2f &v) override;
+    std::string type() override { return std::string{"polygon"}; }
 };
