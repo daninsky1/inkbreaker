@@ -125,8 +125,9 @@ public:
     // widget
     Pointi mouse_v2d{ 0, 0 };
     Vector2f mouse_world;
+    Pointi mouse_snap_v2d{ 0, 0 };
     Pointi snap_mouse_scr_pos{ 0, 0 };
-    Vector2f mouse_snap_world;
+    Vector2f mouse_snap_world{ 0.0f, 0.0f };
 
     /* Cursor */
     Fl_Cursor current_cursor = FL_CURSOR_DEFAULT;
@@ -144,8 +145,10 @@ public:
     float pixel_size = 1.0f;
 
     // Grid
+    // TODO(daniel): Update grid interval based on a threshold
     float grid_interval = pixel_size;
     float snap_grid_interval = grid_interval;
+    bool show_grid = true;
     bool is_snap_grid;
 
 

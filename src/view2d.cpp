@@ -48,7 +48,11 @@ void View2D::draw()
 	int axx, axy;
 	world_to_scr(axes_center, axx, axy);
     View2D::draw_axes(axx, axy, v2d_w, v2d_w, 1);
-
+    // DRAW GRID
+    if (show_grid && (world_scale >= 15.0f)) {
+        // Draw grid
+        draw_grid(5);
+    }
     // NOTE(daniel): Render queue
     for (int i = 0; i < shapes.size(); ++i) {
         shapes[i]->draw_shape();
@@ -67,108 +71,49 @@ void View2D::draw()
         app_state->active_selection->draw_bbox();
     }
 
-	// TODO: IMPLEMENT GRID
-	// // GRID
-	// // TODO: IMPLEMENT GRID OBJECT
-	// /*
-	// * 
-	// fl_line_style(FL_SOLID, 2.0f*world_scale);
-	// // horizontal lines
-	// float gridx = 100.0f, gridy = 100.0f;
-	// for (double y = 0.0; y <= gridy; y+=gridy/10.0) {
-	// 	Vector2f start{ 0.0, y };
-	// 	Vector2f end{ gridx, y };
-
-	// 	// world to screen
-	// 	int start_sspx, start_sspy, end_sspx, end_sspy;
-	// 	world_to_scr(start, start_sspx, start_sspy);
-	// 	world_to_scr(end, end_sspx, end_sspy);
-
-	// 	fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
-	// }
-
-	// //// vertical lines
-	// for (double x = 0.0; x <= gridx; x+=gridx/10.0) {
-	// 	Vector2f start{ x, 0.0 };
-	// 	Vector2f end{ x, gridy };
-	// 	int startx = x, starty = 0.0f;
-	// 	int endx = x, endy = gridy;
-
-	// 	// world to screen
-	// 	int start_sspx, start_sspy, end_sspx, end_sspy;
-	// 	world_to_scr(start, start_sspx, start_sspy);
-	// 	world_to_scr(end, end_sspx, end_sspy);
-
-	// 	fl_line(start_sspx, start_sspy, end_sspx, end_sspy);
-	// }
-	// */
-    
-    // DRAW SNAP CURSOR AND GRID
-    int snap_cx;
-    int snap_cy;
-    world_to_scr(mouse_snap_world, snap_cx, snap_cy);
-
+    // DRAW SNAP CURSOR
     Vector2f scr_origin_to_world;
     scr_to_world(0, 0, scr_origin_to_world);
     Vector2f scr_size_to_world;
     scr_to_world(v2d_w, v2d_h, scr_size_to_world);
 
     if (world_scale >= 15.0f) {
-        // Draw snap cursor
         fl_line_style(FL_SOLID, 1);
         fl_color(FL_YELLOW);
-        fl_circle(snap_cx, snap_cy, 1);
-        // Draw grid
-        draw_grid(5);
+        fl_circle(mouse_snap_v2d.x, mouse_snap_v2d.y, 4);
     }
 
-    fl_end_offscreen();
-    fl_copy_offscreen(v2d_x, v2d_y, v2d_w, v2d_h, scr_buf, 0, 0);
-
-
-	// SCREEN DEBUG INFO
+	// SCREEN DEBUG MESSAGES
 	fl_color(FL_WHITE);
 	int font = FL_COURIER;
 	int font_sz = 14;
 	fl_font(font, 15);
 
 	int pad = 10;
-	// screen mouse position
-	std::stringstream ss_log;
-	ss_log << std::fixed;
-	ss_log << "View2D Size: " << '(' << v2d_w << " x " << v2d_h << ')';
-	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_y + fl_height(font, font_sz));
-	ss_log.str(std::string{""});
-	ss_log.str("");
-	ss_log << "World Offset: " << '(' << world_offset.x << " ," << world_offset.y << ')';
-	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_y + fl_height(font, font_sz) * 2);
-	ss_log.str("");
-	ss_log << "Scale: " << world_scale;
-	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_y + fl_height(font, font_sz) * 3);
+
+    const int msg_sz = 128;
+    char scr_dmsg[msg_sz];
+    sprintf_s(scr_dmsg, msg_sz, "View2D: (%d, %d)", v2d_w, v2d_h);
+	fl_draw(scr_dmsg, v2d_x + pad, fl_height(font, font_sz));
+    sprintf_s(scr_dmsg, msg_sz, "World offset: (%.3f, %.3f)", world_offset.x, world_offset.y);
+	fl_draw(scr_dmsg, v2d_x + pad, fl_height(font, font_sz) * 2);
+    sprintf_s(scr_dmsg, msg_sz, "World scale: %.3f", world_scale);
+	fl_draw(scr_dmsg, v2d_x + pad, fl_height(font, font_sz) * 3);
 
 	// mode
     //fl_draw(m_md_scr_msg.c_str(), v2d_x+pad, h() - pad - fl_height(font, font_sz)*4);
-	std::string mouse_coor;
-	mouse_coor.append("mouse screen (");
-	mouse_coor.append(std::to_string(mouse_v2d.x));
-	mouse_coor.append(" ,");
-	mouse_coor.append(std::to_string(mouse_v2d.y));
-	mouse_coor.append(")");
-	fl_draw(mouse_coor.c_str(), v2d_x + pad, h() - pad - fl_height(font, font_sz)*3);
-	// world mouse position
-	mouse_coor = "";
-	mouse_coor.append("mouse world (");
-	mouse_coor.append(std::to_string(mouse_world.x));
-	mouse_coor.append(" ,");
-	mouse_coor.append(std::to_string(mouse_world.y));
-	mouse_coor.append(" )");
-	fl_draw(mouse_coor.c_str(), v2d_x + pad, v2d_h - pad - fl_height(font, font_sz)*2);
-	ss_log.str("");
-	ss_log << "mouse world snap: (" << mouse_snap_world.x << ", " << mouse_snap_world.y << ')';
-	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_h - pad - fl_height(font, font_sz));
-	ss_log.str("");
-	ss_log << "mouse screen snap: (" << snap_cx << ", " << snap_cy << ')';
-	fl_draw(ss_log.str().c_str(), v2d_x + pad, v2d_h - pad);
+
+    sprintf_s(scr_dmsg, msg_sz, "mouse world: (%.3f, %.3f)", mouse_world.x, mouse_world.y);
+	fl_draw(scr_dmsg, v2d_x + pad, h() - pad - fl_height(font, font_sz)*3);
+    sprintf_s(scr_dmsg, msg_sz, "mouse world snap: (%.3f, %.3f)", mouse_snap_world.x, mouse_snap_world.y);
+	fl_draw(scr_dmsg, v2d_x + pad, v2d_h - pad - fl_height(font, font_sz)*2);
+    sprintf_s(scr_dmsg, msg_sz, "mouse view2d: (%d, %d)", mouse_v2d.x, mouse_v2d.y);
+	fl_draw(scr_dmsg, v2d_x + pad, v2d_h - pad - fl_height(font, font_sz));
+    sprintf_s(scr_dmsg, msg_sz, "mouse view2d snap: (%d, %d)", mouse_snap_v2d.x, mouse_snap_v2d.y);
+	fl_draw(scr_dmsg, v2d_x + pad, v2d_h - pad);
+
+    fl_end_offscreen();
+    fl_copy_offscreen(v2d_x, v2d_y, v2d_w, v2d_h, scr_buf, 0, 0);
 }
 
 
@@ -257,6 +202,8 @@ int View2D::handle(int evt)
 	case FL_MOVE:
         get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+        world_to_scr(mouse_snap_world, mouse_snap_v2d.x, mouse_snap_v2d.y);
 
         //if (world_scale >= 1.0f) {
         //    mouse_snap_world = get_snap_grid(mouse_world);
@@ -580,6 +527,7 @@ void View2D::draw_grid(int point_sz)
     for (float xf = v2d_origin_world.x; xf < v2d_size_world.x; xf += snap_grid_interval) {
         for (float yf = v2d_origin_world.y; yf < v2d_size_world.y; yf += snap_grid_interval) {
             world_to_scr(Vector2f{ xf, yf }, scrx, scry);
+            fl_color(FL_WHITE);
             fl_point(scrx, scry);
             //fl_circle(scrx, scry, 2);
         }
