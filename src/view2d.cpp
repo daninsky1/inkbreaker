@@ -11,10 +11,6 @@ View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
 
     v2d_x = x; v2d_y = y;
     v2d_w = w; v2d_h = h;
-
-	//Shape::world_offset = world_offset;
-	//Shape::world_scale = world_scale;
-
 } // View2D
 
 void View2D::draw()
@@ -38,6 +34,11 @@ void View2D::draw()
         fl_rescale_offscreen(scr_buf);
         fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     }
+
+    // NOTE(daniel): This need to be updated manually, until we find a better
+    // way to do it
+	Shape::world_offset = world_offset;
+	Shape::world_scale = world_scale;
 
 	// DRAW WORLD BACKGROUND
     fl_begin_offscreen(scr_buf);
