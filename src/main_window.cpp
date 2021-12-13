@@ -91,32 +91,6 @@ static bool glob_changed = false;
 static char glob_filename[FL_PATH_MAX] = "";
 static char glob_title[FL_PATH_MAX];
 
-// TODO(daniel): create a data structure to save
-/*
-CREATE TABLE vectorf(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    x FLOAT,
-    y FLOAT);
-
-CREATE TABLE line(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vectorf_id_1 INTEGER,
-    vectorf_id_2 INTEGER,
-    FOREIGN KEY(vectorf_id_1)
-    REFERENCES vectorf(id),
-    FOREIGN KEY(vectorf_id_2)
-    REFERENCES vectorf(id));
-
-CREATE TABLE rect(
-    id INTEGER PRIMARY KEY NOT NULL,
-    vectorf_id_1 INTEGER,
-    FOREIGN KEY(vectorf_id_1)
-    REFERENCES vectorf(id),
-    vectorf_id_2 INTEGER,
-    FOREIGN KEY(vectorf_id_2)
-    REFERENCES vectorf(id));
-*/
-
 static char* glob_sql_shapes_schema = "CREATE TABLE vectorf("
     "id INTEGER PRIMARY KEY AUTOINCREMENT,"
     "x FLOAT,"
