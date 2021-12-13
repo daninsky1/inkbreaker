@@ -17,11 +17,11 @@ BUILD_DIR=build/
 
 SYS_LIBS=User32.lib kernel32.lib gdi32.lib gdiplus.lib comdlg32.lib advapi32.lib shell32.lib \
 		 ole32.lib uuid.lib Ws2_32.lib comctl32.lib
-INCLUDE_DIR=/Ivendor\fltk /Ivendor\fltk\msvc\lib\Debug /Ivendor\fltk\msvc /Ivendor
+INCLUDE_DIR=/Ivendor\fltk /Ivendor\fltk\build\lib\Debug /Ivendor\fltk\build /Ivendor
 LIB_SRC_DIR=vendor\fltk\src vendor\sqlite vendor\stb
 LIB_SRC=vendor\fltk\src\* vendor\sqlite\* vendor\stb\*
 
-FLTK_LIB=vendor\fltk\msvc\lib\Debug\fltkd.lib
+FLTK_LIB=vendor\fltk\build\lib\Debug\fltkd.lib
 PROGRAM=inkbreaker.exe
 DEBUG_PROGRAM_NAME=dinkbreaker
 DEBUG_PROGRAM=dinkbreaker.exe
