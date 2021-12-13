@@ -91,12 +91,12 @@ public:
 
     void get_mouse();
 
-    void draw();
+    void draw() override;
     void draw_create_shape();
 
     void clear() { shapes.clear(); redraw(); }
 
-    int handle(int evt);
+    int handle(int evt) override;
     void set_cursor();
 
     void pan(int scrx, int scry);

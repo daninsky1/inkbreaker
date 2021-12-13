@@ -54,15 +54,15 @@ void View2D::draw()
         draw_grid(5);
     }
 
-	if (temp_shape) {
-		temp_shape->draw_shape();
-		//temp_shape->draw_nodes();
-	}
-
     // NOTE(daniel): Render queue
     for (int i = 0; i < shapes.size(); ++i) {
         shapes[i]->draw_shape();
     }
+
+	if (temp_shape) {
+		temp_shape->draw_shape();
+		//temp_shape->draw_nodes();
+	}
 
 
     //if (is_selecting) {
@@ -127,76 +127,124 @@ int View2D::handle(int evt)
 
 	// focus keyboard events to this widget
 	switch (evt) {
-	case FL_FOCUS:
-	case FL_UNFOCUS:
+	case FL_FOCUS: case FL_UNFOCUS:
 		return 1;
 		break;
 	default:
 		break;
 	}
 
-	//int key_code = 0;
-	//if (evt == FL_KEYBOARD) {
-    //    constexpr int bfsz = 100;
-	//	char buffer[bfsz];
-	//	const char* keyname = buffer;
-	//	key_code = Fl::event_key();
-	//	// ONLY HANDLES ASCII EVENT KEYS !!!!!!!
-	//	if (key_code < 128) { // ASCII
-	//		sprintf_s(buffer, bfsz,"'%c'", key_code);
-	//		switch (key_code) {
-	//		case 'r': {
-	//			std::cout << v2d_w << ", " << v2d_h << " " << w() << ", " << h() << std::endl;
-	//			redraw();
-	//		} break;
-	//		case 'z':
-	//			std::cout << "ZOOM_MODE\n";
-	//			m_lm_state = Mode::zoom;
-	//			m_md_scr_msg = "zoom";
-	//			redraw();
-	//			break;
-	//		case 'h': case ' ':
-	//			std::cout << "DRAG_MODE\n";
-	//			m_lm_state = Mode::pan;
-	//			m_md_scr_msg = "pan";
-	//			redraw();
-	//			break;
-	//		case 'l':
-	//			std::cout << "DRAW_MODE\n";
-	//			m_lm_state = Mode::draw;
-	//			m_md_scr_msg = "draw";
-	//			redraw();
-	//			break;
-	//		case '0':
-	//			std::cout << "ZERO_MODE\n";
-	//			m_lm_state = Mode::select;
-	//			m_md_scr_msg = "default";
-	//			redraw();
-	//			break;
-	//		}
-	//	}
-	//	else if (evt >= 0xa0 && evt <= 0xff) { // ISO-8859-1 (international keyboards)
-	//		char key_buf[8];
-	//		int kl = fl_utf8encode((unsigned)evt, key_buf);
-	//		key_buf[kl] = '\0';
-	//		sprintf_s(buffer, bfsz,"'%d'", key_code);
-	//		ret = 1;
-	//	}
-	//	else if (key_code > FL_F && key_code <= FL_F_Last) {
-	//		sprintf_s(buffer, bfsz,"FL_F+%d", key_code - FL_F);
-	//		ret = 1;
-	//	}
-	//	else if (key_code >= FL_KP && key_code <= FL_KP_Last) {
-	//		sprintf_s(buffer, bfsz, "FL_KP+'%c'", key_code - FL_KP);
-	//		ret = 1;
-	//	}
-	//	else if (key_code >= FL_Button && key_code <= FL_Button + 7) {
-	//		sprintf_s(buffer, "FL_Button+%d", key_code - FL_Button);
-	//		ret = 1;
-	//	}
-	//	std::cout << keyname << '\t' << key_code << '\n';
-	//}
+	int key_code = 0;
+	if (evt == FL_KEYBOARD) {
+        constexpr int bfsz = 100;
+		char buffer[bfsz];
+		const char* keyname = buffer;
+		key_code = Fl::event_key();
 
+		if (key_code < 128) { // ASCII
+			sprintf_s(buffer, bfsz,"'%c'", key_code);
+			switch (key_code) {
+			case 'r': {
+				std::cout << v2d_w << ", " << v2d_h << " " << w() << ", " << h() << std::endl;
+                ret = 1;
+				redraw();
+			} break;
+			case 'z':
+				std::cout << "ZOOM_MODE\n";
+				m_lm_state = Mode::zoom;
+				m_md_scr_msg = "zoom";
+                ret = 1;
+				redraw();
+				break;
+			case 'h': case ' ':
+				std::cout << "DRAG_MODE\n";
+				m_lm_state = Mode::pan;
+				m_md_scr_msg = "pan";
+                ret = 1;
+				redraw();
+				break;
+			case 'l':
+				std::cout << "DRAW_MODE\n";
+				m_lm_state = Mode::draw;
+				m_md_scr_msg = "draw";
+                ret = 1;
+				redraw();
+				break;
+			case '0':
+				std::cout << "ZERO_MODE\n";
+				m_lm_state = Mode::select;
+				m_md_scr_msg = "default";
+                ret = 1;
+				redraw();
+				break;
+			}
+		}
+        else {
+            switch (key_code) {
+            case FL_Enter: {
+                if (is_drawing) {
+                    if (temp_shape->type() == "polygon") {
+                        if (temp_shape->nodes.size() <= 2) {
+                            is_drawing = false;
+                            active_node_select = nullptr;
+                            delete temp_shape;
+                            temp_shape = nullptr;
+                        }
+                        else {
+                            is_drawing = false;
+                            temp_shape->nodes.pop_back();
+                            shapes.push_back(temp_shape);
+                            active_node_select = nullptr;
+                            temp_shape = nullptr;
+                        }
+                    }
+                    else {
+                        shapes.push_back(temp_shape);
+                        is_drawing = false;
+                        active_node_select = nullptr;
+                        temp_shape = nullptr;
+                    }
+                }
+                ret = 1;
+            } break;
+            case FL_Escape: {
+                if (is_drawing) {
+                    is_drawing = false;
+                    active_node_select = nullptr;
+                    delete temp_shape;
+                    temp_shape = nullptr;
+                    redraw();
+                }
+                if (is_selecting) {
+
+                }
+                ret = 1;
+            } break;
+            case FL_BackSpace: {
+                if (is_drawing) {
+                    if (temp_shape->nodes.size() <= 2) {
+                        is_drawing = false;
+                        active_node_select = nullptr;
+                        delete temp_shape;
+                        temp_shape = nullptr;
+                    }
+                    else {
+                        temp_shape->nodes.pop_back();
+                        active_node_select = &temp_shape->nodes[temp_shape->nodes.size() - 1];
+                        printf("nodes size %llu\n", temp_shape->nodes.size());
+                    }
+                    get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+                    scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+                    mouse_snap_world = get_snap_grid(mouse_world);
+                    world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
+                    redraw();
+                }
+                ret = 1;
+            } break;
+            }
+        }
+	}
 
 	switch (evt) {
 	case FL_MOVE: {
@@ -207,13 +255,11 @@ int View2D::handle(int evt)
         if (active_node_select) {
             if (is_snap_grid) {
                 active_node_select->pos = mouse_snap_world;
-
             }
             else {
                 active_node_select->pos = mouse_world;
             }
         }
-
 		redraw();
 		ret = 1;
     } break;
@@ -227,10 +273,11 @@ int View2D::handle(int evt)
             change_cursor(FL_CURSOR_MOVE);
 		}
         else if (Fl::event_button() == FL_LEFT_MOUSE) {
-                is_drawing = true;
-            }
-            else if (state.mode == Mode::select) {
-            }
+            is_drawing = true;
+        }
+        else if (state.mode == Mode::select) {
+        }
+
         get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
         scr_to_world(mouse_v2d.x, mouse_v2d.y, drag_start_world);
         drag_start_world = get_snap_grid(drag_start_world);
@@ -263,6 +310,16 @@ int View2D::handle(int evt)
 
             //Printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
         }
+        else if (is_drawing && (Fl::event_button() == FL_LEFT_MOUSE)) {
+            if (active_node_select) {
+                if (is_snap_grid) {
+                    active_node_select->pos = mouse_snap_world;
+                }
+                else {
+                    active_node_select->pos = mouse_world;
+                }
+            }
+        }
 
         drag_start_scr_x = drag_update_scrx;
         drag_start_scr_y = drag_update_scry;
@@ -280,33 +337,36 @@ int View2D::handle(int evt)
             if (!temp_shape) {
                 if (state.draw == Draw::line) {
                     temp_shape = new Line();
-                    temp_shape->sinfo = sinfo;
                 }
                 else if (state.draw == Draw::rect) {
                     temp_shape = new Rect();
-                    temp_shape->sinfo = sinfo;
                 }
                 else if (state.draw == Draw::circle) {
                     temp_shape = new Circle();
-                    temp_shape->sinfo = sinfo;
                 }
                 else if (state.draw == Draw::poly) {
                     temp_shape = new Poly();
-                    temp_shape->sinfo = sinfo;
                 }
+
+                if (is_snap_grid) {
+                    temp_shape->get_next_node(mouse_snap_world);
+                }
+                else {
+                    temp_shape->get_next_node(mouse_world);
+                }
+                temp_shape->sinfo = sinfo;
             }
             assert(temp_shape);
-            printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);
+            //printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);
             if (is_snap_grid) {
-                temp_shape->get_next_node(mouse_snap_world);
                 active_node_select = temp_shape->get_next_node(mouse_snap_world);
             }
             else {
-                temp_shape->get_next_node(mouse_world);
                 active_node_select = temp_shape->get_next_node(mouse_world);
             }
 
-            if (active_node_select == nullptr) {
+            printf("nodes size %llu\n", temp_shape->nodes.size());
+            if (!active_node_select) {
                 shapes.push_back(temp_shape);
                 printf("Shape stored: %s\n", temp_shape->type().c_str());
                 printf("%f, %f - %f, %f\n", temp_shape->nodes[0].pos.x, temp_shape->nodes[0].pos.y, temp_shape->nodes[1].pos.x, temp_shape->nodes[1].pos.y);
@@ -344,7 +404,6 @@ int View2D::handle(int evt)
 	default:
 		break;
 	}
-
 
     // NOTE(daniel): Draw shapes by dragging
 	if (state.mode == Mode::select) {
