@@ -4,8 +4,13 @@ constexpr int DRAG_THRESHOLD = 5;
 
 View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
 	Fl_Box{ x, y, w, h },
-    shapes { p_shapes }
+    shapes { p_shapes },
+    mouse_current_world{ mouse_snap_world }
 {
+    state.mode = Mode::draw;
+    state.select = Select::move;
+    state.draw = Draw::poly;
+
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
 
@@ -86,6 +91,12 @@ void View2D::draw()
     }
 
 	// SCREEN DEBUG MESSAGES
+    // NOTE(daniel): Update mouse view2d coordinates, and gets(not update) the
+    // snap cursor view2d coordinates
+    // TODO(daniel): The handles call entire draws to update the coordinate
+    // messages, try to use damage technique no avoid entire redraws:
+    // http://seriss.com/people/erco/fltk/#DrawCoords
+
 	fl_color(FL_WHITE);
 	int font = FL_COURIER;
 	int font_sz = 14;
@@ -204,6 +215,7 @@ int View2D::handle(int evt)
                         active_node_select = nullptr;
                         temp_shape = nullptr;
                     }
+                    redraw();
                 }
                 ret = 1;
             } break;
@@ -248,6 +260,7 @@ int View2D::handle(int evt)
 
 	switch (evt) {
 	case FL_MOVE: {
+        // begin moved to handle_draw_mode 
         get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
@@ -262,27 +275,28 @@ int View2D::handle(int evt)
         }
 		redraw();
 		ret = 1;
+        // end moved to handle_draw_mode 
     } break;
 	case FL_PUSH: {
-        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
-        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
 
 		if (Fl::event_button() == FL_MIDDLE_MOUSE) {
             change_cursor(FL_CURSOR_MOVE);
 		}
+        // begin moved handle_draw_mode
         else if (Fl::event_button() == FL_LEFT_MOUSE) {
             is_drawing = true;
         }
+        // end moved handle_draw_mode
         else if (state.mode == Mode::select) {
         }
 
-        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
         scr_to_world(mouse_v2d.x, mouse_v2d.y, drag_start_world);
         drag_start_world = get_snap_grid(drag_start_world);
 		drag_start_scr_x = Fl::event_x_root();
 		drag_start_scr_y = Fl::event_y_root();
+
 		ret = 1;
     } break;
 	case FL_DRAG: {
@@ -291,6 +305,7 @@ int View2D::handle(int evt)
         mouse_snap_world = get_snap_grid(mouse_world);
         world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
 		is_dragging = true;
+
 
         int drag_update_scrx = Fl::event_x_root();
         int drag_update_scry = Fl::event_y_root();
@@ -310,6 +325,7 @@ int View2D::handle(int evt)
 
             //Printf("%f * %f = %f\n", drag_dist_pix, zooming_sens, scale_factor_percent);
         }
+        // begin moved handle_draw_mode
         else if (is_drawing && (Fl::event_button() == FL_LEFT_MOUSE)) {
             if (active_node_select) {
                 if (is_snap_grid) {
@@ -320,6 +336,7 @@ int View2D::handle(int evt)
                 }
             }
         }
+        // end moved handle_draw_mode
 
         drag_start_scr_x = drag_update_scrx;
         drag_start_scr_y = drag_update_scry;
@@ -327,11 +344,10 @@ int View2D::handle(int evt)
 		ret = 1;
     } break;
 	case FL_RELEASE: {
-        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
-        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
 
+        // begin moved to handle_draw_mode
         if (is_drawing && Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!temp_shape) {
@@ -375,6 +391,7 @@ int View2D::handle(int evt)
                 temp_shape = nullptr;
             }
         }
+        // end moved to handle_draw_mode
         if (is_dragging) {
             is_dragging = false;
             change_cursor(FL_CURSOR_DEFAULT);
@@ -521,7 +538,120 @@ int View2D::handle(int evt)
 	//}
 
 	return ret;
-} // handle member
+} // View2D::handle
+
+int View2D::handle_draw_mode(int evt)
+{
+    int handled = 0;
+    if (state.mode != Mode::draw) {
+        // Nothing to do
+        is_drawing = false;
+        return handled;
+    }
+
+    // TODO(daniel): Review redraw() calls and handled state to be called or
+    // changed at right moment.
+    switch (evt) {
+    case FL_MOVE: {
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+        if (active_node_select) {
+            active_node_select->pos = mouse_current_world;
+        }
+        redraw();
+        handled = 1;
+    } break;
+    case FL_PUSH: {
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
+        // Review if this is necessary
+		drag_start_scr_x = Fl::event_x_root();
+		drag_start_scr_y = Fl::event_y_root();
+
+        redraw();
+        handled = 1;
+    } break;
+    case FL_DRAG: {
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
+        // NOTE(daniel): Find a way to track dragging state(is_dragging) that
+        // is tied to this function/state
+        int drag_update_scrx = Fl::event_x_root();
+        int drag_update_scry = Fl::event_y_root();
+
+        if (is_drawing && (Fl::event_button() == FL_LEFT_MOUSE)) {
+            active_node_select->pos = mouse_current_world;
+        }
+
+        // Review if this is necessary
+        drag_start_scr_x = drag_update_scrx;
+        drag_start_scr_y = drag_update_scry;
+
+        redraw();
+        handled = 1;
+    } break;
+    case FL_RELEASE: {
+		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+
+        if (Fl::event_button() == FL_LEFT_MOUSE) {
+            // first node at location of left click
+            if (!temp_shape) {
+                if (state.draw == Draw::line) {
+                    temp_shape = new Line();
+                }
+                else if (state.draw == Draw::rect) {
+                    temp_shape = new Rect();
+                }
+                else if (state.draw == Draw::circle) {
+                    temp_shape = new Circle();
+                }
+                else if (state.draw == Draw::poly) {
+                    temp_shape = new Poly();
+                }
+
+                if (temp_shape) {
+                    temp_shape->get_next_node(mouse_snap_world);
+                    is_drawing = true;
+                }
+                else {
+                    fprintf(stderr, "Error creating shape: temp_shape.");
+                    temp_shape->get_next_node(mouse_world);
+                }
+                temp_shape->sinfo = sinfo;
+            }
+            assert(temp_shape);
+            //printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);
+            active_node_select = temp_shape->get_next_node(mouse_current_world);
+
+            printf("nodes size %llu\n", temp_shape->nodes.size());
+            if (!active_node_select) {
+                shapes.push_back(temp_shape);
+                printf("Shape stored: %s\n", temp_shape->type().c_str());
+                printf("%f, %f - %f, %f\n", temp_shape->nodes[0].pos.x, temp_shape->nodes[0].pos.y, temp_shape->nodes[1].pos.x, temp_shape->nodes[1].pos.y);
+                is_drawing = false;
+                changed = true;
+                temp_shape = nullptr;
+            }
+        }
+    } break;
+    default: {
+    }
+
+    }
+
+
+    return handled;
+
+}
 
 void View2D::world_to_scr(Vector2f world, int& scrx, int& scry)
 {
@@ -533,11 +663,6 @@ void View2D::scr_to_world(int scrx, int scry, Vector2f& world)
 {
 	world.x = static_cast<float>(scrx) / world_scale + world_offset.x;
 	world.y = static_cast<float>(scry) / world_scale + world_offset.y;
-}
-
-void View2D::draw_create_shape()
-{
-    
 }
 
 void View2D::pan(int scrx, int scry)
@@ -641,3 +766,7 @@ void View2D::draw_grid(int point_sz)
     //printf("%d - %f, %f - %f, %f\n", point_counter, v2d_origin_world.x, v2d_size_world.x, v2d_origin_world.y, v2d_size_world.y);
 }
 
+void set_mouse_current_world(Vector2f &mouse)
+{
+
+}

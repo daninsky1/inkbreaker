@@ -40,8 +40,8 @@ enum class Select {
 struct View2DState {
     Mode mode;
 
-    Draw draw;
     Select select;
+    Draw draw;
     bool is_grid_snap;
 };
 //
@@ -82,21 +82,16 @@ public:
 
     void world_to_scr(Vector2f world, int &scrx, int &screeny);
     void scr_to_world(int scrx, int screeny, Vector2f& world);
-
     void get_cursor_v2d_position(int &cx, int &cy);
-
     static void draw_axes(int centerx, int centery, int w, int h, int line_width);
     Vector2f get_snap_grid(Vector2f vec2d_world);
     void draw_grid(int point_sz);
-
     void get_mouse();
-
     void draw() override;
-    void draw_create_shape();
 
     void clear() { shapes.clear(); redraw(); }
-
     int handle(int evt) override;
+    int handle_draw_mode(int evt);
     void set_cursor();
 
     void pan(int scrx, int scry);
@@ -116,7 +111,7 @@ public:
     int v2d_x, v2d_y;
     int v2d_w, v2d_h;
 
-    View2DState state{ Mode::draw, Draw::poly };
+    View2DState state;
     bool changed = false;
 
     Vector2f axes_center { 0.0f, 0.0f };       // Axes center point
@@ -128,9 +123,12 @@ public:
     // widget
     Pointi mouse_v2d{ 0, 0 };
     Vector2f mouse_world;
+    Vector2f mouse_snap_world{ 0.0f, 0.0f };
+    Vector2f &mouse_current_world;
+
+    void set_mouse_current_world(Vector2f &mouse);
     Pointi snap_cursor_v2d{ 0, 0 };
     Pointi snap_mouse_scr_pos{ 0, 0 };
-    Vector2f mouse_snap_world{ 0.0f, 0.0f };
 
     /* Cursor */
     Fl_Cursor current_cursor = FL_CURSOR_DEFAULT;
