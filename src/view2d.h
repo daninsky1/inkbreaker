@@ -27,7 +27,8 @@ enum class Draw {
     line,
     rect,
     circle,
-    poly
+    poly,
+    bezier
 };
 
 enum class Select {
@@ -163,7 +164,9 @@ public:
     InkbreakerState *app_state;
 
     bool is_drawing       = false;
-    Node *active_node_select = nullptr;
+    Node *active_point = nullptr;
+    Node *active_head_bhandle = nullptr;       // Head Bezier handle for bezier drawing
+    Node *tail_bhandle = nullptr;              // Tail Bezier handle for bezier drawing
     Shape *temp_shape     = nullptr;
 
     // IMPORTANT(daniel): This is a reference to a parent container shapes

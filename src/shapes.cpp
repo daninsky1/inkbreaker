@@ -296,12 +296,6 @@ void Circle::draw_bbox()
     fl_end_loop();
 }
 
-Poly::Poly()
-{
-    max_nodes = 2;
-    nodes.reserve(max_nodes);
-}
-
 Node* Poly::get_next_node(const Vector2f &p)
 {
     Node n;
@@ -347,3 +341,60 @@ bool Poly::is_inside_bbox(Vector2f &v)
 {
     return false;
 }
+
+
+Node* Bezier::get_next_node(const Vector2f &p)
+{
+    Node n;
+    n.parent = this;
+    n.pos = p;
+    nodes.push_back(n);
+    return &nodes[nodes.size() - 1];
+}
+
+void Bezier::draw_shape()
+{
+    int px0, py0, px1, py1;     // Curve points
+    int hx0, hy0, hx1, hy1;     // Curve handles
+
+    fl_color(sinfo.fill_color);
+    fl_begin_polygon();
+    for (size_t i = 0; i < nodes.size(); i+=3) {
+        //printf("v_size: %d\n", nodes.size());
+        //printf("p0: %d, h0: %d, h1: %d p1: %d\n", i, i+1, i+2, i+3);
+        world_to_scr(nodes[i].pos, px0, py0); world_to_scr(nodes[i+1].pos, hx0, hy0);
+        world_to_scr(nodes[i+2].pos, px1, py1); world_to_scr(nodes[i+3].pos, hx1, hy1);
+        fl_curve(px0, py0, hx0, hy0, hx1, hy1, px1, py1);
+    }
+    fl_end_polygon();
+    int px, py;
+
+    fl_color(sinfo.fill_color);
+    fl_begin_polygon();
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        world_to_scr(nodes[i].pos, px, py);
+        fl_vertex(px, py);
+    }
+    fl_end_polygon();
+
+    fl_color(sinfo.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_begin_line();
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        world_to_scr(nodes[i].pos, px, py);
+        fl_vertex(px, py);
+    }
+    fl_end_line();
+}
+
+void Bezier::draw_bbox()
+{
+}
+void Bezier::update_bbox()
+{
+}
+bool Bezier::is_inside_bbox(Vector2f &v)
+{
+    return false;
+}
+

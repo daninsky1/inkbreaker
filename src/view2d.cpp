@@ -9,7 +9,7 @@ View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
 {
     state.mode = Mode::draw;
     state.select = Select::move;
-    state.draw = Draw::poly;
+    state.draw = Draw::bezier;
 
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -132,11 +132,9 @@ void View2D::draw()
 
 int View2D::handle(int evt)
 {
-    // TODO(daniel): Implement system msg intercept with Fl::add_system_handler()
-
     if (Fl_Box::handle(evt)) return 1;
 
-	// focus keyboard events to this widget
+	// Focus keyboard events to this widget
 	switch (evt) {
 	case FL_FOCUS: case FL_UNFOCUS:
 		return 1;
@@ -145,11 +143,11 @@ int View2D::handle(int evt)
 		break;
 	}
 
-	int ret = 0;
-
     if (state.mode == Mode::draw) {
         if (handle_draw_mode(evt)) return 1;
     }
+
+	int ret = 0;
 
 	int key_code = 0;
 	if (evt == FL_KEYBOARD) {
@@ -204,7 +202,6 @@ int View2D::handle(int evt)
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
         world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-        printf("moving\n");
 		redraw();
 		ret = 1;
     } break;
@@ -235,6 +232,8 @@ int View2D::handle(int evt)
 
         int drag_update_scrx = Fl::event_x_root();
         int drag_update_scry = Fl::event_y_root();
+
+        printf("I'm dragging\n");
 
         if ((Fl::event_button() == FL_MIDDLE_MOUSE) || (state.mode == Mode::pan && Fl::event_button() == FL_LEFT_MOUSE)) {
             pan(drag_update_scrx - drag_start_scr_x, drag_update_scry - drag_start_scr_y);
@@ -387,8 +386,8 @@ int View2D::handle(int evt)
     //        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
 	//		scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
 	//		// second node
-	//		if (active_node_select != nullptr) {
-	//			active_node_select->pos = mouse_world;
+	//		if (active_point != nullptr) {
+	//			active_point->pos = mouse_world;
 	//		}
 	//		redraw();
 	//		
@@ -398,7 +397,7 @@ int View2D::handle(int evt)
     //        
     //        
 	//		if (is_drawing) {
-	//			active_node_select = temp_shape->get_next_node(mouse_world);
+	//			active_point = temp_shape->get_next_node(mouse_world);
     //            is_drawing = false;
 	//		}
 	//		ret = 1;
@@ -426,7 +425,7 @@ int View2D::handle_draw_mode(int evt)
                 if (temp_shape->type() == "polygon") {
                     if (temp_shape->nodes.size() <= 2) {
                         is_drawing = false;
-                        active_node_select = nullptr;
+                        active_point = nullptr;
                         delete temp_shape;
                         temp_shape = nullptr;
                     }
@@ -434,14 +433,14 @@ int View2D::handle_draw_mode(int evt)
                         is_drawing = false;
                         temp_shape->nodes.pop_back();
                         shapes.push_back(temp_shape);
-                        active_node_select = nullptr;
+                        active_point = nullptr;
                         temp_shape = nullptr;
                     }
                 }
                 else {
                     shapes.push_back(temp_shape);
                     is_drawing = false;
-                    active_node_select = nullptr;
+                    active_point = nullptr;
                     temp_shape = nullptr;
                 }
                 redraw();
@@ -451,7 +450,7 @@ int View2D::handle_draw_mode(int evt)
         case FL_Escape: {
             if (is_drawing) {
                 is_drawing = false;
-                active_node_select = nullptr;
+                active_point = nullptr;
                 delete temp_shape;
                 temp_shape = nullptr;
                 redraw();
@@ -465,13 +464,13 @@ int View2D::handle_draw_mode(int evt)
             if (is_drawing) {
                 if (temp_shape->nodes.size() <= 2) {
                     is_drawing = false;
-                    active_node_select = nullptr;
+                    active_point = nullptr;
                     delete temp_shape;
                     temp_shape = nullptr;
                 }
                 else {
                     temp_shape->nodes.pop_back();
-                    active_node_select = &temp_shape->nodes[temp_shape->nodes.size() - 1];
+                    active_point = &temp_shape->nodes[temp_shape->nodes.size() - 1];
                     printf("nodes size %llu\n", temp_shape->nodes.size());
                 }
                 get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
@@ -491,12 +490,19 @@ int View2D::handle_draw_mode(int evt)
     switch (evt) {
     case FL_MOVE: {
         if (is_drawing) {
+            printf("is drawing\n");
             get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
             scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
             mouse_snap_world = get_snap_grid(mouse_world);
             world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-            if (active_node_select) {
-                active_node_select->pos = mouse_current_world;
+            if (active_point) {
+                active_point->pos = mouse_current_world;
+            }
+            if (active_head_bhandle) {
+                active_head_bhandle->pos = mouse_current_world;
+            }
+            if (tail_bhandle) {
+                tail_bhandle->pos = mouse_current_world;
             }
             redraw();
             handled = 1;
@@ -507,6 +513,22 @@ int View2D::handle_draw_mode(int evt)
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
         world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
+        if (Fl::event_button() == FL_LEFT_MOUSE) {
+            // NOTE(daniel): Bezier curve starts to draw at left mouse draw,
+            // unlike the other shapes, because has the drag feature to move
+            // the bezier handles
+            if (state.draw == Draw::bezier) {
+                temp_shape = new Bezier();
+
+                temp_shape->get_next_node(mouse_snap_world);
+                active_head_bhandle = temp_shape->get_next_node(mouse_current_world);
+                is_drawing = true;
+            }
+            if (temp_shape) {
+                active_head_bhandle = temp_shape->get_next_node(mouse_current_world);
+            }
+        }
 
         // Review if this is necessary
 		drag_start_scr_x = Fl::event_x_root();
@@ -527,15 +549,16 @@ int View2D::handle_draw_mode(int evt)
         int drag_update_scry = Fl::event_y_root();
 
         if (is_drawing && (Fl::event_button() == FL_LEFT_MOUSE)) {
-            active_node_select->pos = mouse_current_world;
+            active_head_bhandle->pos = mouse_current_world;
+            if (tail_bhandle) {
+                // Do the tail handle
+            }
+            drag_start_scr_x = drag_update_scrx;
+            drag_start_scr_y = drag_update_scry;
+
+            redraw();
+            handled = 1;
         }
-
-        // Review if this is necessary
-        drag_start_scr_x = drag_update_scrx;
-        drag_start_scr_y = drag_update_scry;
-
-        redraw();
-        handled = 1;
     } break;
     case FL_RELEASE: {
 		scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
@@ -557,30 +580,44 @@ int View2D::handle_draw_mode(int evt)
                     temp_shape = new Poly();
                 }
 
+                // NOTE(daniel): If this assertion fail means that the draw
+                // states was set incorrecly, which is rare because we are
+                // using enumerators
+                assert(temp_shape);
+
                 if (temp_shape) {
-                    temp_shape->get_next_node(mouse_snap_world);
+                    temp_shape->get_next_node(mouse_current_world);
+                    active_point = temp_shape->get_next_node(mouse_current_world);
                     is_drawing = true;
                 }
                 else {
                     fprintf(stderr, "Error creating shape: temp_shape.");
-                    temp_shape->get_next_node(mouse_world);
                 }
                 temp_shape->sinfo = sinfo;
             }
-            assert(temp_shape);
-            //printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);
-            active_node_select = temp_shape->get_next_node(mouse_current_world);
+            else {
+                printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);
 
-            printf("nodes size %llu\n", temp_shape->nodes.size());
-            if (!active_node_select) {
-                shapes.push_back(temp_shape);
-                printf("Shape stored: %s\n", temp_shape->type().c_str());
-                printf("%f, %f - %f, %f\n", temp_shape->nodes[0].pos.x, temp_shape->nodes[0].pos.y, temp_shape->nodes[1].pos.x, temp_shape->nodes[1].pos.y);
-                is_drawing = false;
-                changed = true;
-                temp_shape = nullptr;
+                if (dynamic_cast<Bezier*>(temp_shape)) {
+                    tail_bhandle = temp_shape->get_next_node(mouse_current_world);      // Tail bezier handle
+                    active_point = temp_shape->get_next_node(mouse_current_world);      // Active bezier point
+                }
+                else {
+                    active_point = temp_shape->get_next_node(mouse_current_world);
+
+                    printf("nodes size %llu\n", temp_shape->nodes.size());
+                    if (!active_point) {
+                        shapes.push_back(temp_shape);
+                        printf("Shape stored: %s\n", temp_shape->type().c_str());
+                        printf("%f, %f - %f, %f\n", temp_shape->nodes[0].pos.x, temp_shape->nodes[0].pos.y, temp_shape->nodes[1].pos.x, temp_shape->nodes[1].pos.y);
+                        is_drawing = false;
+                        changed = true;
+                        temp_shape = nullptr;
+                    }
+                }
             }
         }
+        is_dragging = false;
         redraw();
         handled = 1;
     } break;

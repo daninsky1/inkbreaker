@@ -70,6 +70,13 @@ void poly_state_cb(Fl_Widget* widget, void* mwv)
     mwnd->v2d->state.draw = Draw::poly;
 }
 
+void bezier_state_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    mwnd->v2d->state.mode = Mode::draw;
+    mwnd->v2d->state.draw = Draw::bezier;
+}
+
 void set_line_color_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
@@ -556,6 +563,7 @@ Fl_Menu_Item menu_items[] = {
         { "Rectangle", 0, (Fl_Callback*)rect_state_cb},
         { "Circle", 0, (Fl_Callback*)circle_state_cb},
         { "Polygon", 0, (Fl_Callback*)poly_state_cb},
+        { "Bezier", 0, (Fl_Callback*)bezier_state_cb},
         { 0 },
     { "Shape Style", 0, nullptr, nullptr, FL_SUBMENU },
     //    { "Line Width", 0, nullptr, nullptr, FL_SUBMENU },

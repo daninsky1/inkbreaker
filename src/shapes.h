@@ -96,13 +96,29 @@ struct Circle : public Shape {
 };
 
 struct Poly : public Shape {
-    Poly();
+    Poly() { }
     Node* get_next_node(const Vector2f &p) override;
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
     bool is_inside_bbox(Vector2f &v) override;
     std::string type() override { return std::string{"polygon"}; }
+};
+
+struct Bezier : public Shape {
+    // NOTE(daniel): Bezier points and handle:
+    // px0, py0, px1, py1 are the curve points
+    // hx0, hy0, hx1, hy1 are the curve handles
+    // They are laid down in this order:
+    // px0, py0, hx0, hy0, hx1, hy1, px1, py1
+    // The h0 are the head curve handle and the h1 are the tail curve handle
+    Bezier() { }
+    Node* get_next_node(const Vector2f &p) override;
+    void draw_shape() override;
+    void draw_bbox() override;
+    void update_bbox() override;
+    bool is_inside_bbox(Vector2f &v) override;
+    std::string type() override { return std::string{"bezier"}; }
 };
 
 
