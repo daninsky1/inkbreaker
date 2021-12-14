@@ -23,7 +23,7 @@ void scale(float factor, float centerx, float centery)
     // TODO
 }
 
-Node* Shape::get_next_node(const Vector2f &p)
+Node* Shape::get_next_node(const Vector2f p)
 {
     if (nodes.size() == max_nodes) return nullptr;
     Node n;
@@ -45,7 +45,7 @@ void Shape::draw_nodes()
     }
 }
 
-void Shape::world_to_scr(Vector2f &v, int& scrx, int& scry)
+void Shape::world_to_scr(Vector2f v, int& scrx, int& scry)
 {
     scrx = static_cast<int>((v.x - world_offset.x) * world_scale);
     scry = static_cast<int>((v.y - world_offset.y) * world_scale);
@@ -212,7 +212,7 @@ void Rect::draw_bbox()
     fl_end_loop();
 }
 
-bool Rect::is_inside_bbox(Vector2f &v)
+bool Rect::is_inside_bbox(Vector2f v)
 {
     update_bbox();
     //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
@@ -268,7 +268,7 @@ void Circle::draw_shape()
     fl_end_loop();
 }
 
-bool Circle::is_inside_bbox(Vector2f &v)
+bool Circle::is_inside_bbox(Vector2f v)
 {
     update_bbox();
     //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
@@ -296,7 +296,7 @@ void Circle::draw_bbox()
     fl_end_loop();
 }
 
-Node* Poly::get_next_node(const Vector2f &p)
+Node* Poly::get_next_node(const Vector2f p)
 {
     Node n;
     n.parent = this;
@@ -337,54 +337,52 @@ void Poly::draw_bbox()
     //int sx, sy, ex, ey;
 }
 
-bool Poly::is_inside_bbox(Vector2f &v)
+bool Poly::is_inside_bbox(Vector2f v)
 {
     return false;
 }
 
 
-Node* Bezier::get_next_node(const Vector2f &p)
+BezierHandle* Bezier::get_next_handle(const BezierHandle bh)
 {
-    Node n;
-    n.parent = this;
-    n.pos = p;
-    nodes.push_back(n);
-    return &nodes[nodes.size() - 1];
+    bhandles.push_back(bh);
+    return &bhandles[bhandles.size() - 1];
 }
 
 void Bezier::draw_shape()
 {
+    //printf("v_size: %zd\n", nodes.size());
+
     int px0, py0, px1, py1;     // Curve points
     int hx0, hy0, hx1, hy1;     // Curve handles
 
     fl_color(sinfo.fill_color);
-    fl_begin_polygon();
-    for (size_t i = 0; i < nodes.size(); i+=3) {
-        //printf("v_size: %d\n", nodes.size());
-        //printf("p0: %d, h0: %d, h1: %d p1: %d\n", i, i+1, i+2, i+3);
-        world_to_scr(nodes[i].pos, px0, py0); world_to_scr(nodes[i+1].pos, hx0, hy0);
-        world_to_scr(nodes[i+2].pos, px1, py1); world_to_scr(nodes[i+3].pos, hx1, hy1);
+    //fl_begin_polygon();
+    //for (size_t i = 0; i < nodes.size() - 3; i+=3) {
+    //    world_to_scr(nodes[i].pos, px0, py0);
+    //    world_to_scr(nodes[i+1].pos, hx0, hy0);
+    //    world_to_scr(nodes[i+2].pos, hx1, hy1);
+    //    world_to_scr(nodes[i+3].pos, px1, py1);
+    //    fl_curve(px0, py0, hx0, hy0, hx1, hy1, px1, py1);
+    //}
+    //fl_end_polygon();
+
+    fl_begin_line();
+    for (size_t i = 0; i < bhandles.size() - 1; ++i) {
+        fl_color(sinfo.line_color);
+        fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+        world_to_scr(bhandles[i].point, px0, py0);
+        world_to_scr(bhandles[i].head, hx0, hy0);
+        world_to_scr(bhandles[i+1].tail, hx1, hy1);
+        world_to_scr(bhandles[i+1].point, px1, py1);
         fl_curve(px0, py0, hx0, hy0, hx1, hy1, px1, py1);
     }
-    fl_end_polygon();
-    int px, py;
-
-    fl_color(sinfo.fill_color);
-    fl_begin_polygon();
-    for (size_t i = 0; i < nodes.size(); ++i) {
-        world_to_scr(nodes[i].pos, px, py);
-        fl_vertex(px, py);
-    }
-    fl_end_polygon();
-
-    fl_color(sinfo.line_color);
-    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
-    fl_begin_line();
-    for (size_t i = 0; i < nodes.size(); ++i) {
-        world_to_scr(nodes[i].pos, px, py);
-        fl_vertex(px, py);
-    }
     fl_end_line();
+
+    //world_to_scr(nodes[0].pos, px0, py0); world_to_scr(nodes[1].pos, hx0, hy0);
+    //fl_color(FL_WHITE);
+    //fl_line_style(FL_SOLID, 1);
+    //fl_line(px0, py0, hx0, hy0);
 }
 
 void Bezier::draw_bbox()
@@ -393,7 +391,7 @@ void Bezier::draw_bbox()
 void Bezier::update_bbox()
 {
 }
-bool Bezier::is_inside_bbox(Vector2f &v)
+bool Bezier::is_inside_bbox(Vector2f v)
 {
     return false;
 }

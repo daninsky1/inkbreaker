@@ -47,16 +47,16 @@ struct Shape {
 
 	virtual void draw_shape() = 0;
     virtual void draw_bbox() { };
-    virtual bool is_inside_bbox(Vector2f &r) { return false; };
+    virtual bool is_inside_bbox(Vector2f r) { return false; };
 
     virtual void translate() { };
     virtual void rotate() { };
     virtual void scale() { };
 
     virtual std::string type() { return std::string{"Shape"}; };
-	virtual Node* get_next_node(const Vector2f& p);
+	virtual Node* get_next_node(const Vector2f p);
 	void draw_nodes();
-	void world_to_scr(Vector2f& v, int& scrx, int& scry);
+	void world_to_scr(Vector2f v, int& scrx, int& scry);
 
     void set_shape_info(ShapeInfo si) { sinfo = si; };
 };
@@ -82,7 +82,7 @@ struct Rect : public Shape {
     void update_bbox() override;
 	void draw_shape() override;
     void draw_bbox() override;
-    bool is_inside_bbox(Vector2f &v) override;
+    bool is_inside_bbox(Vector2f v) override;
     std::string type() override { return std::string{"rect"}; };
 };
 
@@ -91,18 +91,24 @@ struct Circle : public Shape {
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
-    bool is_inside_bbox(Vector2f &v) override;
+    bool is_inside_bbox(Vector2f v) override;
     std::string type() override { return std::string{"circle"}; }
 };
 
 struct Poly : public Shape {
     Poly() { }
-    Node* get_next_node(const Vector2f &p) override;
+    Node* get_next_node(const Vector2f p) override;
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
-    bool is_inside_bbox(Vector2f &v) override;
+    bool is_inside_bbox(Vector2f v) override;
     std::string type() override { return std::string{"polygon"}; }
+};
+
+struct BezierHandle {
+    Vector2f point;
+    Vector2f head;
+    Vector2f tail;
 };
 
 struct Bezier : public Shape {
@@ -112,12 +118,13 @@ struct Bezier : public Shape {
     // They are laid down in this order:
     // px0, py0, hx0, hy0, hx1, hy1, px1, py1
     // The h0 are the head curve handle and the h1 are the tail curve handle
+    std::vector<BezierHandle> bhandles;
     Bezier() { }
-    Node* get_next_node(const Vector2f &p) override;
+    BezierHandle *get_next_handle(BezierHandle bh);
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
-    bool is_inside_bbox(Vector2f &v) override;
+    bool is_inside_bbox(Vector2f v) override;
     std::string type() override { return std::string{"bezier"}; }
 };
 

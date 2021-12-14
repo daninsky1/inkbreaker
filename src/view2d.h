@@ -164,10 +164,16 @@ public:
     InkbreakerState *app_state;
 
     bool is_drawing       = false;
+    BezierHandle *active_bhandle = nullptr;
     Node *active_point = nullptr;
+
+    Node *active_bpoint = nullptr;             // Active Bezier point
+    Node *start_bpoint = nullptr;             // Active Bezier point
     Node *active_head_bhandle = nullptr;       // Head Bezier handle for bezier drawing
     Node *tail_bhandle = nullptr;              // Tail Bezier handle for bezier drawing
+
     Shape *temp_shape     = nullptr;
+    Bezier *bezier_temp_shape     = nullptr;
 
     // IMPORTANT(daniel): This is a reference to a parent container shapes
     std::vector<Shape*> shapes;
