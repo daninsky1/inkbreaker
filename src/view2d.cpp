@@ -431,7 +431,10 @@ int View2D::handle_draw_mode(int evt)
                     }
                     else {
                         is_drawing = false;
+                        printf("v size: %d", temp_shape->nodes.size());
                         temp_shape->nodes.pop_back();
+                        printf("Pop back line\n");
+                        printf("v size: %d", temp_shape->nodes.size());
                         shapes.push_back(temp_shape);
                         active_point = nullptr;
                         temp_shape = nullptr;
@@ -490,7 +493,6 @@ int View2D::handle_draw_mode(int evt)
     switch (evt) {
     case FL_MOVE: {
         if (is_drawing) {
-            printf("is drawing\n");
             get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
             scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
             mouse_snap_world = get_snap_grid(mouse_world);
@@ -519,14 +521,16 @@ int View2D::handle_draw_mode(int evt)
             // unlike the other shapes, because has the drag feature to move
             // the bezier handles
             if (state.draw == Draw::bezier) {
-                temp_shape = new Bezier();
+                if (!temp_shape) {
+                    temp_shape = new Bezier();
 
-                temp_shape->get_next_node(mouse_snap_world);
-                active_head_bhandle = temp_shape->get_next_node(mouse_current_world);
-                is_drawing = true;
-            }
-            if (temp_shape) {
-                active_head_bhandle = temp_shape->get_next_node(mouse_current_world);
+                    temp_shape->get_next_node(mouse_snap_world);
+                    active_head_bhandle = temp_shape->get_next_node(mouse_current_world);
+                    is_drawing = true;
+                }
+                else {
+                    active_head_bhandle = temp_shape->get_next_node(mouse_current_world);
+                }
             }
         }
 
@@ -613,6 +617,7 @@ int View2D::handle_draw_mode(int evt)
                         is_drawing = false;
                         changed = true;
                         temp_shape = nullptr;
+                        active_point = nullptr;
                     }
                 }
             }
