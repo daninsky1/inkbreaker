@@ -37,6 +37,9 @@ $(PROGRAM): $(SRC)
 	if not exist $(BUILD_DIR)release mkdir $(BUILD_DIR)release 
 	$(CC) $(RCFLAGS) $(SRC) $(WIN32_LIBS) /Fe$(BUILD_DIR)release\$(PROGRAM)
 
+run: $(DEBUG_PROGRAM)
+		.\build\$(DEBUG_PROGRAM)
+
 clean:
 	del build /s /q
 
