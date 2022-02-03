@@ -1,5 +1,5 @@
 .SILENT:
-.IGNORE:
+#.IGNORE:
 # Source
 SRC_DIR=src
 SRC=src\main.cpp src\main_window.cpp src\view2d.cpp src\shapes.cpp vendor\sqlite\sqlite3.c
@@ -26,6 +26,8 @@ PROGRAM=inkbreaker.exe
 DEBUG_PROGRAM_NAME=dinkbreaker
 DEBUG_PROGRAM=dinkbreaker.exe
 
+DEBUGGER=devenv
+
 all: $(DEBUG_PROGRAM)
 
 $(DEBUG_PROGRAM): $(SRC)
@@ -38,7 +40,10 @@ $(PROGRAM): $(SRC)
 	$(CC) $(RCFLAGS) $(SRC) $(WIN32_LIBS) /Fe$(BUILD_DIR)release\$(PROGRAM)
 
 run: $(DEBUG_PROGRAM)
-		.\build\$(DEBUG_PROGRAM)
+	.\build\$(DEBUG_PROGRAM)
+
+debugger: $(DEBUG_PROGRAM)
+	$(DEBUGGER) .\build\$(DEBUG_PROGRAM)
 
 clean:
 	del build /s /q
