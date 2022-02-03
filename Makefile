@@ -1,14 +1,10 @@
+# Make the build silent
 .SILENT:
 #.IGNORE:
-# Source
-SRC_DIR=src
-SRC=src\main.cpp src\main_window.cpp src\view2d.cpp src\shapes.cpp vendor\sqlite\sqlite3.c
 
-# Objects
-OBJ=win32.obj
+SRC=src\main.cpp src\main_window.cpp src\shapes.cpp vendor\sqlite\sqlite3.c src\view2d.cpp 
 
-# Headers
-HDR=
+OBJ=src\main.o src\main_window.o src\shapes.o vendor\sqlite\sqlite3.o src\view2d.o
 
 DCFLAGS=/EHsc /Zi /Od /FC /nologo /MDd /MP /W3 /diagnostics:column
 RCFLAGS=/O2 /FC /nologo
@@ -48,6 +44,7 @@ debugger: $(DEBUG_PROGRAM)
 clean:
 	del build /s /q
 
-tags: $(SRC) $(LIB_SRC)
-	ctags -R --kinds-C=+l --c++-kinds=+p --fields=+iaS --extras=+q --language-force=C++ --sort=true $(SRC_DIR) $(LIB_SRC_DIR)
+tags: $(SRC)
+	del /q tags
+	ctags -R --kinds-C=+l --c++-kinds=+p --fields=+iaS --extras=+q --language-force=C++ --sort=true $(SRC)
 
