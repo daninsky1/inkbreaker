@@ -1,48 +1,56 @@
 # Make the build silent
 .SILENT:
-#.IGNORE:
+
+# Define DEBUG_BUILD to make a debug build otherwise will make a release build
+DEBUG_BUILD=
 
 SRC=src\main.cpp src\main_window.cpp src\shapes.cpp vendor\sqlite\sqlite3.c src\view2d.cpp 
 
 OBJ=src\main.o src\main_window.o src\shapes.o vendor\sqlite\sqlite3.o src\view2d.o
 
-DCFLAGS=/EHsc /Zi /Od /FC /nologo /MDd /MP /W3 /diagnostics:column
-RCFLAGS=/O2 /FC /nologo
+DBGCFLAGS=/EHsc /Zi /Od /FC /nologo /MDd /MP /W3 /diagnostics:column
+RELCFLAGS=/O2 /FC /nologo
+
+!IFDEF DEBUG_BUILD
+CPPFLAGS=$(DBGCFLAGS)
+PROGRAM=inkbreakerd.exe
+!ELSE
+CPPFLAGS=$(RELCFLAGS)
+PROGRAM=inkbreaker.exe
+!ENDIF
 
 BUILD_DIR=build/
 
-SYS_LIBS=User32.lib kernel32.lib gdi32.lib gdiplus.lib comdlg32.lib advapi32.lib shell32.lib \
-		 ole32.lib uuid.lib Ws2_32.lib comctl32.lib
-INCLUDE_DIR=/Ivendor\fltk /Ivendor\fltk\build\lib\Debug /Ivendor\fltk\build /Ivendor
-LIB_SRC_DIR=vendor\fltk\src vendor\sqlite vendor\stb
-LIB_SRC=vendor\fltk\src\* vendor\sqlite\* vendor\stb\*
+WIN32=User32.lib kernel32.lib gdi32.lib gdiplus.lib comdlg32.lib advapi32.lib shell32.lib \
+	 ole32.lib uuid.lib Ws2_32.lib comctl32.lib
 
-FLTK_LIB=vendor\fltk\build\lib\Debug\fltkd.lib
-PROGRAM=inkbreaker.exe
-DEBUG_PROGRAM_NAME=dinkbreaker
-DEBUG_PROGRAM=dinkbreaker.exe
+INCLUDE_DIR=/Ivendor\fltk /Ivendor\fltk\build\lib\Debug /Ivendor\fltk\build /Ivendor
+FLTK_SRC_DIR=vendor\fltk\src vendor\sqlite vendor\stb
+FLTK=vendor\fltk\build\lib\Debug\fltkd.lib
 
 DEBUGGER=devenv
 
-all: $(DEBUG_PROGRAM)
+LIBS=$(WIN32) $(FLTK)
 
-$(DEBUG_PROGRAM): $(SRC)
-	if not exist $(BUILD_DIR) mkdir build
-	$(CC) $(DCFLAGS) $(SRC) $(SYS_LIBS) $(INCLUDE_DIR) $(FLTK_LIB) /Fo$(BUILD_DIR) /Fe$(BUILD_DIR)$(DEBUG_PROGRAM) /link /PDB:$(BUILD_DIR)$(DEBUG_PROGRAM_NAME).pdb
+all: $(PROGRAM)
 
 $(PROGRAM): $(SRC)
-	if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
-	if not exist $(BUILD_DIR)release mkdir $(BUILD_DIR)release 
-	$(CC) $(RCFLAGS) $(SRC) $(WIN32_LIBS) /Fe$(BUILD_DIR)release\$(PROGRAM)
+	echo Windows $(BUILD_TYPE) target
+	if not exist $(BUILD_DIR) mkdir build
+	$(CC) $(CPPFLAGS) $(SRC) $(WIN32) $(FLTK) $(INCLUDE_DIR) /Fo$(BUILD_DIR) /Fe$(BUILD_DIR)$* \
+		/link /PDB:$(BUILD_DIR)$*.pdb
 
-run: $(DEBUG_PROGRAM)
-	.\build\$(DEBUG_PROGRAM)
+run: $(PROGRAM)
+	.\build\$(_PROGRAM)
 
-debugger: $(DEBUG_PROGRAM)
-	$(DEBUGGER) .\build\$(DEBUG_PROGRAM)
+debugger: $(PROGRAM)
+	$(DEBUGGER) /nosplash .\build\$(PROGRAM)
 
 clean:
 	del build /s /q
+
+test:
+	echo $(LIBS)
 
 tags: $(SRC)
 	del /q tags
