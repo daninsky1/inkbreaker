@@ -357,20 +357,20 @@ void Bezier::draw_shape()
     int hx0, hy0, hx1, hy1;     // Curve handles
 
     fl_color(sinfo.fill_color);
-    //fl_begin_polygon();
-    //for (size_t i = 0; i < nodes.size() - 3; i+=3) {
-    //    world_to_scr(nodes[i].pos, px0, py0);
-    //    world_to_scr(nodes[i+1].pos, hx0, hy0);
-    //    world_to_scr(nodes[i+2].pos, hx1, hy1);
-    //    world_to_scr(nodes[i+3].pos, px1, py1);
-    //    fl_curve(px0, py0, hx0, hy0, hx1, hy1, px1, py1);
-    //}
-    //fl_end_polygon();
+    fl_begin_polygon();
+    for (size_t i = 0; i < bhandles.size() - 1; ++i) {
+        world_to_scr(bhandles[i].point, px0, py0);
+        world_to_scr(bhandles[i].head, hx0, hy0);
+        world_to_scr(bhandles[i+1].tail, hx1, hy1);
+        world_to_scr(bhandles[i+1].point, px1, py1);
+        fl_curve(px0, py0, hx0, hy0, hx1, hy1, px1, py1);
+    }
+    fl_end_polygon();
 
     fl_begin_line();
+    fl_color(sinfo.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
     for (size_t i = 0; i < bhandles.size() - 1; ++i) {
-        fl_color(sinfo.line_color);
-        fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
         world_to_scr(bhandles[i].point, px0, py0);
         world_to_scr(bhandles[i].head, hx0, hy0);
         world_to_scr(bhandles[i+1].tail, hx1, hy1);
@@ -378,11 +378,6 @@ void Bezier::draw_shape()
         fl_curve(px0, py0, hx0, hy0, hx1, hy1, px1, py1);
     }
     fl_end_line();
-
-    //world_to_scr(nodes[0].pos, px0, py0); world_to_scr(nodes[1].pos, hx0, hy0);
-    //fl_color(FL_WHITE);
-    //fl_line_style(FL_SOLID, 1);
-    //fl_line(px0, py0, hx0, hy0);
 }
 
 void Bezier::draw_bbox()

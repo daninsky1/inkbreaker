@@ -177,6 +177,7 @@ public:
 
     // IMPORTANT(daniel): This is a reference to a parent container shapes
     std::vector<Shape*> shapes;
+    std::vector<Bezier*> bshapes;
     ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE, true, true };
 
     float max_zoom = 300.0f;
@@ -186,6 +187,7 @@ public:
     float zooming_factor = 0.10f;  // Scroll zoom
     float zooming_sens   = 0.01f;  // Drag per pixel zoom 
 private:
+    void DEBUG_display_v2d_info();
     Fl_Offscreen scr_buf;        // Canvas buffer
     // NOTE(daniel): This is a FLTK offscreen implementation detail, I think is
     // to set the DPI factor
