@@ -1,4 +1,6 @@
-vendor/
+vendor/sqlite/
+vendor/Nuklear/
+vendor/stb/
 build/
 .vscode/
 mingw/
