@@ -3,10 +3,11 @@
 
 # Define DEBUG_BUILD to make a debug build otherwise will make a release build
 DEBUG_BUILD=
+# IO_SQLITE=
 
-SRC=src\main.cpp src\main_window.cpp src\shapes.cpp vendor\sqlite\sqlite3.c src\view2d.cpp 
+SRC=src\main.cpp src\main_window.cpp src\shapes.cpp src\view2d.cpp 
 
-OBJ=src\main.o src\main_window.o src\shapes.o vendor\sqlite\sqlite3.o src\view2d.o
+OBJ=src\main.o src\main_window.o src\shapes.o src\view2d.o
 
 BUILD_DIR=build/
 
@@ -21,6 +22,14 @@ LIBS=$(WIN32) $(FLTK)
 # LIBS_SRC_DIRS=vendor\fltk\src vendor\sqlite
 
 DEBUGGER=devenv
+
+!IFDEF IO_SQLITE
+DEFINES=/DIO_SQLITE
+SQLITE=vendor\sqlite\sqlite3.c
+!ELSE
+DEFINES=
+SQLITE=
+!ENDIF
 
 !IFDEF DEBUG_BUILD
 BUILD_TYPE=Debug
@@ -39,8 +48,15 @@ all: $(PROGRAM)
 $(PROGRAM): $(SRC) $(FLTK)
 	echo Windows $(BUILD_TYPE) build
 	if not exist $(BUILD_DIR) mkdir build
-	$(CC) $(CPPFLAGS) $(SRC) $(WIN32) $(FLTK) $(INCLUDE_DIRS) /Fo$(BUILD_DIR) /Fe$(BUILD_DIR)$* \
+	$(CC) $(CPPFLAGS) $(SRC) $(SQLITE) $(WIN32) $(FLTK) $(INCLUDE_DIRS) $(DEFINES) /Fo$(BUILD_DIR) /Fe$(BUILD_DIR)$* \
 		/link /PDB:$(BUILD_DIR)$*.pdb
+
+fltk: $(FLTK)
+$(FLTK):
+	echo FLTK $(BUILD_TYPE) build
+	if not exist $(FLTK_BUILD_DIR) mkdir $(FLTK_BUILD_DIR)
+	if not exist $(FLTK_BUILD_DIR)\FLTL.sln cmake -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR)
+	MSBuild -nologo $(FLTK_BUILD_DIR)\FLTK.sln -p:Configuration=$(BUILD_TYPE) -p:Platform=x64
 
 run: $(PROGRAM)
 	.\build\$(PROGRAM)
@@ -55,10 +71,6 @@ tags: $(SRC)
 	del /q tags
 	ctags -R --kinds-C=+l --c++-kinds=+p --fields=+iaS --extras=+q --language-force=C++ --sort=true $(SRC)
 
-fltk: $(FLTK)
-$(FLTK):
-	echo FLTK $(BUILD_TYPE) build
-	if not exist $(FLTK_BUILD_DIR) mkdir $(FLTK_BUILD_DIR)
-	if not exist $(FLTK_BUILD_DIR)\FLTL.sln cmake -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR)
-	MSBuild -nologo $(FLTK_BUILD_DIR)\FLTK.sln -p:Configuration=$(BUILD_TYPE) -p:Platform=x64
 
+test:
+	echo $(SRC)

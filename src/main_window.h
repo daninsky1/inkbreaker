@@ -14,7 +14,9 @@
 #include <FL/filename.H>
 #include <FL/Fl_Native_File_Chooser.H>
 
+#ifdef IO_SQLITE
 #include <sqlite/sqlite3.h>
+#endif
 
 #include "view2d.h"
 

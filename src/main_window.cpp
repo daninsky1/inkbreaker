@@ -98,6 +98,7 @@ static bool glob_changed = false;
 static char glob_filename[FL_PATH_MAX] = "";
 static char glob_title[FL_PATH_MAX];
 
+#ifdef IO_SQLITE
 static char* glob_sql_shapes_schema = "CREATE TABLE vectorf("
     "id INTEGER PRIMARY KEY AUTOINCREMENT,"
     "x FLOAT,"
@@ -129,12 +130,6 @@ static char* glob_sql_shapes_schema = "CREATE TABLE vectorf("
     "REFERENCES vectorf(id),"
     "FOREIGN KEY(vectorf_id_2)"
     "REFERENCES vectorf(id));";
-
-
-int get_node_id(void*, int, char**, char**)
-{
-    return 0;
-}
 
 void save_file(std::vector<Shape*> shapes)
 {
@@ -268,53 +263,6 @@ void save_file(std::vector<Shape*> shapes)
     glob_changed = 0;
 }
 
-void save_cb(Fl_Widget* widget, void* mwv)
-{
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-
-    if (glob_filename[0] == '\0') {
-        // No filename - get one!
-        saveas_cb(widget, mwv);
-        return;
-    }
-    else {
-        printf("changed false\n");
-        mwnd->changed(false);
-        save_file(mwnd->v2d->shapes);
-    }
-}
-
-int check_save_popup()
-{
-    // prompt the user if file has pending issues,
-    // true safe to continue, false user will not continue;
-    return fl_choice("The current file has not been saved.\n"
-        "Would you like to save it now?",
-        "Cancel", "Save", "Don't Save");
-}
-
-void new_cb(Fl_Widget* widget, void* mwv)
-{
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-
-    if (mwnd->changed()) {
-        int choice = check_save_popup();
-        //printf("%d\n", choice);
-        // TODO(daniel): Name this magic numbers CANCEL = 0 SAVE = 1 DONT_SAVE = 3
-        if (choice == 0) return;
-        else if (choice == 1) {
-            save_cb(widget, mwv);
-        }
-    }
-    else {
-        // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
-        strcpy_s(glob_filename, sizeof(glob_filename), "");
-        mwnd->changed(false);
-    }
-    mwnd->changed(false);
-    mwnd->v2d->clear();
-}
-
 void load_file(std::vector<Shape*> &shapes)
 {
     // https://www.sqlite.org/backup.html
@@ -437,6 +385,63 @@ void load_file(std::vector<Shape*> &shapes)
 
     sqlite3_close(file_db);
 }
+#else
+void save_file(std::vector<Shape*> shapes) { printf("Error: No IO implemented\n"); }
+void load_file(std::vector<Shape*> &shapes) { printf("Error: No IO implemented\n"); }
+#endif
+
+void save_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+
+    if (glob_filename[0] == '\0') {
+        // No filename - get one!
+        saveas_cb(widget, mwv);
+        return;
+    }
+    else {
+        printf("changed false\n");
+        mwnd->changed(false);
+        save_file(mwnd->v2d->shapes);
+    }
+}
+
+int get_node_id(void*, int, char**, char**)
+{
+    return 0;
+}
+
+int check_save_popup()
+{
+    // prompt the user if file has pending issues,
+    // true safe to continue, false user will not continue;
+    return fl_choice("The current file has not been saved.\n"
+        "Would you like to save it now?",
+        "Cancel", "Save", "Don't Save");
+}
+
+void new_cb(Fl_Widget* widget, void* mwv)
+{
+    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+
+    if (mwnd->changed()) {
+        int choice = check_save_popup();
+        //printf("%d\n", choice);
+        // TODO(daniel): Name this magic numbers CANCEL = 0 SAVE = 1 DONT_SAVE = 3
+        if (choice == 0) return;
+        else if (choice == 1) {
+            save_cb(widget, mwv);
+        }
+    }
+    else {
+        // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
+        strcpy_s(glob_filename, sizeof(glob_filename), "");
+        mwnd->changed(false);
+    }
+    mwnd->changed(false);
+    mwnd->v2d->clear();
+}
+
 
 void open_cb(Fl_Widget* widget, void* mwv)
 {
