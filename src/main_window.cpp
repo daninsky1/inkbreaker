@@ -80,16 +80,16 @@ void bezier_state_cb(Fl_Widget* widget, void* mwv)
 void set_line_color_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    Fl_Color oldcl = mwnd->v2d->sinfo.line_color;
+    Fl_Color oldcl = mwnd->v2d->shape_info.line_color;
     Fl_Color c = fl_show_colormap(FL_BLACK);
-    mwnd->v2d->sinfo.line_color = c;
+    mwnd->v2d->shape_info.line_color = c;
 }
 void set_fill_color_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    Fl_Color oldcl = mwnd->v2d->sinfo.fill_color;
+    Fl_Color oldcl = mwnd->v2d->shape_info.fill_color;
     Fl_Color c = fl_show_colormap(FL_BLACK);
-    mwnd->v2d->sinfo.fill_color = c;
+    mwnd->v2d->shape_info.fill_color = c;
 }
 //
 // GLOBALS

@@ -168,7 +168,7 @@ public:
     Node *active_point = nullptr;
 
     Node *active_bpoint = nullptr;             // Active Bezier point
-    Node *start_bpoint = nullptr;             // Active Bezier point
+    Node *start_bpoint = nullptr;              // Active Bezier point
     Node *active_head_bhandle = nullptr;       // Head Bezier handle for bezier drawing
     Node *tail_bhandle = nullptr;              // Tail Bezier handle for bezier drawing
 
@@ -178,7 +178,7 @@ public:
     // IMPORTANT(daniel): This is a reference to a parent container shapes
     std::vector<Shape*> shapes;
     std::vector<Bezier*> bshapes;
-    ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE, true, true };
+    ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE, true, true };
 
     float max_zoom = 300.0f;
     float min_zoom = 0.001f;

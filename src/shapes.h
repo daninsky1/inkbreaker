@@ -10,7 +10,24 @@
 
 
 struct Pointi { int x, y; };
+struct Point2f { float x, y; };
 struct Vector2f { float x, y; };
+
+struct SceneObject {
+    Vector2f origin{ 0.0f, 0.0f };      // Local origin
+    float scale{ 1.0f };                // Local scale
+};
+
+struct Polygon : public SceneObject {
+    Polygon();
+    Fl_Color line_color;
+    Fl_Color fill_color;
+};
+
+struct OpenLineSegment : public SceneObject {
+    Fl_Color line_color;
+};
+
 
 
 struct ShapeInfo {
@@ -24,20 +41,20 @@ struct ShapeInfo {
 
 struct Shape;
 struct Node {
-	Shape* parent;
-	Vector2f pos;
+    Shape* parent;
+    Vector2f pos;
 };
 
 struct Shape {
 	// TODO: REPLACE STD::VECTOR WITH STD::ARRAY
-	static double world_scale;
-	static Vector2f world_offset;
+    static float world_scale;
+    static Vector2f world_offset;
 
-    //ShapeInfo sinfo{ 1, FL_WHITE, FL_BLACK, true, true };
-    ShapeInfo sinfo{ 1, FL_WHITE, FL_BLACK, true, true };
+    //ShapeInfo shape_info{ 1, FL_WHITE, FL_BLACK, true, true };
+    ShapeInfo shape_info{ 1, FL_WHITE, FL_BLACK, true, true };
 
-	std::vector<Node> nodes;
-	uint32_t max_nodes = 0;
+    std::vector<Node> nodes;
+    uint32_t max_nodes = 0;
 
     // NOTE(daniel): Bounding box start point and end point
     Vector2f bboxs{ 0.0f, 0.0f };
@@ -58,7 +75,7 @@ struct Shape {
 	void draw_nodes();
 	void world_to_scr(Vector2f v, int& scrx, int& scry);
 
-    void set_shape_info(ShapeInfo si) { sinfo = si; };
+    void set_shape_info(ShapeInfo si) { shape_info = si; };
 };
 
 struct BBox : public Shape {
@@ -68,6 +85,7 @@ struct BBox : public Shape {
 	BBox();
 	void draw_shape() override;
 };
+
 
 struct Line : public Shape {
 	Line();

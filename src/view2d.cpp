@@ -9,7 +9,7 @@ View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
 {
     state.mode = Mode::draw;
     state.select = Select::move;
-    state.draw = Draw::bezier;
+    state.draw = Draw::line;
 
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -70,7 +70,6 @@ void View2D::draw()
         scr_buf = fl_create_offscreen(v2d_w, v2d_h);
     }
     if (fl_offscr_scale != Fl_Graphics_Driver::default_driver().scale()) {
-        // the screen scaling factor has changed
         fl_rescale_offscreen(scr_buf);
         fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
     }
@@ -125,7 +124,6 @@ void View2D::draw()
             fl_circle(tx, ty, 3);
         }
     }
-
 
     //if (is_selecting) {
     //    select_shape_bbox->draw_shape();
@@ -574,7 +572,7 @@ int View2D::handle_draw_mode(int evt)
             if (state.draw == Draw::bezier) {
                 if (!is_drawing) {
                     bezier_temp_shape = new Bezier();
-                    bezier_temp_shape->sinfo = sinfo;
+                    bezier_temp_shape->shape_info = shape_info;
 
                     /* Set the first bezier handle and get the next bezier handle */
                     active_bhandle = bezier_temp_shape->get_next_handle(
@@ -653,7 +651,7 @@ int View2D::handle_draw_mode(int evt)
                 else {
                     fprintf(stderr, "Error creating shape: temp_shape.");
                 }
-                temp_shape->sinfo = sinfo;
+                temp_shape->shape_info = shape_info;
             }
             else {
                 printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);

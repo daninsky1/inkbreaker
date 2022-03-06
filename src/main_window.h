@@ -57,7 +57,7 @@ public:
     /* Shapes */
     std::vector<Shape*> shapes;
     Shape* active_selection;
-    ShapeInfo sinfo{ 1, FL_BLACK, FL_BLUE };
+    ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE };
 
 	/* Widgets */
     Fl_Menu_Bar *menu_bar;

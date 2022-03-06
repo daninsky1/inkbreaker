@@ -7,8 +7,8 @@ std::ostream& operator<<(std::ostream& os, const Vector2f& v)
         << ", " << v.y << ']';
 }
 
-Vector2f Shape::world_offset{ 0.0, 0.0 };
-double Shape::world_scale{ 1.0 };
+Vector2f Shape::world_offset{ 0.0f, 0.0f };
+float Shape::world_scale{ 1.0f };
 
 void translate(float offx, float offy, Shape *s)
 {
@@ -109,8 +109,8 @@ void Line::draw_shape()
     int sx, sy, ex, ey;
     world_to_scr(nodes[0].pos, sx, sy);
     world_to_scr(nodes[1].pos, ex, ey);
-    fl_color(sinfo.line_color);
-    fl_line_style(FL_SOLID, sinfo.line_width*(int)world_scale);
+    fl_color(shape_info.line_color);
+    fl_line_style(FL_SOLID, shape_info.line_width*(int)world_scale);
     //fl_line_style(FL_SOLID, 2);
     fl_line(sx, sy, ex, ey);
 }
@@ -182,14 +182,14 @@ void Rect::draw_shape()
         normaley = sy;
     }
 
-    fl_color(sinfo.fill_color);
-    fl_rectf(normalsx, normalsy, normalex-normalsx, normaley-normalsy, sinfo.fill_color);
+    fl_color(shape_info.fill_color);
+    fl_rectf(normalsx, normalsy, normalex-normalsx, normaley-normalsy, shape_info.fill_color);
 
     // NOTE(daniel): The straing foward fl_rect() do not apply the miter state.
     // The work around is pretty simple use line loop.
 
-    fl_color(sinfo.line_color);
-    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_color(shape_info.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, shape_info.line_width*(int)world_scale);
     fl_begin_loop();
     fl_vertex(normalsx, normalsy); fl_vertex(normalex, normalsy);
     fl_vertex(normalex, normaley); fl_vertex(normalsx, normaley);
@@ -256,13 +256,13 @@ void Circle::draw_shape()
     // color state bleeds to the fl_circle() shape that has no fill. The work
     // around is pretty simple use loop to do the line.
 
-    fl_color(sinfo.fill_color);
+    fl_color(shape_info.fill_color);
     fl_begin_polygon();
     fl_arc((float)sx, (float)sy, r, 0, 360);
     fl_end_polygon();
 
-    fl_color(sinfo.line_color);
-    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_color(shape_info.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, shape_info.line_width*(int)world_scale);
     fl_begin_loop();
     fl_arc((float)sx, (float)sy, r, 0, 360);
     fl_end_loop();
@@ -309,7 +309,7 @@ void Poly::draw_shape()
 {
     int px, py;
 
-    fl_color(sinfo.fill_color);
+    fl_color(shape_info.fill_color);
     fl_begin_polygon();
     for (size_t i = 0; i < nodes.size(); ++i) {
         world_to_scr(nodes[i].pos, px, py);
@@ -317,8 +317,8 @@ void Poly::draw_shape()
     }
     fl_end_polygon();
 
-    fl_color(sinfo.line_color);
-    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_color(shape_info.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, shape_info.line_width*(int)world_scale);
     fl_begin_line();
     for (size_t i = 0; i < nodes.size(); ++i) {
         world_to_scr(nodes[i].pos, px, py);
@@ -356,7 +356,7 @@ void Bezier::draw_shape()
     int px0, py0, px1, py1;     // Curve points
     int hx0, hy0, hx1, hy1;     // Curve handles
 
-    fl_color(sinfo.fill_color);
+    fl_color(shape_info.fill_color);
     fl_begin_polygon();
     for (size_t i = 0; i < bhandles.size() - 1; ++i) {
         world_to_scr(bhandles[i].point, px0, py0);
@@ -368,8 +368,8 @@ void Bezier::draw_shape()
     fl_end_polygon();
 
     fl_begin_line();
-    fl_color(sinfo.line_color);
-    fl_line_style(FL_SOLID | FL_JOIN_MITER, sinfo.line_width*(int)world_scale);
+    fl_color(shape_info.line_color);
+    fl_line_style(FL_SOLID | FL_JOIN_MITER, shape_info.line_width*(int)world_scale);
     for (size_t i = 0; i < bhandles.size() - 1; ++i) {
         world_to_scr(bhandles[i].point, px0, py0);
         world_to_scr(bhandles[i].head, hx0, hy0);
