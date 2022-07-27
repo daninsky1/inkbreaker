@@ -1,4 +1,4 @@
-CC=g++
+CXX=g++
 
 # Define BUILD_TYPE, Debug or Release
 BUILD_TYPE=Debug
@@ -9,13 +9,15 @@ OBJ=src/main.o src/main_window.o src/shapes.o src/view2d.o
 
 BUILD_DIR=build/
 
-WIN32=User32.lib kernel32.lib gdi32.lib gdiplus.lib comdlg32.lib advapi32.lib shell32.lib \
-	 ole32.lib uuid.lib Ws2_32.lib comctl32.lib
-
+# This are the libs necessery to compile with fltk, check out fltk-config or
+# fltk-config.in LDLIBS
+FLTK_LDLIBS=-lm -lX11 -lXext -lpthread -lXinerama -lXfixes -lXcursor -lXft -lXrender -lm -lfontconfig -ldl
+ 
 FLTK_DIR=vendor/fltk
 FLTK_BUILD_DIR=$(FLTK_DIR)/build
+FLTK=$(FLTK_BUILD_DIR)/lib/libfltk.a
 
-INCLUDE_DIRS=/vendor/fltk -Ivendor/fltk/build -Ivendor
+INCLUDE_DIRS=-Ivendor/fltk -Ivendor/fltk/build -Ivendor
 LIBS=$(WIN32) $(FLTK)
 # LIBS_SRC_DIRS=vendor\fltk\src vendor\sqlite
 
@@ -32,11 +34,9 @@ endif
 ifeq ($(BUILD_TYPE), Debug)
 CPPFLAGS=-fexceptions -ggdb -O0 -Wall
 PROGRAM=inkbreakerd
-FLTK=$(FLTK_BUILD_DIR)/lib/libfltkd.a
 else ifeq ($(BUILD_TYPE), Release)
 CPPFLAGS=-O2
 PROGRAM=inkbreaker
-FLTK=$(FLTK_BUILD_DIR)/lib/libfltk.a
 else
 $(error Select a valid build type for BUILD_TYPE variable: Debug or Release)
 endif
@@ -46,7 +46,8 @@ all: $(PROGRAM)
 $(PROGRAM): $(SRC) $(FLTK)
 	echo Unix $(BUILD_TYPE) build
 	if [ ! -d "$(BUILD_DIR)" ]; then mkdir build; fi
-	$(CC) $(CPPFLAGS) $(SRC) $(SQLITE) $(WIN32) $(FLTK) $(INCLUDE_DIRS) $(DEFINES) -o$(BUILD_DIR)/$(PROGRAM)
+# $(CXX) $(SRC) $(SQLITE) $(CPPFLAGS) $(UNIX_LIBS) $(FLTK) $(INCLUDE_DIRS) $(DEFINES) -o $(BUILD_DIR)$(PROGRAM) 		
+	$(CXX) $(SRC) $(SQLITE) $(CPPFLAGS) $(FLTK) $(FLTK_LDLIBS) $(INCLUDE_DIRS) $(DEFINES) -o $(BUILD_DIR)$(PROGRAM) 
 
 fltk: $(FLTK)
 $(FLTK):
