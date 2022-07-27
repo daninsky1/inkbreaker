@@ -1,46 +1,44 @@
-# Make the build silent
-.SILENT:
+CC=g++
 
 # Define DEBUG_BUILD to make a debug build otherwise will make a release build
 DEBUG_BUILD=
 # IO_SQLITE=
 
-SRC=src\main.cpp src\main_window.cpp src\shapes.cpp src\view2d.cpp 
-
-OBJ=src\main.o src\main_window.o src\shapes.o src\view2d.o
+SRC=src/main.cpp src/main_window.cpp src/shapes.cpp src/view2d.cpp
+OBJ=src/main.o src/main_window.o src/shapes.o src/view2d.o
 
 BUILD_DIR=build/
 
 WIN32=User32.lib kernel32.lib gdi32.lib gdiplus.lib comdlg32.lib advapi32.lib shell32.lib \
 	 ole32.lib uuid.lib Ws2_32.lib comctl32.lib
 
-FLTK_DIR=vendor\fltk
-FLTK_BUILD_DIR=$(FLTK_DIR)\build
+FLTK_DIR=vendor/fltk
+FLTK_BUILD_DIR=$(FLTK_DIR)/build
 
-INCLUDE_DIRS=/Ivendor\fltk /Ivendor\fltk\build /Ivendor
+INCLUDE_DIRS=/vendor/fltk /Ivendor/fltk/build /Ivendor
 LIBS=$(WIN32) $(FLTK)
 # LIBS_SRC_DIRS=vendor\fltk\src vendor\sqlite
 
-DEBUGGER=devenv
+DEBUGGER=gdb
 
-!IFDEF IO_SQLITE
+IFDEF IO_SQLITE
 DEFINES=/DIO_SQLITE
 SQLITE=vendor\sqlite\sqlite3.c
-!ELSE
+ELSE
 DEFINES=
 SQLITE=
-!ENDIF
+ENDIF
 
 !IFDEF DEBUG_BUILD
 BUILD_TYPE=Debug
 CPPFLAGS=/EHsc /Zi /Od /FC /nologo /MDd /MP /W3 /diagnostics:column
-PROGRAM=inkbreakerd.exe
-FLTK=$(FLTK_BUILD_DIR)\lib\$(BUILD_TYPE)\fltkd.lib
+PROGRAM=inkbreakerd
+FLTK=$(FLTK_BUILD_DIR)/lib/$(BUILD_TYPE)/fltkd.lib
 !ELSE
 BUILD_TYPE=Release
 CPPFLAGS=/O2 /FC /nologo /MP /MD
-PROGRAM=inkbreaker.exe
-FLTK=$(FLTK_BUILD_DIR)\lib\$(BUILD_TYPE)\fltk.lib
+PROGRAM=inkbreaker
+FLTK=$(FLTK_BUILD_DIR)/lib/$(BUILD_TYPE)/fltk.lib
 !ENDIF
 
 all: $(PROGRAM)
