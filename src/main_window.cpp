@@ -180,7 +180,7 @@ void save_file(std::vector<Shape*> shapes)
         float node0y = shapes[i]->nodes[0].pos.y;
         float node1x = shapes[i]->nodes[1].pos.x;
         float node1y = shapes[i]->nodes[1].pos.y;
-        sprintf_s(sql_stmt, sql_stmt_sz,
+        sprintf(sql_stmt, sql_stmt_sz,
             "INSERT INTO vectorf(x, y) VALUES(%f, %f);"
             "INSERT INTO vectorf(x, y) VALUES(%f, %f);",
             node0x, node0y, node1x, node1y);
@@ -197,7 +197,7 @@ void save_file(std::vector<Shape*> shapes)
         // Get nodes ids
         // Get nodes statement
         sqlite3_stmt *comp_stmt = NULL;
-        strcpy_s(sql_stmt, sql_stmt_sz, "SELECT * FROM vectorf ORDER BY id DESC LIMIT 2;");
+        strcpy(sql_stmt, sql_stmt_sz, "SELECT * FROM vectorf ORDER BY id DESC LIMIT 2;");
         rc = sqlite3_prepare_v2(in_mem_db, sql_stmt, -1, &comp_stmt, NULL);
 
         if (!comp_stmt) {
@@ -216,7 +216,7 @@ void save_file(std::vector<Shape*> shapes)
         // Insert shape  statement
         std::cout << shapes[i]->type() << std::endl;
         if (shapes[i]->type() == "line") {
-            sprintf_s(sql_stmt, sql_stmt_sz,
+            sprintf(sql_stmt, sql_stmt_sz,
                 "INSERT INTO line(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
                 nid0, nid1);
 
@@ -229,7 +229,7 @@ void save_file(std::vector<Shape*> shapes)
         }
         else if (shapes[i]->type() == "rect") {
             sql_stmt[0] = '\0';
-            sprintf_s(sql_stmt, sql_stmt_sz, "INSERT INTO rect(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
+            sprintf(sql_stmt, sql_stmt_sz, "INSERT INTO rect(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
                 nid0, nid1);
 
             if (sqlite3_exec(in_mem_db, sql_stmt, NULL, NULL, &z_err_msg) != SQLITE_OK) {
@@ -241,7 +241,7 @@ void save_file(std::vector<Shape*> shapes)
         }
         else if (shapes[i]->type() == "circle") {
             sql_stmt[0] = '\0';
-            sprintf_s(sql_stmt, sql_stmt_sz, "INSERT INTO circle(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
+            sprintf(sql_stmt, sql_stmt_sz, "INSERT INTO circle(vectorf_id_1, vectorf_id_2) VALUES(%d, %d);",
                 nid0, nid1);
 
             if (sqlite3_exec(in_mem_db, sql_stmt, NULL, NULL, &z_err_msg) != SQLITE_OK) {
@@ -291,7 +291,7 @@ void load_file(std::vector<Shape*> &shapes)
     float n0x, n0y, n1x, n1y;
 
     // Get lines
-    strcpy_s(sql_stmt, sql_stmt_sz,
+    strcpy(sql_stmt, sql_stmt_sz,
         "SELECT v1.x, v1.y, v2.x, v2.y FROM line"
         " INNER JOIN vectorf AS v1 ON line.vectorf_id_1=v1.id"
         " INNER JOIN vectorf AS v2 ON line.vectorf_id_2=v2.id;"
@@ -322,7 +322,7 @@ void load_file(std::vector<Shape*> &shapes)
     } while (rc != SQLITE_DONE);
 
     // Get rect
-    strcpy_s(sql_stmt, sql_stmt_sz,
+    strcpy(sql_stmt, sql_stmt_sz,
         "SELECT v1.x, v1.y, v2.x, v2.y FROM rect"
         " INNER JOIN vectorf AS v1 ON rect.vectorf_id_1=v1.id"
         " INNER JOIN vectorf AS v2 ON rect.vectorf_id_2=v2.id;"
@@ -353,7 +353,7 @@ void load_file(std::vector<Shape*> &shapes)
     } while (rc != SQLITE_DONE);
 
     // Get circle
-    strcpy_s(sql_stmt, sql_stmt_sz,
+    strcpy(sql_stmt, sql_stmt_sz,
         "SELECT v1.x, v1.y, v2.x, v2.y FROM circle"
         " INNER JOIN vectorf AS v1 ON circle.vectorf_id_1=v1.id"
         " INNER JOIN vectorf AS v2 ON circle.vectorf_id_2=v2.id;"
@@ -435,7 +435,7 @@ void new_cb(Fl_Widget* widget, void* mwv)
     }
     else {
         // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
-        strcpy_s(glob_filename, sizeof(glob_filename), "");
+        strcpy(glob_filename, "");
         mwnd->changed(false);
     }
     mwnd->changed(false);
@@ -459,7 +459,7 @@ void open_cb(Fl_Widget* widget, void* mwv)
     }
     else {
         // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
-        strcpy_s(glob_filename, sizeof(glob_filename), "");
+        strcpy(glob_filename, "");
         mwnd->changed(false);
     }
 
@@ -470,7 +470,7 @@ void open_cb(Fl_Widget* widget, void* mwv)
     fnfc.title("Open file");
     fnfc.type(Fl_Native_File_Chooser::BROWSE_FILE);
     if (fnfc.show()) return;
-    strcpy_s(glob_filename, 2048, fnfc.filename());
+    strcpy(glob_filename, fnfc.filename());
 
     load_file(mwnd->v2d->shapes);
 }
@@ -504,13 +504,13 @@ void saveas_cb(Fl_Widget* widget, void* mwv)
         return;
     }
     else {
-        strcpy_s(glob_filename, FL_PATH_MAX, fnfc.filename());
+        strcpy(glob_filename, fnfc.filename());
         int ext_val = fnfc.filter_value();
         char* fileext = get_file_ext(glob_filename, strlen(glob_filename));
 
         if (ext_val == 0) {
             if (!fileext || (strcmp(fileext, ".sqlite3") && strcmp(fileext, ".sqlite") && strcmp(fileext, ".db"))) {
-                strcat_s(glob_filename, sizeof(glob_filename), ".sqlite3");
+                strcat(glob_filename, ".sqlite3");
                 save_file(mwnd->v2d->shapes);
             }
         }

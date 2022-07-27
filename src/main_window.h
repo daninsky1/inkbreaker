@@ -8,7 +8,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Menu_Bar.H>
 
-#include <FL/fl_ask.h>
+#include <FL/fl_ask.H>
 #include <FL/fl_show_colormap.H>
 #include <FL/Fl.H>
 #include <FL/filename.H>

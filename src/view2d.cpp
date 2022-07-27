@@ -36,20 +36,20 @@ void View2D::DEBUG_display_v2d_info()
 
     const int msg_sz = 128;
     char scr_dmsg[msg_sz];
-    sprintf_s(scr_dmsg, msg_sz, "View2D: (%d x %d)", v2d_w, v2d_h);
+    sprintf(scr_dmsg, "View2D: (%d x %d)", v2d_w, v2d_h);
     fl_draw(scr_dmsg, v2d_x + pad, fl_height(font, font_sz));
-    sprintf_s(scr_dmsg, msg_sz, "World offset: (%.3f, %.3f)", world_offset.x, world_offset.y);
+    sprintf(scr_dmsg, "World offset: (%.3f, %.3f)", world_offset.x, world_offset.y);
     fl_draw(scr_dmsg, v2d_x + pad, fl_height(font, font_sz) * 2);
-    sprintf_s(scr_dmsg, msg_sz, "World scale: %.3f", world_scale);
+    sprintf(scr_dmsg, "World scale: %.3f", world_scale);
     fl_draw(scr_dmsg, v2d_x + pad, fl_height(font, font_sz) * 3);
 
-    sprintf_s(scr_dmsg, msg_sz, "mouse world: (%.3f, %.3f)", mouse_world.x, mouse_world.y);
+    sprintf(scr_dmsg, "mouse world: (%.3f, %.3f)", mouse_world.x, mouse_world.y);
     fl_draw(scr_dmsg, v2d_x + pad, h() - pad - fl_height(font, font_sz)*3);
-    sprintf_s(scr_dmsg, msg_sz, "mouse world snap: (%.3f, %.3f)", mouse_snap_world.x, mouse_snap_world.y);
+    sprintf(scr_dmsg, "mouse world snap: (%.3f, %.3f)", mouse_snap_world.x, mouse_snap_world.y);
     fl_draw(scr_dmsg, v2d_x + pad, v2d_h - pad - fl_height(font, font_sz)*2);
-    sprintf_s(scr_dmsg, msg_sz, "mouse view2d: (%d, %d)", mouse_v2d.x, mouse_v2d.y);
+    sprintf(scr_dmsg, "mouse view2d: (%d, %d)", mouse_v2d.x, mouse_v2d.y);
     fl_draw(scr_dmsg, v2d_x + pad, v2d_h - pad - fl_height(font, font_sz));
-    sprintf_s(scr_dmsg, msg_sz, "mouse view2d snap: (%d, %d)", snap_cursor_v2d.x, snap_cursor_v2d.y);
+    sprintf(scr_dmsg, "mouse view2d snap: (%d, %d)", snap_cursor_v2d.x, snap_cursor_v2d.y);
     fl_draw(scr_dmsg, v2d_x + pad, v2d_h - pad);
 }
 
@@ -179,7 +179,7 @@ int View2D::handle(int evt)
         key_code = Fl::event_key();
 
         if (key_code < 128) { // ASCII
-            sprintf_s(buffer, bfsz,"'%c'", key_code);
+            sprintf(buffer,"'%c'", key_code);
             switch (key_code) {
             case 'r': {
                 std::cout << v2d_w << ", " << v2d_h << " " << w() << ", " << h() << std::endl;
