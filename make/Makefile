@@ -1,7 +1,7 @@
 CC=g++
 
-# Define DEBUG_BUILD to make a debug build otherwise will make a release build
-DEBUG_BUILD=
+# Define BUILD_TYPE, Debug or Release
+BUILD_TYPE=Debug
 # IO_SQLITE=
 
 SRC=src/main.cpp src/main_window.cpp src/shapes.cpp src/view2d.cpp
@@ -15,55 +15,57 @@ WIN32=User32.lib kernel32.lib gdi32.lib gdiplus.lib comdlg32.lib advapi32.lib sh
 FLTK_DIR=vendor/fltk
 FLTK_BUILD_DIR=$(FLTK_DIR)/build
 
-INCLUDE_DIRS=/vendor/fltk /Ivendor/fltk/build /Ivendor
+INCLUDE_DIRS=/vendor/fltk -Ivendor/fltk/build -Ivendor
 LIBS=$(WIN32) $(FLTK)
 # LIBS_SRC_DIRS=vendor\fltk\src vendor\sqlite
 
 DEBUGGER=gdb
 
-IFDEF IO_SQLITE
+ifdef IO_SQLITE
 DEFINES=/DIO_SQLITE
-SQLITE=vendor\sqlite\sqlite3.c
-ELSE
+SQLITE=vendor/sqlite/sqlite3.c
+else
 DEFINES=
 SQLITE=
-ENDIF
+endif
 
-!IFDEF DEBUG_BUILD
-BUILD_TYPE=Debug
-CPPFLAGS=/EHsc /Zi /Od /FC /nologo /MDd /MP /W3 /diagnostics:column
+ifeq ($(BUILD_TYPE), Debug)
+CPPFLAGS=-fexceptions -ggdb -O0 -Wall
 PROGRAM=inkbreakerd
-FLTK=$(FLTK_BUILD_DIR)/lib/$(BUILD_TYPE)/fltkd.lib
-!ELSE
-BUILD_TYPE=Release
-CPPFLAGS=/O2 /FC /nologo /MP /MD
+FLTK=$(FLTK_BUILD_DIR)/lib/libfltkd.a
+else ifeq ($(BUILD_TYPE), Release)
+CPPFLAGS=-O2
 PROGRAM=inkbreaker
-FLTK=$(FLTK_BUILD_DIR)/lib/$(BUILD_TYPE)/fltk.lib
-!ENDIF
+FLTK=$(FLTK_BUILD_DIR)/lib/libfltk.a
+else
+$(error Select a valid build type for BUILD_TYPE variable: Debug or Release)
+endif
 
 all: $(PROGRAM)
 
 $(PROGRAM): $(SRC) $(FLTK)
-	echo Windows $(BUILD_TYPE) build
-	if not exist $(BUILD_DIR) mkdir build
-	$(CC) $(CPPFLAGS) $(SRC) $(SQLITE) $(WIN32) $(FLTK) $(INCLUDE_DIRS) $(DEFINES) /Fo$(BUILD_DIR) /Fe$(BUILD_DIR)$* \
-		/link /PDB:$(BUILD_DIR)$*.pdb
+	echo Unix $(BUILD_TYPE) build
+	if [ ! -d "$(BUILD_DIR)" ]; then mkdir build; fi
+	$(CC) $(CPPFLAGS) $(SRC) $(SQLITE) $(WIN32) $(FLTK) $(INCLUDE_DIRS) $(DEFINES) -o$(BUILD_DIR)/$(PROGRAM)
 
 fltk: $(FLTK)
 $(FLTK):
 	echo FLTK $(BUILD_TYPE) build
-	if not exist $(FLTK_BUILD_DIR) mkdir $(FLTK_BUILD_DIR)
-	if not exist $(FLTK_BUILD_DIR)\FLTL.sln cmake -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR)
-	MSBuild -nologo $(FLTK_BUILD_DIR)\FLTK.sln -p:Configuration=$(BUILD_TYPE) -p:Platform=x64
+	if [ ! -d "$(FLTK_BUILD_DIR)" ]; then mkdir $(FLTK_BUILD_DIR); fi
+	if [ ! -e "$(FLTK_BUILD_DIR)/Makefile" ]; then cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR); fi
+# WARNING: -C change the make directory so make will call Makefire relative to
+# the FLTK_BUILD_PATH
+	make -C $(FLTK_BUILD_DIR) -f Makefile
 
 run: $(PROGRAM)
-	.\build\$(PROGRAM)
+	./build/$(PROGRAM)
 
 debugger: $(PROGRAM)
-	$(DEBUGGER) /nosplash .\build\$(PROGRAM)
+	$(DEBUGGER) ./build/$(PROGRAM)
 
 clean:
-	del build /s /q
+	rm -r -f build/*
+	rm -r -f $(FLTK_BUILD_DIR)/*
 
 tags: $(SRC)
 	del /q tags
