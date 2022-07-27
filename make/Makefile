@@ -7,6 +7,8 @@ BUILD_TYPE=Debug
 SRC=src/main.cpp src/main_window.cpp src/shapes.cpp src/view2d.cpp
 OBJ=src/main.o src/main_window.o src/shapes.o src/view2d.o
 
+DEFINES=/D
+
 BUILD_DIR=build/
 
 # This are the libs necessery to compile with fltk, check out fltk-config or
@@ -24,7 +26,7 @@ LIBS=$(WIN32) $(FLTK)
 DEBUGGER=gdb
 
 ifdef IO_SQLITE
-DEFINES=/DIO_SQLITE
+DEFINES+= /DIO_SQLITE
 SQLITE=vendor/sqlite/sqlite3.c
 else
 DEFINES=
