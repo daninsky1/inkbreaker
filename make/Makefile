@@ -65,10 +65,10 @@ $(FLTK):
 	make -C $(FLTK_BUILD_DIR) -f Makefile
 
 run: $(PROGRAM)
-	./build/$(PROGRAM)
+	./$(BUILD_DIR)/$(PROGRAM)
 
 debugger: $(PROGRAM)
-	$(DEBUGGER) ./build/$(PROGRAM)
+	$(DEBUGGER) ./$(BUILD_DIR)/$(PROGRAM)
 
 cleanall: clean
 	rm -r -f $(FLTK_BUILD_DIR)/*
