@@ -4,8 +4,8 @@ Install Cmake.</br></br>
 Windows:</br>
 Install the Windows Build Tools for C/C++.</br>
 Open the developer comand prompt to compile the project:</br>
-Compile: `nmake`</br>
+Compile: `nmake /F make/Makefile.vc`</br>
 Compile and run: `nmake run`</br>
 Open VS debugger: `nmake debugger`</br></br>
 Linux:</br>
-The linux build needs to be updated ;).
+Compile: `make -f make/Makefile`
