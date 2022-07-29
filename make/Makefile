@@ -7,17 +7,18 @@ BUILD_TYPE=Debug
 SRC=src/main.cpp src/main_window.cpp src/shapes.cpp src/view2d.cpp
 OBJ=src/main.o src/main_window.o src/shapes.o src/view2d.o
 
-DEFINES=/D
+PROGRAM_NAME=inkbreaker
 
 BUILD_DIR=build
 
+DEFINES=/D
 FLTK_DIR=vendor/fltk
 FLTK_BUILD_DIR=$(FLTK_DIR)/build
 FLTK_CONFIG=./$(FLTK_BUILD_DIR)/fltk-config
 # https://www.gnu.org/software/make/manual/html_node/Variables-in-Recipes.html
 # Make will expands this var after build fltk
-CXXFLAGS+= $(shell $(FLTK_CONFIG) --cxxflags)
-LDFLAGS+= $(shell $(FLTK_CONFIG) --ldstaticflags)
+CXXFLAGS+=$(shell $(FLTK_CONFIG) --cxxflags)
+LDFLAGS+=$(shell $(FLTK_CONFIG) --ldstaticflags)
 # WARNING: fltk lib path relie on the order of --ldstaticflags this may break,
 # if the script change the order of things
 FLTK=$(firstword $(LDFLAGS))
@@ -38,10 +39,10 @@ endif
 
 ifeq ($(BUILD_TYPE), Debug)
 CXXFLAGS=-fexceptions -ggdb -O0 -Wall
-PROGRAM=$(BUILD_DIR)/inkbreakerd
+PROGRAM=$(BUILD_DIR)/$(PROGRAM_NAME)debug
 else ifeq ($(BUILD_TYPE), Release)
 CXXFLAGS=-O2
-PROGRAM=$(BUILD_DIR)/inkbreaker
+PROGRAM=$(BUILD_DIR)/$(PROGRAM_NAME)
 else
 $(error Select a valid build type for BUILD_TYPE variable: Debug or Release)
 endif
@@ -49,8 +50,8 @@ endif
 .PHONY: all
 all: $(PROGRAM)
 
-.PHONY: inkbreaker
-inkbreaker: $(PROGRAM)
+.PHONY: $(PROGRAM_NAME)
+$(PROGRAM_NAME): $(PROGRAM)
 
 $(PROGRAM): $(SRC) $(FLTK)
 	@echo $(PROGRAM) Unix $(BUILD_TYPE) build
