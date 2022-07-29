@@ -81,11 +81,11 @@ tags: $(SRC)
 
 .PHONY: cleanall
 cleanall: clean
-	rm -r -f $(FLTK_BUILD_DIR)/*
+	$(RM) -r $(FLTK_BUILD_DIR)/*
 	
 .PHONY: clean
 clean:
-	rm -r -f build/*
+	$(RM) -r build/*
 
 .PHONY: test
 test:
