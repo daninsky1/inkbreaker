@@ -4,22 +4,21 @@ CXX=g++
 BUILD_TYPE=Debug
 # IO_SQLITE=
 
-SRC=src/main.cpp src/main_window.cpp src/shapes.cpp src/view2d.cpp
-OBJ=src/main.o src/main_window.o src/shapes.o src/view2d.o
-
 PROGRAM_NAME=inkbreaker
-
 BUILD_DIR=build
+
+SRC=$(addprefix src/, main.cpp main_window.cpp shapes.cpp view2d.cpp)
+OBJ=$(addprefix $(BUILD_DIR)/, main.o main_window.o shapes.o view2d.o)
 
 DEFINES=/D
 FLTK_DIR=vendor/fltk
 FLTK_BUILD_DIR=$(FLTK_DIR)/build
 FLTK_CONFIG=./$(FLTK_BUILD_DIR)/fltk-config
-# https://www.gnu.org/software/make/manual/html_node/Variables-in-Recipes.html
-# Make will expands this var after build fltk
+# https://www.gnu.org/software/make/manual/html_node/Flavors.html#Flavors
+# Make will expands 'var=' recursively
 CXXFLAGS+=$(shell $(FLTK_CONFIG) --cxxflags)
 LDFLAGS+=$(shell $(FLTK_CONFIG) --ldstaticflags)
-# WARNING: fltk lib path relie on the order of --ldstaticflags this may break,
+# WARNING: fltk lib path relie on the order of --ldstaticflags this may break
 # if the script change the order of things
 FLTK=$(firstword $(LDFLAGS))
 
@@ -64,14 +63,14 @@ $(FLTK):
 	@echo FLTK Unix $(BUILD_TYPE) build
 	mkdir -p $(FLTK_BUILD_DIR)
 	if [ ! -e "$(FLTK_BUILD_DIR)/Makefile" ]; then cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR); fi
-	make -C $(FLTK_BUILD_DIR) -f Makefile	
+	$(MAKE_COMMAND) -C $(FLTK_BUILD_DIR) -f Makefile	
 
 .PHONY: run
 run: $(PROGRAM)
 	./$(PROGRAM)
 
 .PHONY: debugger
-debugger: $(PROGRAM_)
+debugger: $(PROGRAM)
 	$(DEBUGGER) ./$(PROGRAM) $(DEBUGGER_FLAGS)
 
 .PHONY: tags
