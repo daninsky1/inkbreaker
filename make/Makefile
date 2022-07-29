@@ -7,7 +7,8 @@ BUILD_TYPE=Debug
 PROGRAM_NAME=inkbreaker
 BUILD_DIR=build
 
-SRC=$(addprefix src/, main.cpp main_window.cpp shapes.cpp view2d.cpp)
+SRC=$(addprefix src/, main.cpp main_window.cpp view2d.cpp tree.cpp object.cpp \
+objects/shapes.cpp )
 OBJ=$(addprefix $(BUILD_DIR)/, main.o main_window.o shapes.o view2d.o)
 
 DEFINES=/D
@@ -87,5 +88,10 @@ clean:
 	$(RM) -r $(BUILD_DIR)/*
 
 .PHONY: test
-test:
+test: workbench
+workbench: src/workbench.cpp
+	$(CXX) -o $(BUILD_DIR)/$@ $< $(INCLUDE_DIRS) $(DEFINES)
+
+.PHONY: maketest
+maketest:
 	@echo $(PROGRAM)
