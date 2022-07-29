@@ -55,24 +55,24 @@ $(PROGRAM_NAME): $(PROGRAM)
 
 $(PROGRAM): $(SRC) $(FLTK)
 	@echo $(PROGRAM) Unix $(BUILD_TYPE) build
-	if [ ! -d "$(BUILD_DIR)" ]; then mkdir build; fi
-	$(CXX) $(SRC) $(SQLITE) $(CXXFLAGS) $(LDFLAGS) $(INCLUDE_DIRS) $(DEFINES) -o $(BUILD_DIR)/$(PROGRAM) 
+	mkdir -p $(BUILD_DIR)
+	$(CXX) -o $(PROGRAM) $(SRC) $(SQLITE) $(CXXFLAGS) $(LDFLAGS) $(INCLUDE_DIRS) $(DEFINES)
 
 .PHONY: fltk
 fltk: $(FLTK)
 $(FLTK):
 	@echo FLTK Unix $(BUILD_TYPE) build
-	if [ ! -d "$(FLTK_BUILD_DIR)" ]; then mkdir $(FLTK_BUILD_DIR); fi
+	mkdir -p $(FLTK_BUILD_DIR)
 	if [ ! -e "$(FLTK_BUILD_DIR)/Makefile" ]; then cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR); fi
 	make -C $(FLTK_BUILD_DIR) -f Makefile	
 
 .PHONY: run
 run: $(PROGRAM)
-	./$(BUILD_DIR)/$(PROGRAM)
+	./$(PROGRAM)
 
 .PHONY: debugger
-debugger: $(PROGRAM)
-	$(DEBUGGER) ./$(BUILD_DIR)/$(PROGRAM) $(DEBUGGER_FLAGS)
+debugger: $(PROGRAM_)
+	$(DEBUGGER) ./$(PROGRAM) $(DEBUGGER_FLAGS)
 
 .PHONY: tags
 tags: $(SRC)
