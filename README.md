@@ -16,5 +16,5 @@ Linux:
 Compile: `make -f make/Makefile`  
 
 Todo:  
-* Remake Shapes the inheritance structure to be able to represent containers of shapes like a directory and the shapes itself been special containers of other shapes.  
-* The future shape container will keep track if its group contains only one type of shapes being pure or not being dirty, to diferentiate what king of operations we can do on those containers.
+* Make a Object in which all kinds of drawable shape and form will inherited.  
+* Make a tree structure where Objects will be stored.  
