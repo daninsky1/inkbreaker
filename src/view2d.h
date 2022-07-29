@@ -11,7 +11,7 @@
 #include <FL/fl_draw.H>
 #include <FL/Enumerations.H>
 
-#include "shapes.h"
+#include "objects/shapes.h"
 #include "state.h"
 //
 // VIEW 2D STATE
