@@ -85,7 +85,7 @@ cleanall: clean
 	
 .PHONY: clean
 clean:
-	$(RM) -r build/*
+	$(RM) -r $(BUILD_DIR)/*
 
 .PHONY: test
 test:
