@@ -4,8 +4,8 @@ constexpr int DRAG_THRESHOLD = 5;
 
 View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
     Fl_Box{ x, y, w, h },
-    shapes { p_shapes },
-    mouse_current_world{ mouse_snap_world }
+    mouse_current_world{ mouse_snap_world },
+    shapes { p_shapes }
 {
     state.mode = Mode::draw;
     state.select = Select::move;
@@ -94,7 +94,7 @@ void View2D::draw()
     }
 
     // NOTE(daniel): Render queue
-    for (int i = 0; i < shapes.size(); ++i) {
+    for (size_t i = 0; i < shapes.size(); ++i) {
         shapes[i]->draw_shape();
     }
 
@@ -103,7 +103,7 @@ void View2D::draw()
         //temp_shape->draw_nodes();
     }
 
-    for (int i = 0; i < bshapes.size(); ++i) {
+    for (size_t i = 0; i < bshapes.size(); ++i) {
         bshapes[i]->draw_shape();
     }
 
@@ -166,7 +166,7 @@ int View2D::handle(int evt)
     }
 
     if (state.mode == Mode::draw) {
-        if (handle_draw_mode(evt)) return 1;
+        if (handle_edit_mode(evt)) return 1;
     }
     
     
@@ -439,7 +439,7 @@ int View2D::handle_pan_tilt_zoom(int evt)
     return handled;
 }
 
-int View2D::handle_draw_mode(int evt)
+int View2D::handle_edit_mode(int evt)
 {
     int handled = 0;
     if (state.mode != Mode::draw) {
@@ -522,7 +522,7 @@ int View2D::handle_draw_mode(int evt)
                     else {
                         temp_shape->nodes.pop_back();
                         active_point = &temp_shape->nodes[temp_shape->nodes.size() - 1];
-                        printf("nodes size %llu\n", temp_shape->nodes.size());
+                        printf("nodes size %lu\n", temp_shape->nodes.size());
                     }
                 }
                 else if (bezier_temp_shape) {
@@ -673,7 +673,7 @@ int View2D::handle_draw_mode(int evt)
                 else {
                     active_point = temp_shape->get_next_node(mouse_current_world);
 
-                    printf("nodes size %llu\n", temp_shape->nodes.size());
+                    printf("nodes size %lu\n", temp_shape->nodes.size());
                     if (!active_point) {
                         shapes.push_back(temp_shape);
                         printf("Shape stored: %s\n", temp_shape->type().c_str());

@@ -26,8 +26,6 @@ struct OpenLineSegment : public SceneObject {
     Fl_Color line_color;
 };
 
-
-
 struct ShapeInfo {
     // TODO(daniel): Add join method after selection is possible
     int line_width;     // In pixels
@@ -74,6 +72,8 @@ struct Shape {
 	void world_to_scr(Vec2f v, int& scrx, int& scry);
 
     void set_shape_info(ShapeInfo si) { shape_info = si; };
+    
+    virtual ~Shape();
 };
 
 struct BBox : public Shape {
@@ -81,12 +81,14 @@ struct BBox : public Shape {
     // shape and shown in screen space but we may want 
     int scrw, scrh;
 	BBox();
+    ~BBox();
 	void draw_shape() override;
 };
 
 
 struct Line : public Shape {
 	Line();
+    ~Line();
 	void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
@@ -95,6 +97,7 @@ struct Line : public Shape {
 
 struct Rect : public Shape {
 	Rect();
+    ~Rect();
     void update_bbox() override;
 	void draw_shape() override;
     void draw_bbox() override;
@@ -104,6 +107,7 @@ struct Rect : public Shape {
 
 struct Circle : public Shape {
     Circle();
+    ~Circle();
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
@@ -113,6 +117,7 @@ struct Circle : public Shape {
 
 struct Poly : public Shape {
     Poly() { }
+    ~Poly();
     Node* get_next_node(const Vec2f p) override;
     void draw_shape() override;
     void draw_bbox() override;
@@ -136,6 +141,7 @@ struct Bezier : public Shape {
     // The h0 are the head curve handle and the h1 are the tail curve handle
     std::vector<BezierHandle> bhandles;
     Bezier() { }
+    ~Bezier();
     BezierHandle *get_next_handle(BezierHandle bh);
     void draw_shape() override;
     void draw_bbox() override;

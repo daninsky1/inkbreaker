@@ -6,7 +6,7 @@ float Shape::world_scale{ 1.0f };
 
 void translate(float offx, float offy, Shape *s)
 {
-    for (int i = 0; i < s->nodes.size(); ++i) {
+    for (size_t i = 0; i < s->nodes.size(); ++i) {
         s->nodes[i].pos.x += offx;
         s->nodes[i].pos.y += offy;
     }
@@ -45,12 +45,20 @@ void Shape::world_to_scr(Vec2f v, int& scrx, int& scry)
     scry = static_cast<int>((v.y - world_offset.y) * world_scale);
 }
 
+Shape::~Shape()
+{
+    
+}
+
 BBox::BBox()
 {
     max_nodes = 2;
     // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: Shape::get_next_node definition
     nodes.reserve(max_nodes);
 }
+
+BBox::~BBox()
+{}
 
 void BBox::draw_shape()
 {
@@ -97,6 +105,8 @@ Line::Line()
     // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: Shape::get_next_node definition
     nodes.reserve(max_nodes);
 }
+
+Line::~Line() { }
 
 void Line::draw_shape()
 {
@@ -150,6 +160,8 @@ Rect::Rect()
     // VECTOR NEEDS TO HAVE SIZE PREDEFINED SEE: Shape::get_next_node definition
     nodes.reserve(max_nodes);
 }
+
+Rect::~Rect() { }
 
 void Rect::update_bbox()
 {
@@ -225,6 +237,8 @@ Circle::Circle()
     nodes.reserve(max_nodes);
 }
 
+Circle::~Circle() { }
+
 void Circle::update_bbox()
 {
     int sx, sy, ex, ey;
@@ -290,6 +304,11 @@ void Circle::draw_bbox()
     fl_end_loop();
 }
 
+Poly::~Poly()
+{
+    
+}
+
 Node* Poly::get_next_node(const Vec2f p)
 {
     Node n;
@@ -336,12 +355,17 @@ bool Poly::is_inside_bbox(Vec2f v)
     return false;
 }
 
+Bezier::~Bezier()
+{
+    
+}
 
 BezierHandle* Bezier::get_next_handle(const BezierHandle bh)
 {
     bhandles.push_back(bh);
     return &bhandles[bhandles.size() - 1];
 }
+
 
 void Bezier::draw_shape()
 {
