@@ -8,13 +8,11 @@
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 
+#include "../coordinates.h"
 
-struct Pointi { int x, y; };
-struct Point2f { float x, y; };
-struct Vector2f { float x, y; };
 
 struct SceneObject {
-    Vector2f origin{ 0.0f, 0.0f };      // Local origin
+    Vec2f origin{ 0.0f, 0.0f };      // Local origin
     float scale{ 1.0f };                // Local scale
 };
 
@@ -42,13 +40,13 @@ struct ShapeInfo {
 struct Shape;
 struct Node {
     Shape* parent;
-    Vector2f pos;
+    Vec2f pos;
 };
 
 struct Shape {
 	// TODO: REPLACE STD::VECTOR WITH STD::ARRAY
     static float world_scale;
-    static Vector2f world_offset;
+    static Vec2f world_offset;
 
     //ShapeInfo shape_info{ 1, FL_WHITE, FL_BLACK, true, true };
     ShapeInfo shape_info{ 1, FL_WHITE, FL_BLACK, true, true };
@@ -57,23 +55,23 @@ struct Shape {
     uint32_t max_nodes = 0;
 
     // NOTE(daniel): Bounding box start point and end point
-    Vector2f bboxs{ 0.0f, 0.0f };
-    Vector2f bboxe{ 0.0f, 0.0f };
+    Vec2f bboxs{ 0.0f, 0.0f };
+    Vec2f bboxe{ 0.0f, 0.0f };
 
     virtual void update_bbox() { };
 
 	virtual void draw_shape() = 0;
     virtual void draw_bbox() { };
-    virtual bool is_inside_bbox(Vector2f r) { return false; };
+    virtual bool is_inside_bbox(Vec2f r) { return false; };
 
     virtual void translate() { };
     virtual void rotate() { };
     virtual void scale() { };
 
     virtual std::string type() { return std::string{"Shape"}; };
-	virtual Node* get_next_node(const Vector2f p);
+	virtual Node* get_next_node(const Vec2f p);
 	void draw_nodes();
-	void world_to_scr(Vector2f v, int& scrx, int& scry);
+	void world_to_scr(Vec2f v, int& scrx, int& scry);
 
     void set_shape_info(ShapeInfo si) { shape_info = si; };
 };
@@ -100,7 +98,7 @@ struct Rect : public Shape {
     void update_bbox() override;
 	void draw_shape() override;
     void draw_bbox() override;
-    bool is_inside_bbox(Vector2f v) override;
+    bool is_inside_bbox(Vec2f v) override;
     std::string type() override { return std::string{"rect"}; };
 };
 
@@ -109,24 +107,24 @@ struct Circle : public Shape {
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
-    bool is_inside_bbox(Vector2f v) override;
+    bool is_inside_bbox(Vec2f v) override;
     std::string type() override { return std::string{"circle"}; }
 };
 
 struct Poly : public Shape {
     Poly() { }
-    Node* get_next_node(const Vector2f p) override;
+    Node* get_next_node(const Vec2f p) override;
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
-    bool is_inside_bbox(Vector2f v) override;
+    bool is_inside_bbox(Vec2f v) override;
     std::string type() override { return std::string{"polygon"}; }
 };
 
 struct BezierHandle {
-    Vector2f point;
-    Vector2f head;
-    Vector2f tail;
+    Vec2f point;
+    Vec2f head;
+    Vec2f tail;
 };
 
 struct Bezier : public Shape {
@@ -142,7 +140,7 @@ struct Bezier : public Shape {
     void draw_shape() override;
     void draw_bbox() override;
     void update_bbox() override;
-    bool is_inside_bbox(Vector2f v) override;
+    bool is_inside_bbox(Vec2f v) override;
     std::string type() override { return std::string{"bezier"}; }
 };
 

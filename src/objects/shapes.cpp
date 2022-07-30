@@ -1,13 +1,7 @@
 #include "shapes.h"
 
 
-std::ostream& operator<<(std::ostream& os, const Vector2f& v)
-{
-    return os << '[' << v.x
-        << ", " << v.y << ']';
-}
-
-Vector2f Shape::world_offset{ 0.0f, 0.0f };
+Vec2f Shape::world_offset{ 0.0f, 0.0f };
 float Shape::world_scale{ 1.0f };
 
 void translate(float offx, float offy, Shape *s)
@@ -23,7 +17,7 @@ void scale(float factor, float centerx, float centery)
     // TODO
 }
 
-Node* Shape::get_next_node(const Vector2f p)
+Node* Shape::get_next_node(const Vec2f p)
 {
     if (nodes.size() == max_nodes) return nullptr;
     Node n;
@@ -45,7 +39,7 @@ void Shape::draw_nodes()
     }
 }
 
-void Shape::world_to_scr(Vector2f v, int& scrx, int& scry)
+void Shape::world_to_scr(Vec2f v, int& scrx, int& scry)
 {
     scrx = static_cast<int>((v.x - world_offset.x) * world_scale);
     scry = static_cast<int>((v.y - world_offset.y) * world_scale);
@@ -212,7 +206,7 @@ void Rect::draw_bbox()
     fl_end_loop();
 }
 
-bool Rect::is_inside_bbox(Vector2f v)
+bool Rect::is_inside_bbox(Vec2f v)
 {
     update_bbox();
     //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
@@ -268,7 +262,7 @@ void Circle::draw_shape()
     fl_end_loop();
 }
 
-bool Circle::is_inside_bbox(Vector2f v)
+bool Circle::is_inside_bbox(Vec2f v)
 {
     update_bbox();
     //printf("(%f, %f) - (%f, %f - %f, %f)\n", v.x, v.y, bboxs.x, bboxs.y, bboxe.x, bboxe.y);
@@ -296,7 +290,7 @@ void Circle::draw_bbox()
     fl_end_loop();
 }
 
-Node* Poly::get_next_node(const Vector2f p)
+Node* Poly::get_next_node(const Vec2f p)
 {
     Node n;
     n.parent = this;
@@ -337,7 +331,7 @@ void Poly::draw_bbox()
     //int sx, sy, ex, ey;
 }
 
-bool Poly::is_inside_bbox(Vector2f v)
+bool Poly::is_inside_bbox(Vec2f v)
 {
     return false;
 }
@@ -386,7 +380,7 @@ void Bezier::draw_bbox()
 void Bezier::update_bbox()
 {
 }
-bool Bezier::is_inside_bbox(Vector2f v)
+bool Bezier::is_inside_bbox(Vec2f v)
 {
     return false;
 }
