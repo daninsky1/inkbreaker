@@ -7,7 +7,7 @@ BUILD_TYPE=Debug
 PROGRAM_NAME=inkbreaker
 BUILD_DIR=build
 
-SRC=$(addprefix src/, main.cpp main_window.cpp view2d.cpp tree.cpp object.cpp \
+SRC=$(addprefix src/, main.cpp main_window.cpp view2d.cpp tree.cpp \
 objects/shapes.cpp )
 OBJ=$(addprefix $(BUILD_DIR)/, main.o main_window.o shapes.o view2d.o)
 
@@ -64,7 +64,7 @@ $(FLTK):
 	@echo FLTK Unix $(BUILD_TYPE) build
 	mkdir -p $(FLTK_BUILD_DIR)
 	if [ ! -e "$(FLTK_BUILD_DIR)/Makefile" ]; then cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR); fi
-	$(MAKE_COMMAND) -C $(FLTK_BUILD_DIR) -f Makefile	
+	$(MAKE_COMMAND) -C $(FLTK_BUILD_DIR) -f Makefile -j
 
 .PHONY: run
 run: $(PROGRAM)
