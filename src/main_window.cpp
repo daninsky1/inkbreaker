@@ -596,7 +596,8 @@ MainWindow::MainWindow(int v2d_w, int v2d_h) :
     app_state.active_selection = nullptr;
 
     // View2D
-    v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, shapes};
+    //v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, shapes };
+    v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, root };
     v2d->app_state = &app_state;
 
 

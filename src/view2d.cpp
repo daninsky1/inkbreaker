@@ -5,7 +5,23 @@ constexpr int DRAG_THRESHOLD = 5;
 View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
     Fl_Box{ x, y, w, h },
     mouse_current_world{ mouse_snap_world },
-    shapes { p_shapes }
+    shapes{ p_shapes }
+{
+    state.mode = Mode::draw;
+    state.select = Select::move;
+    state.draw = Draw::line;
+
+    scr_buf = fl_create_offscreen(w, h);
+    fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
+
+    v2d_x = x; v2d_y = y;
+    v2d_w = w; v2d_h = h;
+} // View2D
+
+View2D::View2D(int x, int y, int w, int h, Tree::Node *root) :
+    Fl_Box{ x, y, w, h },
+    mouse_current_world{ mouse_snap_world },
+    root{ root }
 {
     state.mode = Mode::draw;
     state.select = Select::move;
@@ -168,8 +184,6 @@ int View2D::handle(int evt)
     if (state.mode == Mode::draw) {
         if (handle_edit_mode(evt)) return 1;
     }
-    
-    
 
     int handled = 0;
 

@@ -18,6 +18,7 @@
 #include <sqlite/sqlite3.h>
 #endif
 
+#include "tree.h"
 #include "view2d.h"
 
 constexpr int V2D_DEFAULT_W = 680;
@@ -55,6 +56,7 @@ public:
     void changed(bool c);
 
     /* Shapes */
+    Tree::Node *root = new Tree::Node();
     std::vector<Shape*> shapes;
     Shape* active_selection;
     ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE };
