@@ -16,5 +16,6 @@ Linux:
 Compile: `make -f make/Makefile`  
 
 Todo:  
-* Make a Object in which all kinds of drawable shape and form will inherited.  
-* Make a tree structure where Objects will be stored.  
+* Make a tree data structore to store the shapes.
+* Make the persistence system with ORM.
+* Remake the draw shape system.  
