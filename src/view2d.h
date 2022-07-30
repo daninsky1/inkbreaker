@@ -13,6 +13,8 @@
 
 #include "objects/shapes.h"
 #include "state.h"
+#include "enumerators.h"
+#include "coordinates.h"
 //
 // VIEW 2D STATE
 //
@@ -21,14 +23,6 @@ enum class Mode {
     pan,
     zoom,
     draw
-};
-
-enum class Draw {
-    line,
-    rect,
-    circle,
-    poly,
-    bezier
 };
 
 enum class Select {
@@ -81,17 +75,18 @@ class View2D : public Fl_Box {
 public:
     View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes);
 
-    void world_to_scr(Vector2f world, int &scrx, int &screeny);
-    void scr_to_world(int scrx, int screeny, Vector2f& world);
+    void world_to_scr(Vec2f world, int &scrx, int &screeny);
+    void scr_to_world(int scrx, int screeny, Vec2f& world);
     void get_cursor_v2d_position(int &cx, int &cy);
     static void draw_axes(int centerx, int centery, int w, int h, int line_width);
-    Vector2f get_snap_grid(Vector2f vec2d_world);
+    Vec2f get_snap_grid(Vec2f vec2d_world);
     void draw_grid(int point_sz);
     void get_mouse();
     void draw() override;
 
     void clear() { shapes.clear(); redraw(); }
     int handle(int evt) override;
+    int handle_pan_tilt_zoom(int v);
     int handle_draw_mode(int evt);
     void set_cursor();
 
@@ -115,21 +110,21 @@ public:
     View2DState state;
     bool changed = false;
 
-    Vector2f axes_center { 0.0f, 0.0f };       // Axes center point
+    Vec2f axes_center { 0.0f, 0.0f };       // Axes center point
 
-    Vector2f world_offset{ 0.0f, 0.0f };
+    Vec2f world_offset{ 0.0f, 0.0f };
     float world_scale{ 15.0f };
 
     // NOTE(daniel): Mouse states, the screen coordinates are relative to this
     // widget
-    Pointi mouse_v2d{ 0, 0 };
-    Vector2f mouse_world;
-    Vector2f mouse_snap_world{ 0.0f, 0.0f };
-    Vector2f &mouse_current_world;
+    Point2i mouse_v2d{ 0, 0 };
+    Vec2f mouse_world;
+    Vec2f mouse_snap_world{ 0.0f, 0.0f };
+    Vec2f &mouse_current_world;
 
-    void set_mouse_current_world(Vector2f &mouse);
-    Pointi snap_cursor_v2d{ 0, 0 };
-    Pointi snap_mouse_scr_pos{ 0, 0 };
+    void set_mouse_current_world(Vec2f &mouse);
+    Point2i snap_cursor_v2d{ 0, 0 };
+    Point2i snap_mouse_scr_pos{ 0, 0 };
 
     /* Cursor */
     Fl_Cursor current_cursor = FL_CURSOR_DEFAULT;
@@ -138,7 +133,7 @@ public:
 
     // TODO(daniel): Make a structure with the mouse states
     bool m_drag_constraint = false;
-    Vector2f drag_start_world;
+    Vec2f drag_start_world;
 
     float drag_sx = 0, drag_sy = 0;// drag start position
     int drag_start_scr_x = 0, drag_start_scr_y = 0; 
