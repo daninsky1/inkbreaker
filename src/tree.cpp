@@ -24,6 +24,17 @@ void Node::traverse_tree()
     printf("%s", name.c_str());
 }
 
+void Node::get_shapes_dfs(vector<Shape*> &shapes)
+{
+    if (m_value) {
+        shapes.push_back(m_value);
+        return;
+    }
+    for (size_t i = 0; i < m_children->size(); i++) {
+        (*m_children)[i]->get_shapes_dfs(shapes);
+    }
+}
+
 void Node::parent(Node *parent) {
     assert(parent != this);
     m_parent = parent;

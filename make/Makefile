@@ -8,7 +8,7 @@ PROGRAM_NAME=inkbreaker
 BUILD_DIR=build
 
 SRC=$(addprefix src/, main.cpp main_window.cpp view2d.cpp tree.cpp \
-objects/shapes.cpp )
+objects/shapes.cpp)
 OBJ=$(addprefix $(BUILD_DIR)/, main.o main_window.o shapes.o view2d.o)
 
 DEFINES=/D
@@ -89,8 +89,8 @@ clean:
 
 .PHONY: test
 test: workbench
-workbench: src/workbench.cpp
-	$(CXX) -o $(BUILD_DIR)/$@ $< $(INCLUDE_DIRS) $(DEFINES)
+workbench: src/workbench.cpp src/tree.cpp src/coordinates.cpp src/objects/polygon.cpp src/objects/shape.h
+	$(CXX) -o $(BUILD_DIR)/$@ $^ $(INCLUDE_DIRS) $(DEFINES)
 
 .PHONY: maketest
 maketest:

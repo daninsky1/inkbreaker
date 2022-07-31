@@ -7,6 +7,7 @@
 
 #include "objects/shape.h"
 
+
 using namespace std;
 
 /* NOTE(daniel): Nodes with a shape value CANNOT have children! In this case
@@ -24,9 +25,10 @@ namespace Tree {
         Node();
         Node(Shape *shape);
         
+        Shape *shape() { return m_value; }
         void traverse_tree();
+        void get_shapes_dfs(vector<Shape*> &shapes);
         Node *parent();
-        void parent(Node *parent);
         void add_child(Node *child);
         vector<Node*> nodes();
         size_t size();
@@ -34,5 +36,6 @@ namespace Tree {
         Node *m_parent = nullptr;
         vector<Node*> *m_children = nullptr;
         Shape *m_value = nullptr;
+        void parent(Node *parent);
     };
 }

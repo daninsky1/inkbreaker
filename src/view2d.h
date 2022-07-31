@@ -15,7 +15,7 @@
 #include "state.h"
 #include "enumerators.h"
 #include "coordinates.h"
-#include "tree.h"
+// #include "tree.h"
 //
 // VIEW 2D STATE
 //
@@ -75,7 +75,7 @@ static void draw_sine_wave()
 class View2D : public Fl_Box {
 public:
     View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes);
-    View2D(int x, int y, int w, int h, Tree::Node *root);
+    // View2D(int x, int y, int w, int h, Tree::Node *root);
 
     void world_to_scr(Vec2f world, int &scrx, int &screeny);
     void scr_to_world(int scrx, int screeny, Vec2f& world);
@@ -172,7 +172,7 @@ public:
     Shape *temp_shape     = nullptr;
     Bezier *bezier_temp_shape     = nullptr;
     
-    Tree::Node *root;
+    // Tree::Node *root;
 
     // IMPORTANT(daniel): This is a reference to a parent container shapes
     std::vector<Shape*> shapes;

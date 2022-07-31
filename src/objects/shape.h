@@ -1,11 +1,16 @@
 #pragma once
 
+#include <FL/Fl.H>
+
 #include "../coordinates.h"
 
 
-struct Shape {
+class Shape {
+public:
     static float world_scale;
     static Vec2f world_offset;
+    
+    
 
     // NOTE(daniel): Top left and bottom right of the bounding box
     Vec2f bboxs{ 0.0f, 0.0f };
@@ -16,7 +21,7 @@ struct Shape {
 	virtual void draw() = 0;
     virtual bool is_inside_bbox(Vec2f point) { return false; };
 
-    virtual std::string type() { return std::string{"Shape"}; };
+    std::string type() { return m_type; };
 
 	void world_to_scr(Vec2f v, int& scrx, int& scry);
     
@@ -25,5 +30,15 @@ struct Shape {
     virtual void scale() { };
     
     virtual ~Shape() { };
-    //void set_shape_info(ShapeInfo si) { shape_info = si; };
+private:
+    std::string m_type = "shape";
+};
+
+struct ShapeInfo {
+    // TODO(daniel): Add join method after selection is possible
+    int line_width;     // In pixels
+    Fl_Color line_color;
+    Fl_Color fill_color;    // If Shape has no fill this is ignored
+    bool show_line; 
+    bool show_fill;
 };
