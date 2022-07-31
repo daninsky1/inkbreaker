@@ -386,8 +386,8 @@ void load_file(std::vector<Shape*> &shapes)
     sqlite3_close(file_db);
 }
 #else
-void save_file(std::vector<Shape*> shapes) { printf("Error: No IO implemented\n"); }
-void load_file(std::vector<Shape*> &shapes) { printf("Error: No IO implemented\n"); }
+void save_file(std::vector<old::Shape*> shapes) { printf("Error: No IO implemented\n"); }
+void load_file(std::vector<old::Shape*> &shapes) { printf("Error: No IO implemented\n"); }
 #endif
 
 void save_cb(Fl_Widget* widget, void* mwv)

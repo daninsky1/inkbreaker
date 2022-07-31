@@ -74,7 +74,7 @@ static void draw_sine_wave()
 
 class View2D : public Fl_Box {
 public:
-    View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes);
+    View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes);
     // View2D(int x, int y, int w, int h, Tree::Node *root);
 
     void world_to_scr(Vec2f world, int &scrx, int &screeny);
@@ -88,7 +88,7 @@ public:
 
     void clear() { shapes.clear(); redraw(); }
     int handle(int evt) override;
-    int handle_pan_tilt_zoom(int v);
+    int handle_pan_tilt_zoom(int evt);
     int handle_edit_mode(int evt);
     void set_cursor();
 
@@ -154,30 +154,30 @@ public:
     bool show_grid = true;
     bool is_snap_grid = true;
 
-    BBox *select_shape_bbox = nullptr;
+    old::BBox *select_shape_bbox = nullptr;
     bool is_selecting = false;
     bool is_moving = false;
 
     InkbreakerState *app_state;
 
     bool is_drawing       = false;
-    BezierHandle *active_bhandle = nullptr;
-    Node *active_point = nullptr;
+    old::BezierHandle *active_bhandle = nullptr;
+    old::Node *active_point = nullptr;
 
-    Node *active_bpoint = nullptr;             // Active Bezier point
-    Node *start_bpoint = nullptr;              // Active Bezier point
-    Node *active_head_bhandle = nullptr;       // Head Bezier handle for bezier drawing
-    Node *tail_bhandle = nullptr;              // Tail Bezier handle for bezier drawing
+    old::Node *active_bpoint = nullptr;             // Active Bezier point
+    old::Node *start_bpoint = nullptr;              // Active Bezier point
+    old::Node *active_head_bhandle = nullptr;       // Head Bezier handle for bezier drawing
+    old::Node *tail_bhandle = nullptr;              // Tail Bezier handle for bezier drawing
 
-    Shape *temp_shape     = nullptr;
-    Bezier *bezier_temp_shape     = nullptr;
+    old::Shape *temp_shape     = nullptr;
+    old::Bezier *bezier_temp_shape     = nullptr;
     
     // Tree::Node *root;
 
     // IMPORTANT(daniel): This is a reference to a parent container shapes
-    std::vector<Shape*> shapes;
-    std::vector<Bezier*> bshapes;
-    ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE, true, true };
+    std::vector<old::Shape*> shapes;
+    std::vector<old::Bezier*> bshapes;
+    old::ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE, true, true };
 
     float max_zoom = 300.0f;
     float min_zoom = 0.001f;

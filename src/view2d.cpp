@@ -2,7 +2,7 @@
 
 constexpr int DRAG_THRESHOLD = 5;
 
-View2D::View2D(int x, int y, int w, int h, std::vector<Shape*> &p_shapes) :
+View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
     Fl_Box{ x, y, w, h },
     mouse_current_world{ mouse_snap_world },
     shapes{ p_shapes }
@@ -92,8 +92,8 @@ void View2D::draw()
 
     // NOTE(daniel): This need to be updated manually, until we find a better
     // way to do it
-    Shape::world_offset = world_offset;
-    Shape::world_scale = world_scale;
+    old::Shape::world_offset = world_offset;
+    old::Shape::world_scale = world_scale;
 
     // DRAW WORLD BACKGROUND
     fl_begin_offscreen(scr_buf);
@@ -243,7 +243,7 @@ int View2D::handle(int evt)
             get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
             if (Fl::event_button() == FL_LEFT_MOUSE) {
                 if (!select_shape_bbox) {
-                    select_shape_bbox = new BBox();
+                    select_shape_bbox = new old::BBox();
                     // first node at location of left click
                     select_shape_bbox->get_next_node(mouse_world);
                     select_shape_bbox->get_next_node(mouse_world);
@@ -296,7 +296,7 @@ int View2D::handle(int evt)
                 }
                 else {
                     // Do click seletion
-                    for (std::vector<Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
+                    for (std::vector<old::Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
                         if ((*it)->is_inside_bbox(mouse_world)) {
                             *it = app_state->active_selection;
                             app_state->active_selection = *it;
@@ -596,12 +596,12 @@ int View2D::handle_edit_mode(int evt)
             // the bezier handles
             if (state.draw == Draw::bezier) {
                 if (!is_drawing) {
-                    bezier_temp_shape = new Bezier();
+                    bezier_temp_shape = new old::Bezier();
                     bezier_temp_shape->shape_info = shape_info;
 
                     /* Set the first bezier handle and get the next bezier handle */
                     active_bhandle = bezier_temp_shape->get_next_handle(
-                        BezierHandle{ mouse_current_world, mouse_current_world, mouse_current_world }
+                        old::BezierHandle{ mouse_current_world, mouse_current_world, mouse_current_world }
                     );
 
                     is_drawing = true;
@@ -651,16 +651,16 @@ int View2D::handle_edit_mode(int evt)
             // first node at location of left click
             if (!is_drawing) {
                 if (state.draw == Draw::line) {
-                    temp_shape = new Line();
+                    temp_shape = new old::Line();
                 }
                 else if (state.draw == Draw::rect) {
-                    temp_shape = new Rect();
+                    temp_shape = new old::Rect();
                 }
                 else if (state.draw == Draw::circle) {
-                    temp_shape = new Circle();
+                    temp_shape = new old::Circle();
                 }
                 else if (state.draw == Draw::poly) {
-                    temp_shape = new Poly();
+                    temp_shape = new old::Poly();
                 }
 
                 // NOTE(daniel): If this assertion fail means that the draw

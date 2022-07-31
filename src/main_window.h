@@ -57,9 +57,9 @@ public:
 
     /* Shapes */
     // Tree::Node *root = new Tree::Node();
-    std::vector<Shape*> shapes;
-    Shape* active_selection;
-    ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE };
+    std::vector<old::Shape*> shapes;
+    old::Shape* active_selection;
+    old::ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE };
 
 	/* Widgets */
     Fl_Menu_Bar *menu_bar;

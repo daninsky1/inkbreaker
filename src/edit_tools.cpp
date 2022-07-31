@@ -22,6 +22,7 @@ Polygon *create_polygon()
 
 int PolygonTool::create_polygon_handle(int evt)
 {
+    int handled = 0;
     return handled;
 }
 

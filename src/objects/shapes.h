@@ -17,16 +17,7 @@ struct SceneObject {
     float scale{ 1.0f };                // Local scale
 };
 
-struct Polygon : public SceneObject {
-    Polygon();
-    Fl_Color line_color;
-    Fl_Color fill_color;
-};
-
-struct OpenLineSegment : public SceneObject {
-    Fl_Color line_color;
-};
-
+namespace old {
 struct ShapeInfo {
     // TODO(daniel): Add join method after selection is possible
     int line_width;     // In pixels
@@ -153,3 +144,4 @@ struct Bezier : public Shape {
 
 
 void translate(float offx, float offy, Shape *s);
+} // old

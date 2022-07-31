@@ -12,6 +12,6 @@
 
 struct InkbreakerState {
     bool changed;
-    Shape *active_selection;
-    std::vector<Shape*> latest_selections;
+    old::Shape *active_selection;
+    std::vector<old::Shape*> latest_selections;
 };
