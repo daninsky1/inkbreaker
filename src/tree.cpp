@@ -3,28 +3,45 @@
 
 using namespace Tree;
 
-size_t Node::size()
+Node::Node() :
+    m_children{ new vector<Node*>() }
 {
-    return m_childs.size();
+    name = "I'm Pure Node!\n";
 }
 
-void Node::link(Node *node)
-{
-    m_childs.push_back(node);
+Node::Node(Shape *shape) {
+    m_value = shape;
+    name = "I'm Leaf Node!\n";
 }
 
-void Node::parent(Node *node) {
-    assert(node != this);
-    m_parent = node;
-    m_parent->add_child(this);
+void Node::traverse_tree()
+{
+    if (!m_value) {
+        for (size_t i = 0; i < m_children->size(); i++) {
+            (*m_children)[i]->traverse_tree();
+        }
+    }
+    printf("%s", name.c_str());
 }
 
-void Node::add_child(Node *node)
+void Node::parent(Node *parent) {
+    assert(parent != this);
+    m_parent = parent;
+}
+
+void Node::add_child(Node *child)
 {
-    m_childs.push_back(node);
+    m_children->push_back(child);
+    child->parent(this);
 }
 
 vector<Node*> Node::nodes()
 {
-    return m_childs;
+    return *m_children;
+}
+
+size_t Node::size()
+{
+    printf("%lu\n", m_children->size());
+    return m_children->size();
 }

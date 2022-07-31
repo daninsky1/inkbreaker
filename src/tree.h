@@ -5,28 +5,34 @@
 
 #include <assert.h>
 
+#include "objects/shape.h"
 
 using namespace std;
 
+/* NOTE(daniel): Nodes with a shape value CANNOT have children! In this case
+* they are mere shape wrappers. So they are leaves only.
+* If Node is contructed with a shape value *m_children becomes null, so no
+* operation on m_children will be possible without breaking everything. However
+* in the future make a better error handling for this case.
+*/
 namespace Tree {    
     class Node {
     public:
         string name;
         string user_def_name;
-        size_t size();
-        void link(Node *node);
-        void parent(Node *node);
-        void add_child(Node *node);
+        
+        Node();
+        Node(Shape *shape);
+        
+        void traverse_tree();
+        Node *parent();
+        void parent(Node *parent);
+        void add_child(Node *child);
         vector<Node*> nodes();
+        size_t size();
     private:
-        vector<Node*> m_childs;
-        Node *m_parent;
-    };
-
-    // ObjectLeaf are tree leafs only, Node cannot point to ObjectLeaf
-    class ObjectLeaf : public Node {
-        // ObjectLeaf();
-        size_t size() = delete;
-        void link(Node) = delete;
+        Node *m_parent = nullptr;
+        vector<Node*> *m_children = nullptr;
+        Shape *m_value = nullptr;
     };
 }
