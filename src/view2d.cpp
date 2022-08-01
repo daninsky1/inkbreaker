@@ -272,7 +272,7 @@ int View2D::handle(int evt)
                 select_shape_bbox->nodes[1].pos = mouse_world;
             }
             else if (is_moving) {
-                translate((mouse_world.x - drag_start_world.x), (mouse_world.y - drag_start_world.y),
+                old::translate((mouse_world.x - drag_start_world.x), (mouse_world.y - drag_start_world.y),
                     app_state->active_selection);
                 drag_start_world.x = mouse_world.x;
                 drag_start_world.y = mouse_world.y;

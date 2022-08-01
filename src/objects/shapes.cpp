@@ -6,7 +6,7 @@ using namespace old;
 Vec2f Shape::world_offset{ 0.0f, 0.0f };
 float Shape::world_scale{ 1.0f };
 
-void translate(float offx, float offy, Shape *s)
+void old::translate(float offx, float offy, Shape *s)
 {
     for (size_t i = 0; i < s->nodes.size(); ++i) {
         s->nodes[i].pos.x += offx;
