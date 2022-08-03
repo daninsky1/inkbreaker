@@ -71,8 +71,9 @@ public:
 
     void clear() { shapes.clear(); redraw(); }
     int handle(int evt) override;
-    int handle_pan_tilt_zoom(int evt);
-    int handle_edit_mode(int evt);
+    int pan_tilt_zoom_handle(int evt);
+    int edit_mode_handle(int evt);
+    int draw_by_drag_handle(int evt);
     void set_cursor();
 
     void pan(int scrx, int scry);

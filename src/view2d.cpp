@@ -184,7 +184,7 @@ int View2D::handle(int evt)
     }
 
     if (m_mw->state.mode == Mode::draw) {
-        if (handle_edit_mode(evt)) return 1;
+        if (edit_mode_handle(evt)) return 1;
     }
 
     int handled = 0;
@@ -236,91 +236,9 @@ int View2D::handle(int evt)
         }
     }
 
-    handle_pan_tilt_zoom(evt);
+    pan_tilt_zoom_handle(evt);
 
-    // NOTE(daniel): Draw shapes by dragging
-    if (m_mw->state.mode == Mode::select) {
-        switch (evt) {
-        case FL_PUSH: {
-            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-            if (Fl::event_button() == FL_LEFT_MOUSE) {
-                if (!select_shape_bbox) {
-                    select_shape_bbox = new old::BBox();
-                    // first node at location of left click
-                    select_shape_bbox->get_next_node(mouse_world);
-                    select_shape_bbox->get_next_node(mouse_world);
-                }
-                else {
-                    select_shape_bbox->nodes[0].pos = mouse_world;
-                }
-            }
-            is_selecting = true;
-            if (app_state->active_selection) {
-                if (app_state->active_selection->is_inside_bbox(mouse_world)) {
-                    drag_start_world = mouse_world;
-                    is_selecting = false;
-                    is_moving = true;
-                    changed = true;
-                }
-            }
-            handled = 1;
-        } break;
-        case FL_DRAG: {
-            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-            scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
-
-            if (is_selecting) {
-                // second node
-                select_shape_bbox->nodes[1].pos = mouse_world;
-            }
-            else if (is_moving) {
-                old::translate((mouse_world.x - drag_start_world.x), (mouse_world.y - drag_start_world.y),
-                    app_state->active_selection);
-                drag_start_world.x = mouse_world.x;
-                drag_start_world.y = mouse_world.y;
-                app_state->active_selection->update_bbox();
-                //printf("drag world distance: %f, %f\n", (drag_start_world.x - mouse_world.x), (drag_start_world.y - mouse_world.y));
-                //printf("%s position: %f, %f - %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y, active_selection->nodes[1].pos.x, active_selection->nodes[1].pos.y);
-            }
-            redraw();
-            handled = 1;
-        } break;
-        case FL_RELEASE: {
-            // TODO(daniel): Finish and store selection
-            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-            scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
-            mouse_snap_world = get_snap_grid(mouse_world);
-            world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-
-            if (is_selecting) {
-                if (select_shape_bbox->scrw > DRAG_THRESHOLD || select_shape_bbox->scrh > DRAG_THRESHOLD) {
-                    // Do box selection
-                }
-                else {
-                    // Do click seletion
-                    for (std::vector<old::Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
-                        if ((*it)->is_inside_bbox(mouse_world)) {
-                            *it = app_state->active_selection;
-                            app_state->active_selection = *it;
-                            printf("%s position: %f, %f\n", app_state->active_selection->type().c_str(), app_state->active_selection->nodes[0].pos.x, app_state->active_selection->nodes[0].pos.y);
-                            break;
-                        }
-                        app_state->active_selection = nullptr;
-                    }
-                }
-            }
-            else if (is_moving) {
-                printf("stop moving\n");
-                is_moving = false;
-            }
-
-            is_selecting = false;
-            redraw();
-            
-            handled = 1;
-        } break;
-        }
-    }
+    draw_by_drag_handle(evt);
 
     //else if (state.mode == Mode::draw) {
     //    // NOTE(daniel): This part only works for shapes that has two nodes max
@@ -356,7 +274,7 @@ int View2D::handle(int evt)
     return handled;
 } // View2D::handle
 
-int View2D::handle_pan_tilt_zoom(int evt)
+int View2D::pan_tilt_zoom_handle(int evt)
 {
     /* Handles pan-tilt-zoom of the view2D */
     int handled = 0;
@@ -455,7 +373,7 @@ int View2D::handle_pan_tilt_zoom(int evt)
     return handled;
 }
 
-int View2D::handle_edit_mode(int evt)
+int View2D::edit_mode_handle(int evt)
 {
     int handled = 0;
     if (m_mw->state.mode != Mode::draw) {
@@ -712,6 +630,95 @@ int View2D::handle_edit_mode(int evt)
     }
 
     return handled;
+}
+
+
+int View2D::draw_by_drag_handle(int evt)
+{
+    int handled = 0;
+       // NOTE(daniel): Draw shapes by dragging
+    if (m_mw->state.mode == Mode::select) {
+        switch (evt) {
+        case FL_PUSH: {
+            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+            if (Fl::event_button() == FL_LEFT_MOUSE) {
+                if (!select_shape_bbox) {
+                    select_shape_bbox = new old::BBox();
+                    // first node at location of left click
+                    select_shape_bbox->get_next_node(mouse_world);
+                    select_shape_bbox->get_next_node(mouse_world);
+                }
+                else {
+                    select_shape_bbox->nodes[0].pos = mouse_world;
+                }
+            }
+            is_selecting = true;
+            if (app_state->active_selection) {
+                if (app_state->active_selection->is_inside_bbox(mouse_world)) {
+                    drag_start_world = mouse_world;
+                    is_selecting = false;
+                    is_moving = true;
+                    changed = true;
+                }
+            }
+            handled = 1;
+        } break;
+        case FL_DRAG: {
+            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+            scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+
+            if (is_selecting) {
+                // second node
+                select_shape_bbox->nodes[1].pos = mouse_world;
+            }
+            else if (is_moving) {
+                old::translate((mouse_world.x - drag_start_world.x), (mouse_world.y - drag_start_world.y),
+                    app_state->active_selection);
+                drag_start_world.x = mouse_world.x;
+                drag_start_world.y = mouse_world.y;
+                app_state->active_selection->update_bbox();
+                //printf("drag world distance: %f, %f\n", (drag_start_world.x - mouse_world.x), (drag_start_world.y - mouse_world.y));
+                //printf("%s position: %f, %f - %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y, active_selection->nodes[1].pos.x, active_selection->nodes[1].pos.y);
+            }
+            redraw();
+            handled = 1;
+        } break;
+        case FL_RELEASE: {
+            // TODO(daniel): Finish and store selection
+            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+            scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+            mouse_snap_world = get_snap_grid(mouse_world);
+            world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+
+            if (is_selecting) {
+                if (select_shape_bbox->scrw > DRAG_THRESHOLD || select_shape_bbox->scrh > DRAG_THRESHOLD) {
+                    // Do box selection
+                }
+                else {
+                    // Do click seletion
+                    for (std::vector<old::Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
+                        if ((*it)->is_inside_bbox(mouse_world)) {
+                            *it = app_state->active_selection;
+                            app_state->active_selection = *it;
+                            printf("%s position: %f, %f\n", app_state->active_selection->type().c_str(), app_state->active_selection->nodes[0].pos.x, app_state->active_selection->nodes[0].pos.y);
+                            break;
+                        }
+                        app_state->active_selection = nullptr;
+                    }
+                }
+            }
+            else if (is_moving) {
+                printf("stop moving\n");
+                is_moving = false;
+            }
+
+            is_selecting = false;
+            redraw();
+            
+            handled = 1;
+        } break;
+        }
+    } 
 }
 
 void View2D::world_to_scr(Vec2f world, int& scrx, int& scry)
