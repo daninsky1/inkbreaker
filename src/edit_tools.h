@@ -5,6 +5,7 @@
 
 #include <FL/Enumerations.H>
 
+#include "main_window.h"
 #include "enumerators.h"
 #include "coordinates.h"
 #include "objects/polygon.h"
@@ -23,12 +24,15 @@ private:
 
 class PolygonTool : public EditTool {
 public:
-    PolygonTool(Polygon *polygon) :
-        active_polygon{ polygon } { is_active(true); }
-    int create_polygon_handle(int evt);
-    int edit_polygon_handle(int evt);
+    PolygonTool(MainWindow *mw) {
+        m_mw = mw;
+        is_active(true);
+    }
+    int create_main_handle(int evt);
+    int edit_main_handle(int evt);
     // void draw_nodes();
     // void draw_outline();
 private:
     Polygon *active_polygon;
+    MainWindow *m_mw;
 };
