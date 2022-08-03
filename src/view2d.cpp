@@ -240,37 +240,6 @@ int View2D::handle(int evt)
 
     draw_by_drag_handle(evt);
 
-    //else if (state.mode == Mode::draw) {
-    //    // NOTE(daniel): This part only works for shapes that has two nodes max
-    //	switch (evt) {
-    //	case FL_PUSH:
-    //		if (Fl::event_button() == FL_LEFT_MOUSE) {
-    //		}
-    //		handled = 1;
-    //		break;
-    //	case FL_DRAG: {
-    //        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-    //		scr_to_world(Fl::event_x() - x(), Fl::event_y() - y(), mouse_world);
-    //		// second node
-    //		if (active_point != nullptr) {
-    //			active_point->pos = mouse_world;
-    //		}
-    //		redraw();
-    //		
-    //		handled = 1;
-    //    } break;
-    //	case FL_RELEASE: {
-    //        
-    //        
-    //		if (is_drawing) {
-    //			active_point = temp_shape->get_next_node(mouse_world);
-    //            is_drawing = false;
-    //		}
-    //		handled = 1;
-    //    } break;
-    //	}
-    //}
-
     return handled;
 } // View2D::handle
 
