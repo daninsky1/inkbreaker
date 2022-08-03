@@ -11,6 +11,7 @@
 #include <FL/fl_draw.H>
 #include <FL/Enumerations.H>
 
+#include "main_window.h"
 #include "objects/shapes.h"
 #include "state.h"
 #include "enumerators.h"
@@ -19,25 +20,7 @@
 //
 // VIEW 2D STATE
 //
-enum class Mode {
-    select,
-    pan,
-    zoom,
-    draw
-};
-
-enum class Select {
-    move,
-    scale,
-    rotate
-};
-
-
 struct View2DState {
-    Mode mode;
-
-    Select select;
-    Draw draw;
     bool is_grid_snap;
 };
 //
@@ -186,6 +169,7 @@ public:
     float zooming_factor = 0.10f;  // Scroll zoom
     float zooming_sens   = 0.01f;  // Drag per pixel zoom 
 private:
+    MainWindow *m_mw;
     void DEBUG_display_v2d_info();
     Fl_Offscreen scr_buf;        // Canvas buffer
     // NOTE(daniel): This is a FLTK offscreen implementation detail, I think is

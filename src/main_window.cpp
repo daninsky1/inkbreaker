@@ -1,8 +1,8 @@
 #include <math.h>
-#include "main_window.h"
-#include "state.h"
 
+#include "main_window.h"
 #include "view2d.h"
+
 
 void controls_cd(Fl_Widget* widget, void*)
 {
@@ -28,53 +28,53 @@ void clear_cb(Fl_Widget* widget, void* mwv)
 void select_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::select;
-    mwnd->v2d->state.select = Select::move;
+    mwnd->state.mode = Mode::select;
+    mwnd->state.select = Select::move;
 }
 
 void pan_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::pan;
+    mwnd->state.mode = Mode::pan;
 }
 
 void zoom_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::zoom;
+    mwnd->state.mode = Mode::zoom;
 }
 
 void line_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::draw;
-    mwnd->v2d->state.draw = Draw::line;
+    mwnd->state.mode = Mode::draw;
+    mwnd->state.draw = Draw::line;
 }
 void rect_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::draw;
-    mwnd->v2d->state.draw = Draw::rect;
+    mwnd->state.mode = Mode::draw;
+    mwnd->state.draw = Draw::rect;
 }
 void circle_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::draw;
-    mwnd->v2d->state.draw = Draw::circle;
+    mwnd->state.mode = Mode::draw;
+    mwnd->state.draw = Draw::circle;
 }
 
 void poly_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::draw;
-    mwnd->v2d->state.draw = Draw::poly;
+    mwnd->state.mode = Mode::draw;
+    mwnd->state.draw = Draw::poly;
 }
 
 void bezier_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->v2d->state.mode = Mode::draw;
-    mwnd->v2d->state.draw = Draw::bezier;
+    mwnd->state.mode = Mode::draw;
+    mwnd->state.draw = Draw::bezier;
 }
 
 void set_line_color_cb(Fl_Widget* widget, void* mwv)
@@ -592,13 +592,12 @@ MainWindow::MainWindow(int v2d_w, int v2d_h) :
     Fl_Double_Window{ v2d_w, MENU_BAR_H + v2d_h, "InkBreaker" }
 {
     // InkbreakerState
-    app_state.changed = false;
-    app_state.active_selection = nullptr;
+    state.changed = false;
+    state.active_selection = nullptr;
 
     // View2D
     v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, shapes };
     // v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, root };
-    v2d->app_state = &app_state;
 
 
     // Fl_Menu_Bar
@@ -619,13 +618,13 @@ MainWindow::MainWindow(int v2d_w, int v2d_h) :
 
 bool MainWindow::changed()
 {
-    app_state.changed = v2d->changed;
-    return app_state.changed;
+    state.changed = v2d->changed;
+    return state.changed;
 }
 
 void MainWindow::changed(bool c)
 {
-    app_state.changed = c;
+    state.changed = c;
     v2d->changed = c;
 }
 

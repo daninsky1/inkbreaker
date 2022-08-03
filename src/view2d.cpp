@@ -7,9 +7,10 @@ View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
     mouse_current_world{ mouse_snap_world },
     shapes{ p_shapes }
 {
-    state.mode = Mode::draw;
-    state.select = Select::move;
-    state.draw = Draw::line;
+    m_mw = static_cast<MainWindow*>(this->parent());
+    m_mw->state.mode = Mode::draw;
+    m_mw->state.select = Select::move;
+    m_mw->state.draw = Draw::line;
 
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -182,7 +183,7 @@ int View2D::handle(int evt)
         break;
     }
 
-    if (state.mode == Mode::draw) {
+    if (m_mw->state.mode == Mode::draw) {
         if (handle_edit_mode(evt)) return 1;
     }
 
@@ -238,7 +239,7 @@ int View2D::handle(int evt)
     handle_pan_tilt_zoom(evt);
 
     // NOTE(daniel): Draw shapes by dragging
-    if (state.mode == Mode::select) {
+    if (m_mw->state.mode == Mode::select) {
         switch (evt) {
         case FL_PUSH: {
             get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
@@ -376,7 +377,7 @@ int View2D::handle_pan_tilt_zoom(int evt)
         if (Fl::event_button() == FL_MIDDLE_MOUSE) {
             change_cursor(FL_CURSOR_MOVE);
         }
-        else if (state.mode == Mode::select) {
+        else if (m_mw->state.mode == Mode::select) {
         }
 
         scr_to_world(mouse_v2d.x, mouse_v2d.y, drag_start_world);
@@ -396,10 +397,10 @@ int View2D::handle_pan_tilt_zoom(int evt)
         int drag_update_scrx = Fl::event_x_root();
         int drag_update_scry = Fl::event_y_root();
 
-        if ((Fl::event_button() == FL_MIDDLE_MOUSE) || (state.mode == Mode::pan && Fl::event_button() == FL_LEFT_MOUSE)) {
+        if ((Fl::event_button() == FL_MIDDLE_MOUSE) || (m_mw->state.mode == Mode::pan && Fl::event_button() == FL_LEFT_MOUSE)) {
             pan(drag_update_scrx - drag_start_scr_x, drag_update_scry - drag_start_scr_y);
         }
-        else if (state.mode == Mode::zoom && Fl::event_button() == FL_LEFT_MOUSE) {
+        else if (m_mw->state.mode == Mode::zoom && Fl::event_button() == FL_LEFT_MOUSE) {
             float drag_dist_pix = static_cast<float>(drag_update_scrx - drag_start_scr_x);
             float scale_factor_per_pixel = drag_dist_pix * zooming_sens;
             float scale_factor_percent = scale_factor_per_pixel + 1.0f;
@@ -457,7 +458,7 @@ int View2D::handle_pan_tilt_zoom(int evt)
 int View2D::handle_edit_mode(int evt)
 {
     int handled = 0;
-    if (state.mode != Mode::draw) {
+    if (m_mw->state.mode != Mode::draw) {
         // Nothing to do
         is_drawing = false;
         return handled;
@@ -595,7 +596,7 @@ int View2D::handle_edit_mode(int evt)
             // NOTE(daniel): Bezier curve starts to draw at left mouse draw,
             // unlike the other shapes, because has the drag feature to move
             // the bezier handles
-            if (state.draw == Draw::bezier) {
+            if (m_mw->state.draw == Draw::bezier) {
                 if (!is_drawing) {
                     bezier_temp_shape = new old::Bezier();
                     bezier_temp_shape->shape_info = shape_info;
@@ -651,16 +652,16 @@ int View2D::handle_edit_mode(int evt)
         if (Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!is_drawing) {
-                if (state.draw == Draw::line) {
+                if (m_mw->state.draw == Draw::line) {
                     temp_shape = new old::Line();
                 }
-                else if (state.draw == Draw::rect) {
+                else if (m_mw->state.draw == Draw::rect) {
                     temp_shape = new old::Rect();
                 }
-                else if (state.draw == Draw::circle) {
+                else if (m_mw->state.draw == Draw::circle) {
                     temp_shape = new old::Circle();
                 }
-                else if (state.draw == Draw::poly) {
+                else if (m_mw->state.draw == Draw::poly) {
                     temp_shape = new old::Poly();
                 }
 

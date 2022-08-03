@@ -14,12 +14,14 @@
 #include <FL/filename.H>
 #include <FL/Fl_Native_File_Chooser.H>
 
+#include "objects/shapes.h"
+#include "state.h"
+
 #ifdef IO_SQLITE
 #include <sqlite/sqlite3.h>
 #endif
 
 // #include "tree.h"
-#include "view2d.h"
 
 constexpr int V2D_DEFAULT_W = 680;
 constexpr int V2D_DEFAULT_H = 360;
@@ -44,6 +46,7 @@ void clear_cb(Fl_Widget* widget, void*);
 //
 // MAIN WINDOW
 //
+class View2D;
 class MainWindow : public Fl_Double_Window {
 public:
     MainWindow(int v2d_w, int v2d_h);
@@ -66,6 +69,5 @@ public:
 	View2D *v2d;
 
 	/* States*/
-    InkbreakerState app_state = { };
+    InkbreakerState state = { };
 };
-
