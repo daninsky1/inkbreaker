@@ -39,6 +39,7 @@ void View2D::DEBUG_display_v2d_info()
     // SCREEN DEBUG MESSAGES
     // NOTE(daniel): Update mouse view2d coordinates, and gets(not update) the
     // snap cursor view2d coordinates
+    // NOTE(daniel): This should be called inside draw() method.
     // TODO(daniel): The handles call entire draws to update the coordinate
     // messages, try to use damage technique no avoid entire redraws:
     // http://seriss.com/people/erco/fltk/#DrawCoords
