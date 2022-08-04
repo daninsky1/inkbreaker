@@ -1,8 +1,11 @@
 #include "edit_tools.h"
+#include "view2d.h"
+
+#include <FL/names.h>
 
 
-EditTool EditTool::*m_active_tool = nullptr;
-EditTool EditTool::*m_m_temp_polygon = nullptr;
+EditTool *EditTool::m_active_tool = nullptr;
+Shape *EditTool::m_temp_shape = nullptr;
 
 void EditTool::activate_tool(EditTool *active_tool)
 {
@@ -18,16 +21,43 @@ void EditTool::deactivate_tool(EditTool *et_to_deactivate)
     m_active_tool = nullptr;
 }
 
+EditTool *EditTool::active_tool()
+{
+    return m_active_tool;
+};
+
+bool EditTool::is_active()
+{
+    return m_active_tool ? true : false;
+};
+
 void EditTool::temp_shape(EditTool *active_et, Shape *temp_shape)
 {
     assert(active_et == m_active_tool);
     m_temp_shape == temp_shape;
 }
 
-void EditTool::is_in_operation(EditTool *active_et, bool is_in_operation)
+Shape *EditTool::temp_shape()
+{
+    return m_temp_shape;
+}
+
+bool EditTool::is_in_operation()
+{
+    return m_temp_shape ? true : false;
+};
+
+void EditTool::begin_operation(EditTool *active_et, Shape *temp_shape)
 {
     assert(active_et == m_active_tool);
-    m_is_in_operation = is_in_operation;
+    assert(!m_temp_shape);
+    m_temp_shape = dynamic_cast<Shape*>(temp_shape);
+}
+
+void EditTool::end_operation(EditTool *active_et)
+{
+    assert(active_et == m_active_tool);
+    m_temp_shape = nullptr;
 }
 
 Polygon *create_polygon()
@@ -51,8 +81,8 @@ int PolygonTool::create_main_handle(int evt)
         if (handled) return handled;
     }
     handled = mouse_handle(evt);
+    // printf("Event was %s (%d), handled=%d\n", fl_eventnames[evt], evt, handled);
     if (handled) return handled;
-
     return handled;
 }
 
@@ -69,12 +99,11 @@ int PolygonTool::keyboard_handle(int evt)
             }
             else {
                 m_temp_polygon->pop_back();
-                // TODO(daniel): Implement the addition of the shape on the tree
-                // m_mw->
-                // shapes.push_back(m_temp_polygon);
+                Tree::Node *wrapper = new Tree::Node();
+                m_mw->root->add_child(wrapper);
             }
             m_active_point = nullptr;
-            is_in_operation(this, false);
+            end_operation(this);
             m_temp_polygon = nullptr;
         }
         m_mw->v2d->redraw();
@@ -82,7 +111,7 @@ int PolygonTool::keyboard_handle(int evt)
     } break;
     case FL_Escape: {
         if (is_in_operation()) {
-            is_in_operation(this, false);
+            end_operation(this);
             m_active_point = nullptr;
             delete m_temp_polygon;
             m_temp_polygon = nullptr;
@@ -93,7 +122,7 @@ int PolygonTool::keyboard_handle(int evt)
     case FL_BackSpace: {
         if (is_in_operation()) {
             if (m_temp_polygon->size() <= 2) {
-                is_in_operation(this, false);
+                end_operation(this);
                 m_active_point = nullptr;
                 delete m_temp_polygon;
                 m_temp_polygon = nullptr;
@@ -131,10 +160,14 @@ int PolygonTool::mouse_handle(int evt)
             //moves, so no need to redraw here
             // m_mw->v2d->redraw();
             *m_active_point = m_mouse_world_snap;
+            Vec2f last_point = m_temp_polygon->points[m_temp_polygon->size()-1];
+            printf("polygon size %lu, %f, %f\n", m_temp_polygon->size(), last_point.x, last_point.y);
+            
+            handled = 1;
+            m_mw->v2d->redraw();
         }
         // if (!m_active_point) {
         // }
-        handled = 1;
     } break;
     // TODO(daniel): Check if drag start is necessery
     // case FL_PUSH: {
@@ -178,16 +211,17 @@ int PolygonTool::mouse_handle(int evt)
     //     }
     // } break;
     case FL_RELEASE: {
-        // scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
-        // mouse_snap_world = get_snap_grid(mouse_world);
+        m_mw->v2d->get_mouse_v2d_to_world_position(&m_mouse_world);
+        m_mouse_world_snap = m_mouse_world;
+        m_mw->v2d->get_snap(&m_mouse_world_snap);
 
         if (Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!is_in_operation()) {
-                m_temp_polygon->add_point(m_mouse_world);
-                is_in_operation(this, true);
+                m_temp_polygon->add_point(m_mouse_world_snap);
+                begin_operation(this, m_temp_polygon);
             }
-            m_active_point = m_temp_polygon->add_point(m_mouse_world);
+            m_active_point = m_temp_polygon->add_point(m_mouse_world_snap);
 
             
             // else {
