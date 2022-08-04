@@ -65,67 +65,48 @@ int PolygonTool::keyboard_handle(int evt)
     case FL_Enter: {
         if (is_in_operation()) {
             if (m_temp_polygon->size() <= 2) {
-                is_active = false;
-                m_active_point = nullptr;
                 delete m_temp_polygon;
-                m_temp_polygon = nullptr;
             }
             else {
-                is_active = false;
-                m_temp_polygon->nodes.pop_back();
-                shapes.push_back(m_temp_polygon);
-                m_active_point = nullptr;
-                m_temp_polygon = nullptr;
+                m_temp_polygon->pop_back();
+                // TODO(daniel): Implement the addition of the shape on the tree
+                // m_mw->
+                // shapes.push_back(m_temp_polygon);
             }
+            m_active_point = nullptr;
+            is_in_operation(this, false);
+            m_temp_polygon = nullptr;
         }
         m_mw->v2d->redraw();
         handled = 1;
     } break;
     case FL_Escape: {
-        if (is_active) {
-            is_active = false;
+        if (is_in_operation()) {
+            is_in_operation(this, false);
             m_active_point = nullptr;
             delete m_temp_polygon;
             m_temp_polygon = nullptr;
             m_mw->v2d->redraw();
         }
-        if (is_selecting) {
-
-        }
         handled = 1;
     } break;
     case FL_BackSpace: {
-        if (is_active) {
-            if (m_temp_polygon) {
-                if (m_temp_polygon->nodes.size() <= 2) {
-                    is_active = false;
-                    m_active_point = nullptr;
-                    delete m_temp_polygon;
-                    m_temp_polygon = nullptr;
-                }
-                else {
-                    m_temp_polygon->nodes.pop_back();
-                    m_active_point = &m_temp_polygon->nodes[m_temp_polygon->nodes.size() - 1];
-                    printf("nodes size %lu\n", m_temp_polygon->nodes.size());
-                }
+        if (is_in_operation()) {
+            if (m_temp_polygon->size() <= 2) {
+                is_in_operation(this, false);
+                m_active_point = nullptr;
+                delete m_temp_polygon;
+                m_temp_polygon = nullptr;
             }
-            else if (bezier_m_temp_polygon) {
-                if (bezier_m_temp_polygon->bhandles.size() < 2) {
-                    is_active = false;
-                    active_bhandle = nullptr;
-                    delete bezier_m_temp_polygon;
-                    bezier_m_temp_polygon = nullptr;
-                }
-                else {
-                    bezier_m_temp_polygon->bhandles.pop_back();
-                }
+            else {
+                m_temp_polygon->pop_back();
+                m_active_point = m_temp_polygon->last_point();
             }
-
-            get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-            scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
-            mouse_snap_world = get_snap_grid(mouse_world);
-            world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-
+            // TODO(daniel): Check if cursor update is necessary here
+            // get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+            // scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+            // mouse_snap_world = get_snap_grid(mouse_world);
+            // world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
             m_mw->v2d->redraw();
         }
         handled = 1;
