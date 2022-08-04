@@ -23,6 +23,11 @@ public:
     
     Vec2f *add_point(const Vec2f point);
     Vec2f *insert_point(int index, const Vec2f point);
+    Vec2f *last_point() { return &points[points.size() - 1]; }
+    
+    bool empty() { return points.empty(); }
+    size_t size() { return points.size(); }
+    void pop_back() { return points.pop_back(); }
     
     void set_shape_info(ShapeInfo si) { shape_info = si; };
 private:
