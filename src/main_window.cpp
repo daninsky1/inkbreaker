@@ -22,74 +22,74 @@ void about_cb(Fl_Widget* widget, void*)
 
 void clear_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
 }
 
 void select_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::select;
-    mwnd->state.select = Select::move;
+    MainWindow *mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::select;
+    mw->state->select = Select::move;
 }
 
 void pan_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::pan;
+    MainWindow *mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::pan;
 }
 
 void zoom_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::zoom;
+    MainWindow *mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::zoom;
 }
 
 void line_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::draw;
-    mwnd->state.draw = Draw::line;
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::draw;
+    mw->state->draw = Draw::line;
 }
 void rect_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::draw;
-    mwnd->state.draw = Draw::rect;
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::draw;
+    mw->state->draw = Draw::rect;
 }
 void circle_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::draw;
-    mwnd->state.draw = Draw::circle;
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::draw;
+    mw->state->draw = Draw::circle;
 }
 
 void poly_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::draw;
-    mwnd->state.draw = Draw::poly;
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::draw;
+    mw->state->draw = Draw::poly;
 }
 
 void bezier_state_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    mwnd->state.mode = Mode::draw;
-    mwnd->state.draw = Draw::bezier;
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    mw->state->mode = Mode::draw;
+    mw->state->draw = Draw::bezier;
 }
 
 void set_line_color_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    Fl_Color oldcl = mwnd->v2d->shape_info.line_color;
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    Fl_Color oldcl = mw->v2d->shape_info.line_color;
     Fl_Color c = fl_show_colormap(FL_BLACK);
-    mwnd->v2d->shape_info.line_color = c;
+    mw->v2d->shape_info.line_color = c;
 }
 void set_fill_color_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow* mwnd = static_cast<MainWindow*>(mwv);
-    Fl_Color oldcl = mwnd->v2d->shape_info.fill_color;
+    MainWindow* mw = static_cast<MainWindow*>(mwv);
+    Fl_Color oldcl = mw->v2d->shape_info.fill_color;
     Fl_Color c = fl_show_colormap(FL_BLACK);
-    mwnd->v2d->shape_info.fill_color = c;
+    mw->v2d->shape_info.fill_color = c;
 }
 //
 // GLOBALS
@@ -392,7 +392,7 @@ void load_file(std::vector<old::Shape*> &shapes) { printf("Error: No IO implemen
 
 void save_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+    MainWindow *mw = static_cast<MainWindow*>(mwv);
 
     if (glob_filename[0] == '\0') {
         // No filename - get one!
@@ -401,8 +401,8 @@ void save_cb(Fl_Widget* widget, void* mwv)
     }
     else {
         printf("changed false\n");
-        mwnd->changed(false);
-        save_file(mwnd->v2d->shapes);
+        mw->changed(false);
+        save_file(mw->v2d->shapes);
     }
 }
 
@@ -422,9 +422,9 @@ int check_save_popup()
 
 void new_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+    MainWindow *mw = static_cast<MainWindow*>(mwv);
 
-    if (mwnd->changed()) {
+    if (mw->changed()) {
         int choice = check_save_popup();
         //printf("%d\n", choice);
         // TODO(daniel): Name this magic numbers CANCEL = 0 SAVE = 1 DONT_SAVE = 3
@@ -436,35 +436,35 @@ void new_cb(Fl_Widget* widget, void* mwv)
     else {
         // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
         strcpy(glob_filename, "");
-        mwnd->changed(false);
+        mw->changed(false);
     }
-    mwnd->changed(false);
-    mwnd->v2d->clear();
+    mw->changed(false);
+    mw->v2d->clear();
 }
 
 
 void open_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+    MainWindow *mw = static_cast<MainWindow*>(mwv);
 
-    if (mwnd->changed()) {
+    if (mw->changed()) {
         int choice = check_save_popup();
         //printf("%d\n", choice);
         // TODO(daniel): Name this magic numbers CANCEL = 0 SAVE = 1 DONT_SAVE = 3
         if (choice == 0) return;
         else if (choice == 1) {
             save_cb(widget, mwv);
-            mwnd->changed(false);
+            mw->changed(false);
         }
     }
     else {
         // TODO(daniel): Maybe wrap glob_filename into InkbreakerState
         strcpy(glob_filename, "");
-        mwnd->changed(false);
+        mw->changed(false);
     }
 
-    mwnd->v2d->clear();
-    mwnd->changed(false);
+    mw->v2d->clear();
+    mw->changed(false);
 
     Fl_Native_File_Chooser fnfc;
     fnfc.title("Open file");
@@ -472,7 +472,7 @@ void open_cb(Fl_Widget* widget, void* mwv)
     if (fnfc.show()) return;
     strcpy(glob_filename, fnfc.filename());
 
-    load_file(mwnd->v2d->shapes);
+    load_file(mw->v2d->shapes);
 }
 
 inline char* get_file_ext(char* filename, size_t sz)
@@ -485,7 +485,7 @@ inline char* get_file_ext(char* filename, size_t sz)
 
 void saveas_cb(Fl_Widget* widget, void* mwv)
 {
-    MainWindow *mwnd = static_cast<MainWindow*>(mwv);
+    MainWindow *mw = static_cast<MainWindow*>(mwv);
 
     Fl_Native_File_Chooser fnfc = { };
     fnfc.title("Save As");
@@ -511,10 +511,10 @@ void saveas_cb(Fl_Widget* widget, void* mwv)
         if (ext_val == 0) {
             if (!fileext || (strcmp(fileext, ".sqlite3") && strcmp(fileext, ".sqlite") && strcmp(fileext, ".db"))) {
                 strcat(glob_filename, ".sqlite3");
-                save_file(mwnd->v2d->shapes);
+                save_file(mw->v2d->shapes);
             }
         }
-        save_file(mwnd->v2d->shapes);
+        save_file(mw->v2d->shapes);
         std::cout << "FILE_NAME: " << glob_filename << '\n';
     }
 }
@@ -592,8 +592,9 @@ MainWindow::MainWindow(int v2d_w, int v2d_h) :
     Fl_Double_Window{ v2d_w, MENU_BAR_H + v2d_h, "InkBreaker" }
 {
     // InkbreakerState
-    state.changed = false;
-    state.active_selection = nullptr;
+    state = new InkbreakerState();
+    state->changed = false;
+    state->active_selection = nullptr;
 
     // View2D
     v2d = new View2D{ 0, MENU_BAR_H, v2d_w, v2d_h, shapes };
@@ -618,13 +619,13 @@ MainWindow::MainWindow(int v2d_w, int v2d_h) :
 
 bool MainWindow::changed()
 {
-    state.changed = v2d->changed;
-    return state.changed;
+    state->changed = v2d->changed;
+    return state->changed;
 }
 
 void MainWindow::changed(bool c)
 {
-    state.changed = c;
+    state->changed = c;
     v2d->changed = c;
 }
 
