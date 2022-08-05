@@ -16,6 +16,7 @@
 
 #include "objects/shapes.h"
 #include "state.h"
+#include "tree.h"
 
 #ifdef IO_SQLITE
 #include <sqlite/sqlite3.h>
@@ -59,7 +60,7 @@ public:
     void changed(bool c);
 
     /* Shapes */
-    // Tree::Node *root = new Tree::Node();
+    Tree::Node *root = new Tree::Node();
     std::vector<old::Shape*> shapes;
     old::Shape* active_selection;
     old::ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE };
@@ -69,5 +70,5 @@ public:
 	View2D *v2d;
 
 	/* States*/
-    InkbreakerState state = { };
+    InkbreakerState *state;
 };
