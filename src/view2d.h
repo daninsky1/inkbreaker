@@ -16,6 +16,8 @@
 #include "state.h"
 #include "enumerators.h"
 #include "coordinates.h"
+#include "edit_tools.h"
+#include "objects/polygon.h"
 // #include "tree.h"
 //
 // VIEW 2D STATE
@@ -64,7 +66,11 @@ public:
     void scr_to_world(int scrx, int screeny, Vec2f& world);
     void get_cursor_v2d_position(int &cx, int &cy);
     static void draw_axes(int centerx, int centery, int w, int h, int line_width);
+    /* TODO(daniel): These function are the same, delete the get_snap_grid() when
+     * no loger needed */
     Vec2f get_snap_grid(Vec2f vec2d_world);
+    void get_snap(Vec2f *vec2d_world);
+    
     void draw_grid(int point_sz);
     void get_mouse();
     void draw() override;
@@ -78,6 +84,9 @@ public:
 
     void pan(int scrx, int scry);
     void zoom(float scale_factor_percent, int centerx, int centery);
+    
+    // functions to get View2D mouse position outside View2D
+    void get_mouse_v2d_to_world_position(Vec2f *mouse_world);
 
     // NOTE(daniel): The window that we are
     //Fl_Double_Window *mwnd;
@@ -142,8 +151,6 @@ public:
     bool is_selecting = false;
     bool is_moving = false;
 
-    InkbreakerState *app_state;
-
     bool is_drawing       = false;
     old::BezierHandle *active_bhandle = nullptr;
     old::Node *active_point = nullptr;
@@ -156,10 +163,9 @@ public:
     old::Shape *temp_shape     = nullptr;
     old::Bezier *bezier_temp_shape     = nullptr;
     
-    // Tree::Node *root;
-
     // IMPORTANT(daniel): This is a reference to a parent container shapes
     std::vector<old::Shape*> shapes;
+    std::vector<Shape*> new_shapes;
     std::vector<old::Bezier*> bshapes;
     old::ShapeInfo shape_info{ 1, FL_BLACK, FL_BLUE, true, true };
 
@@ -171,6 +177,7 @@ public:
     float zooming_sens   = 0.01f;  // Drag per pixel zoom 
 private:
     MainWindow *m_mw;
+    EditTool *edit_tool;
     void DEBUG_display_v2d_info();
     Fl_Offscreen scr_buf;        // Canvas buffer
     // NOTE(daniel): This is a FLTK offscreen implementation detail, I think is

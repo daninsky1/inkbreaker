@@ -1,5 +1,7 @@
 #include "view2d.h"
 
+#include <FL/names.h>
+
 constexpr int DRAG_THRESHOLD = 5;
 
 View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
@@ -8,9 +10,9 @@ View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
     shapes{ p_shapes }
 {
     m_mw = static_cast<MainWindow*>(this->parent());
-    m_mw->state.mode = Mode::draw;
-    m_mw->state.select = Select::move;
-    m_mw->state.draw = Draw::line;
+    m_mw->state->mode = Mode::draw;
+    m_mw->state->select = Select::move;
+    m_mw->state->draw = Draw::line;
 
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -24,9 +26,9 @@ View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
 //     mouse_current_world{ mouse_snap_world },
 //     root{ root }
 // {
-//     state.mode = Mode::draw;
-//     state.select = Select::move;
-//     state.draw = Draw::line;
+//     state->mode = Mode::draw;
+//     state->select = Select::move;
+//     state->draw = Draw::line;
 
 //     scr_buf = fl_create_offscreen(w, h);
 //     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -96,6 +98,9 @@ void View2D::draw()
     // way to do it
     old::Shape::world_offset = world_offset;
     old::Shape::world_scale = world_scale;
+    
+    Shape::world_offset = world_offset;
+    Shape::world_scale = world_scale;
 
     // DRAW WORLD BACKGROUND
     fl_begin_offscreen(scr_buf);
@@ -115,11 +120,17 @@ void View2D::draw()
     for (size_t i = 0; i < shapes.size(); ++i) {
         shapes[i]->draw_shape();
     }
-
-    if (temp_shape) {
-        temp_shape->draw_shape();
+    
+    if (edit_tool->temp_shape()) {
+        edit_tool->temp_shape()->draw();
         //temp_shape->draw_nodes();
     }
+    
+    // TODO(daniel): Make this operation more efficient
+    if (!m_mw->root->children_empty()) {
+        m_mw->root->draw_shapes_dfs();
+    }
+    
 
     for (size_t i = 0; i < bshapes.size(); ++i) {
         bshapes[i]->draw_shape();
@@ -147,8 +158,8 @@ void View2D::draw()
     //    select_shape_bbox->draw_shape();
     //}
 
-    //if (app_state->active_selection) {
-    //    app_state->active_selection->draw_bbox();
+    //if (m_mw->state->active_selection) {
+    //    m_mw->state->active_selection->draw_bbox();
     //}
 
     // DRAW SNAP CURSOR
@@ -172,6 +183,8 @@ void View2D::draw()
 
 int View2D::handle(int evt)
 {
+    int handled = 0;
+    
     if (Fl_Box::handle(evt)) return 1;
 
     // Focus keyboard events to this widget
@@ -179,15 +192,29 @@ int View2D::handle(int evt)
     case FL_FOCUS: case FL_UNFOCUS:
         return 1;
         break;
+    case FL_MOVE: {
+        /* Update snap in View2D position to draw the snap guide circle */
+        /* IMPORTANT(daniel): Mouse stop to update if receive another event
+        FL_DRAG FL_PUSH, so this need to be updated accordingly */
+        get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+        scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
+        mouse_snap_world = get_snap_grid(mouse_world);
+        world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
+        redraw();
+    } break;
     default:
         break;
     }
-
-    if (m_mw->state.mode == Mode::draw) {
-        if (edit_mode_handle(evt)) return 1;
+    
+    // printf("Event was %s (%d), handled=%d\n", fl_eventnames[evt], evt, handled);
+    if (m_mw->state->mode == Mode::draw) {
+        // if (edit_mode_handle(evt)) return 1;
+        if (!edit_tool) edit_tool = new PolygonTool(m_mw);
+        handled = edit_tool->create_main_handle(evt);
+        if (handled) {
+            return handled;
+        }
     }
-
-    int handled = 0;
 
     int key_code = 0;
     if (evt == FL_KEYBOARD) {
@@ -236,9 +263,9 @@ int View2D::handle(int evt)
         }
     }
 
-    pan_tilt_zoom_handle(evt);
+    handled = pan_tilt_zoom_handle(evt);
 
-    draw_by_drag_handle(evt);
+    // draw_by_drag_handle(evt);
 
     return handled;
 } // View2D::handle
@@ -262,9 +289,10 @@ int View2D::pan_tilt_zoom_handle(int evt)
         mouse_snap_world = get_snap_grid(mouse_world);
 
         if (Fl::event_button() == FL_MIDDLE_MOUSE) {
+            
             change_cursor(FL_CURSOR_MOVE);
         }
-        else if (m_mw->state.mode == Mode::select) {
+        else if (m_mw->state->mode == Mode::select) {
         }
 
         scr_to_world(mouse_v2d.x, mouse_v2d.y, drag_start_world);
@@ -275,6 +303,7 @@ int View2D::pan_tilt_zoom_handle(int evt)
         handled = 1;
     } break;
     case FL_DRAG: {
+        // printf("Event was %s (%d)\n", fl_eventnames[evt], evt);
         get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
         scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
         mouse_snap_world = get_snap_grid(mouse_world);
@@ -284,10 +313,10 @@ int View2D::pan_tilt_zoom_handle(int evt)
         int drag_update_scrx = Fl::event_x_root();
         int drag_update_scry = Fl::event_y_root();
 
-        if ((Fl::event_button() == FL_MIDDLE_MOUSE) || (m_mw->state.mode == Mode::pan && Fl::event_button() == FL_LEFT_MOUSE)) {
+        if ((Fl::event_button() == FL_MIDDLE_MOUSE) || (m_mw->state->mode == Mode::pan && Fl::event_button() == FL_LEFT_MOUSE)) {
             pan(drag_update_scrx - drag_start_scr_x, drag_update_scry - drag_start_scr_y);
         }
-        else if (m_mw->state.mode == Mode::zoom && Fl::event_button() == FL_LEFT_MOUSE) {
+        else if (m_mw->state->mode == Mode::zoom && Fl::event_button() == FL_LEFT_MOUSE) {
             float drag_dist_pix = static_cast<float>(drag_update_scrx - drag_start_scr_x);
             float scale_factor_per_pixel = drag_dist_pix * zooming_sens;
             float scale_factor_percent = scale_factor_per_pixel + 1.0f;
@@ -345,7 +374,7 @@ int View2D::pan_tilt_zoom_handle(int evt)
 int View2D::edit_mode_handle(int evt)
 {
     int handled = 0;
-    if (m_mw->state.mode != Mode::draw) {
+    if (m_mw->state->mode != Mode::draw) {
         // Nothing to do
         is_drawing = false;
         return handled;
@@ -483,7 +512,7 @@ int View2D::edit_mode_handle(int evt)
             // NOTE(daniel): Bezier curve starts to draw at left mouse draw,
             // unlike the other shapes, because has the drag feature to move
             // the bezier handles
-            if (m_mw->state.draw == Draw::bezier) {
+            if (m_mw->state->draw == Draw::bezier) {
                 if (!is_drawing) {
                     bezier_temp_shape = new old::Bezier();
                     bezier_temp_shape->shape_info = shape_info;
@@ -539,16 +568,16 @@ int View2D::edit_mode_handle(int evt)
         if (Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!is_drawing) {
-                if (m_mw->state.draw == Draw::line) {
+                if (m_mw->state->draw == Draw::line) {
                     temp_shape = new old::Line();
                 }
-                else if (m_mw->state.draw == Draw::rect) {
+                else if (m_mw->state->draw == Draw::rect) {
                     temp_shape = new old::Rect();
                 }
-                else if (m_mw->state.draw == Draw::circle) {
+                else if (m_mw->state->draw == Draw::circle) {
                     temp_shape = new old::Circle();
                 }
-                else if (m_mw->state.draw == Draw::poly) {
+                else if (m_mw->state->draw == Draw::poly) {
                     temp_shape = new old::Poly();
                 }
 
@@ -595,18 +624,15 @@ int View2D::edit_mode_handle(int evt)
     } break;
     default: {
     }
-
     }
-
     return handled;
 }
-
 
 int View2D::draw_by_drag_handle(int evt)
 {
     int handled = 0;
        // NOTE(daniel): Draw shapes by dragging
-    if (m_mw->state.mode == Mode::select) {
+    if (m_mw->state->mode == Mode::select) {
         switch (evt) {
         case FL_PUSH: {
             get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
@@ -622,8 +648,8 @@ int View2D::draw_by_drag_handle(int evt)
                 }
             }
             is_selecting = true;
-            if (app_state->active_selection) {
-                if (app_state->active_selection->is_inside_bbox(mouse_world)) {
+            if (m_mw->state->active_selection) {
+                if (m_mw->state->active_selection->is_inside_bbox(mouse_world)) {
                     drag_start_world = mouse_world;
                     is_selecting = false;
                     is_moving = true;
@@ -642,10 +668,10 @@ int View2D::draw_by_drag_handle(int evt)
             }
             else if (is_moving) {
                 old::translate((mouse_world.x - drag_start_world.x), (mouse_world.y - drag_start_world.y),
-                    app_state->active_selection);
+                    m_mw->state->active_selection);
                 drag_start_world.x = mouse_world.x;
                 drag_start_world.y = mouse_world.y;
-                app_state->active_selection->update_bbox();
+                m_mw->state->active_selection->update_bbox();
                 //printf("drag world distance: %f, %f\n", (drag_start_world.x - mouse_world.x), (drag_start_world.y - mouse_world.y));
                 //printf("%s position: %f, %f - %f, %f\n", active_selection->type().c_str(), active_selection->nodes[0].pos.x, active_selection->nodes[0].pos.y, active_selection->nodes[1].pos.x, active_selection->nodes[1].pos.y);
             }
@@ -667,12 +693,12 @@ int View2D::draw_by_drag_handle(int evt)
                     // Do click seletion
                     for (std::vector<old::Shape*>::reverse_iterator it = shapes.rbegin(); it < shapes.rend(); ++it) {
                         if ((*it)->is_inside_bbox(mouse_world)) {
-                            *it = app_state->active_selection;
-                            app_state->active_selection = *it;
-                            printf("%s position: %f, %f\n", app_state->active_selection->type().c_str(), app_state->active_selection->nodes[0].pos.x, app_state->active_selection->nodes[0].pos.y);
+                            *it = m_mw->state->active_selection;
+                            m_mw->state->active_selection = *it;
+                            printf("%s position: %f, %f\n", m_mw->state->active_selection->type().c_str(), m_mw->state->active_selection->nodes[0].pos.x, m_mw->state->active_selection->nodes[0].pos.y);
                             break;
                         }
-                        app_state->active_selection = nullptr;
+                        m_mw->state->active_selection = nullptr;
                     }
                 }
             }
@@ -688,6 +714,7 @@ int View2D::draw_by_drag_handle(int evt)
         } break;
         }
     } 
+    return handled;
 }
 
 void View2D::world_to_scr(Vec2f world, int& scrx, int& scry)
@@ -737,6 +764,14 @@ void View2D::zoom(float scale_factor_percent, int focusx, int focusy)
 	redraw();
 }
 
+void View2D::get_mouse_v2d_to_world_position(Vec2f *mouse_world)
+{
+    // NOTE(daniel): Undefined behavior if this function is called when mouse is
+    // outside the View2D
+    get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
+    scr_to_world(mouse_v2d.x, mouse_v2d.y, *mouse_world);
+}
+
 void View2D::change_cursor(Fl_Cursor c)
 {
     if (c == current_cursor) return;
@@ -774,6 +809,12 @@ Vec2f View2D::get_snap_grid(Vec2f vec2d_world)
     result.x = floorf((vec2d_world.x + 0.5f) * snap_grid_interval);
     result.y = floorf((vec2d_world.y + 0.5f) * snap_grid_interval);
     return result;
+}
+
+void View2D::get_snap(Vec2f *vec2d_world)
+{
+    vec2d_world->x = floorf((vec2d_world->x + 0.5f) * snap_grid_interval);
+    vec2d_world->y = floorf((vec2d_world->y + 0.5f) * snap_grid_interval);
 }
 
 void View2D::draw_grid(int point_sz)
