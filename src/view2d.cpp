@@ -1,5 +1,6 @@
 #include "view2d.h"
 #include "edit_tools/polygon_tool.h"
+#include "edit_tools/bezier_tool.h"
 
 #include <FL/names.h>
 
@@ -13,7 +14,7 @@ View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
     m_mw = static_cast<MainWindow*>(this->parent());
     m_mw->state->mode = Mode::draw;
     m_mw->state->select = Select::move;
-    m_mw->state->draw = Draw::line;
+    m_mw->state->draw = Draw::polygon;
 
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -208,12 +209,31 @@ int View2D::handle(int evt)
     
     // printf("Event was %s (%d), handled=%d\n", fl_eventnames[evt], evt, handled);
     if (m_mw->state->mode == Mode::draw) {
-        // if (edit_mode_handle(evt)) return 1;
-        if (!edit_tool) edit_tool = new PolygonTool(m_mw);
-        handled = edit_tool->create_main_handle(evt);
-        if (handled) {
-            return handled;
+        // NOTE(daniel): Maybe use a factory function here with a unique type_id
+        // to call the right EditTool
+        switch (m_mw->state->draw) {
+        case Draw::polygon: {
+            if (!edit_tool) edit_tool = new PolygonTool(m_mw);
+            handled = edit_tool->create_main_handle(evt);
+            if (handled) {
+                return handled;
+            } 
+        } break;
+        case Draw::bezier: {
+            if (!edit_tool) edit_tool = new BezierTool(m_mw);
+            else {
+
+            }
+            handled = edit_tool->create_main_handle(evt);
+            if (handled) {
+                return handled;
+            } 
+        } break;
+        default: {
         }
+        }
+        // if (edit_mode_handle(evt)) return 1;
+
     }
 
     int key_code = 0;
