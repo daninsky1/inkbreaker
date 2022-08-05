@@ -121,16 +121,15 @@ void View2D::draw()
         shapes[i]->draw_shape();
     }
     
-    if (edit_tool->temp_shape()) {
-        edit_tool->temp_shape()->draw();
-        //temp_shape->draw_nodes();
-    }
-    
     // TODO(daniel): Make this operation more efficient
     if (!m_mw->root->children_empty()) {
         m_mw->root->draw_shapes_dfs();
     }
     
+    if (edit_tool->temp_shape()) {
+        edit_tool->temp_shape()->draw();
+        //temp_shape->draw_nodes();
+    }
 
     for (size_t i = 0; i < bshapes.size(); ++i) {
         bshapes[i]->draw_shape();
