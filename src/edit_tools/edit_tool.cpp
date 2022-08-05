@@ -6,35 +6,31 @@
 EditTool *EditTool::m_active_tool = nullptr;
 Shape *EditTool::m_temp_shape = nullptr;
 
-void EditTool::activate_tool(EditTool *active_tool)
+EditTool::EditTool(MainWindow *mw, EditTool *et)
 {
     assert(!m_active_tool);
     if (m_active_tool); // throw?;
-    m_active_tool = active_tool;
+    
+    m_mw = mw;
+    if (is_active()) { free_edit_tool(); }
+    m_active_tool = et;
 }
 
-void EditTool::deactivate_tool(EditTool *et_to_deactivate)
+void EditTool::free_edit_tool()
 {
-    assert(et_to_deactivate == m_active_tool);
-    if (et_to_deactivate != m_active_tool); // throw?;
-    m_active_tool = nullptr;
+    if (m_active_tool) {
+        if (is_in_operation()) {
+            m_active_tool->end_operation();
+        }
+        delete m_active_tool;
+        m_active_tool = nullptr;
+    };
 }
-
-EditTool *EditTool::active_tool()
-{
-    return m_active_tool;
-};
 
 bool EditTool::is_active()
 {
     return m_active_tool ? true : false;
 };
-
-void EditTool::temp_shape(EditTool *active_et, Shape *temp_shape)
-{
-    assert(active_et == m_active_tool);
-    m_temp_shape == temp_shape;
-}
 
 Shape *EditTool::temp_shape()
 {
@@ -46,15 +42,15 @@ bool EditTool::is_in_operation()
     return m_temp_shape ? true : false;
 };
 
-void EditTool::begin_operation(EditTool *active_et, Shape *temp_shape)
+void EditTool::begin_operation(Shape *temp_shape)
 {
-    assert(active_et == m_active_tool);
     assert(!m_temp_shape);
-    m_temp_shape = dynamic_cast<Shape*>(temp_shape);
+    m_temp_shape = temp_shape;
 }
 
-void EditTool::end_operation(EditTool *active_et)
+void EditTool::end_operation()
 {
-    assert(active_et == m_active_tool);
+    assert(m_temp_shape);
+    m_active_tool->register_shape();
     m_temp_shape = nullptr;
 }
