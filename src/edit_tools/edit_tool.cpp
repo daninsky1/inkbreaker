@@ -58,13 +58,3 @@ void EditTool::end_operation(EditTool *active_et)
     assert(active_et == m_active_tool);
     m_temp_shape = nullptr;
 }
-
-
-
-
-
-class CreateBezierHandle : public EditTool {
-    int create_bezier(int evt ) { return 0; }
-    int edit_bezier(int evt) { return 0; }
-};
-
