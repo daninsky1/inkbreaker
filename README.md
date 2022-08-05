@@ -17,5 +17,13 @@ Compile: `make -f make/Makefile`
 
 Todo:  
 * Make a tree data structore to store the shapes.
-* Make the persistence system with ORM.
-* Remake the draw shape system.  
+* Make polygon and polygon edit tool.  
+* Make Bezier and Bezier edit tool.  
+* Rewire the menu.  
+* Make the persistence system with ORM.  
+* Make layer system and widget to interact with layers, shapes and objects.    
+* Make canvas system to act like artwork in Affinity Designer or cameras in Blender.  
+
+Bugs:
+* Polygon fill draw acting weird depending on the mouse position on x11.  
+* Menu color picker stroke width being update by draw states outside its widget operations.  
