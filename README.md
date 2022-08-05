@@ -28,3 +28,4 @@ Todo:
 Bugs:
 * Polygon fill draw acting weird depending on the mouse position on x11.  
 * Menu color picker stroke width being update by draw states outside its widget operations.  
+* Giant shapes break clipping when you zoom in, maybe because the conversion of world space to screen space make the shape to big to x11 handle. Or the conversion exceed the application screen space integer. It will probably make sense to deal with clipping within the application in the future, but for now a workaround is to limit the size of the world to not exceed the application's internal and external, x11 or gdi, limits.
