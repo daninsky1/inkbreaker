@@ -68,21 +68,21 @@ Polygon *create_polygon()
 PolygonTool::PolygonTool(MainWindow *mw) {
     m_mw = mw;
     activate_tool(this);
-    m_temp_polygon = new Polygon();
-    temp_shape(this, dynamic_cast<Shape*>(m_temp_polygon));
 }
 
 int PolygonTool::create_main_handle(int evt)
 {
     int handled = 0;
 
-    if (evt == FL_KEYBOARD) {
+    switch (evt) {
+    case FL_KEYBOARD: {
         handled = keyboard_handle(evt);
-        if (handled) return handled;
+    } break;
+    default: {
+        handled = mouse_handle(evt);
     }
-    handled = mouse_handle(evt);
+    }
     // printf("Event was %s (%d), handled=%d\n", fl_eventnames[evt], evt, handled);
-    if (handled) return handled;
     return handled;
 }
 
@@ -99,7 +99,7 @@ int PolygonTool::keyboard_handle(int evt)
             }
             else {
                 m_temp_polygon->pop_back();
-                Tree::Node *wrapper = new Tree::Node();
+                Tree::Node *wrapper = new Tree::Node((Shape*)m_temp_polygon);
                 m_mw->root->add_child(wrapper);
             }
             m_active_point = nullptr;
@@ -218,6 +218,7 @@ int PolygonTool::mouse_handle(int evt)
         if (Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!is_in_operation()) {
+                m_temp_polygon = create_polygon();
                 m_temp_polygon->add_point(m_mouse_world_snap);
                 begin_operation(this, m_temp_polygon);
             }
