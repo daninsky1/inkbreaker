@@ -9,7 +9,8 @@ BUILD_DIR=build
 
 SRC=$(addprefix src/, main.cpp main_window.cpp view2d.cpp tree.cpp \
 objects/shape.cpp objects/polygon.cpp objects/bezier.cpp \
-edit_tools/edit_tool.cpp edit_tools/polygon_tool.cpp objects/shapes.cpp)
+edit_tools/edit_tool.cpp edit_tools/polygon_tool.cpp edit_tools/bezier_tool.cpp \
+objects/shapes.cpp)
 OBJ=$(addprefix $(BUILD_DIR)/, main.o main_window.o shapes.o view2d.o)
 
 DISABLE_WARNINGS=-Wno-unused-variable -Wno-unused-function -Wno-unused-value \
