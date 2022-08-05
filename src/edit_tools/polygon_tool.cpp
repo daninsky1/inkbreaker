@@ -2,7 +2,8 @@
 #include "../view2d.h"
 
 
-PolygonTool::PolygonTool(MainWindow *mw) {
+PolygonTool::PolygonTool(MainWindow *mw)
+{
     m_mw = mw;
     activate_tool(this);
 }
