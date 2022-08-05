@@ -19,6 +19,7 @@ Todo:
 * Make a tree data structore to store the shapes.
 * Make polygon and polygon edit tool.  
 * Make Bezier and Bezier edit tool.  
+* Invert Y on world coordinate to match a cartesian plane. This may be done on a translation layer or conversion functions between screen to world and vice versa.  
 * Rewire the menu.  
 * Make the persistence system with ORM.  
 * Make layer system and widget to interact with layers, shapes and objects.    
