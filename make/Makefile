@@ -8,9 +8,11 @@ PROGRAM_NAME=inkbreaker
 BUILD_DIR=build
 
 SRC=$(addprefix src/, main.cpp main_window.cpp view2d.cpp tree.cpp \
-objects/shapes.cpp)
+objects/shape.cpp objects/polygon.cpp edit_tools.cpp objects/shapes.cpp)
 OBJ=$(addprefix $(BUILD_DIR)/, main.o main_window.o shapes.o view2d.o)
 
+DISABLE_WARNINGS=-Wno-unused-variable -Wno-unused-function -Wno-unused-value \
+-Wno-unused-but-set-variable
 DEFINES=/D
 FLTK_DIR=vendor/fltk
 FLTK_BUILD_DIR=$(FLTK_DIR)/build
@@ -56,7 +58,7 @@ $(PROGRAM_NAME): $(PROGRAM)
 $(PROGRAM): $(SRC) $(FLTK)
 	@echo $(PROGRAM) Unix $(BUILD_TYPE) build
 	mkdir -p $(BUILD_DIR)
-	$(CXX) -o $(PROGRAM) $(SRC) $(SQLITE) $(CXXFLAGS) $(LDFLAGS) $(INCLUDE_DIRS) $(DEFINES)
+	$(CXX) -o $(PROGRAM) $(SRC) $(SQLITE) $(CXXFLAGS) $(DISABLE_WARNINGS) $(LDFLAGS) $(INCLUDE_DIRS) $(DEFINES)
 
 .PHONY: fltk
 fltk: $(FLTK)
