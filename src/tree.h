@@ -28,10 +28,14 @@ namespace Tree {
         Shape *shape() { return m_value; }
         void traverse_tree();
         void get_shapes_dfs(vector<Shape*> &shapes);
+        void draw_shapes_dfs();
         Node *parent();
         void add_child(Node *child);
         vector<Node*> nodes();
         size_t size();
+        
+        bool children_empty() {return m_children->empty(); }
+        bool shape_empty() { return m_value ? true : false; }
     private:
         Node *m_parent = nullptr;
         vector<Node*> *m_children = nullptr;

@@ -35,6 +35,16 @@ void Node::get_shapes_dfs(vector<Shape*> &shapes)
     }
 }
 
+void Node::draw_shapes_dfs()
+{
+    if (m_value) {
+        m_value->draw();
+    }
+    for (size_t i = 0; i < m_children->size(); i++) {
+        (*m_children)[i]->draw_shapes_dfs();
+    }
+}
+
 void Node::parent(Node *parent) {
     assert(parent != this);
     m_parent = parent;
