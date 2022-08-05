@@ -39,6 +39,7 @@ void Node::draw_shapes_dfs()
 {
     if (m_value) {
         m_value->draw();
+        return;
     }
     for (size_t i = 0; i < m_children->size(); i++) {
         (*m_children)[i]->draw_shapes_dfs();
