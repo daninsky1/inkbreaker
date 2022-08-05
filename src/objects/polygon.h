@@ -17,11 +17,12 @@ public:
     Polygon() { };
     ~Polygon() { };
     ShapeInfo shape_info{ 1, FL_BLACK, FL_WHITE, true, true };
-    void draw() override { };
+    void draw() override;
     void update_bbox() override { };
     bool is_inside_bbox(Vec2f v) override { return false; };
     
     Vec2f *add_point(const Vec2f point);
+    Vec2f *add_point(float x, float y);
     Vec2f *insert_point(int index, const Vec2f point);
     Vec2f *last_point() { return &points[points.size() - 1]; }
     
@@ -30,6 +31,5 @@ public:
     void pop_back() { return points.pop_back(); }
     
     void set_shape_info(ShapeInfo si) { shape_info = si; };
-private:
     vector<Vec2f> points;
 };
