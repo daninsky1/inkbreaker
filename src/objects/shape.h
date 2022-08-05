@@ -10,7 +10,10 @@ public:
     static float world_scale;
     static Vec2f world_offset;
     
-    
+    void world_to_scr(Vec2f v, int& scrx, int& scry) {
+        scrx = static_cast<int>((v.x - world_offset.x) * world_scale);
+        scry = static_cast<int>((v.y - world_offset.y) * world_scale);
+    } 
 
     // NOTE(daniel): Top left and bottom right of the bounding box
     Vec2f bboxs{ 0.0f, 0.0f };
@@ -23,8 +26,6 @@ public:
 
     std::string type() { return m_type; };
 
-	void world_to_scr(Vec2f v, int& scrx, int& scry);
-    
     virtual void translate() { };
     virtual void rotate() { };
     virtual void scale() { };
