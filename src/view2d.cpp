@@ -1,4 +1,5 @@
 #include "view2d.h"
+#include "edit_tools/polygon_tool.h"
 
 #include <FL/names.h>
 

@@ -16,7 +16,7 @@
 #include "state.h"
 #include "enumerators.h"
 #include "coordinates.h"
-#include "edit_tools.h"
+#include "edit_tools/edit_tool.h"
 #include "objects/polygon.h"
 // #include "tree.h"
 //
