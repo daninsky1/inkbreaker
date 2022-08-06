@@ -17,5 +17,5 @@ private:
     Bezier *m_temp_bezier;
     Vec2f m_mouse_world;
     Vec2f m_mouse_world_snap;
-    Vec2f *m_active_point;
+    BezierHandle *m_active_bhandle;
 };
