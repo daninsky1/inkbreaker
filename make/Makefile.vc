@@ -5,9 +5,13 @@
 DEBUG_BUILD=
 # IO_SQLITE=
 
-SRC=src\main.cpp src\main_window.cpp src\shapes.cpp src\view2d.cpp 
+SRC=src\main.cpp src\main_window.cpp src\view2d.cpp src\tree.cpp src\coordinates.cpp \
+src\objects\shape.cpp src\objects\polygon.cpp src\objects\bezier.cpp \
+src\edit_tools\edit_tool.cpp src\edit_tools\polygon_tool.cpp src\edit_tools\bezier_tool.cpp \
+src\objects\shapes.cpp 
 
-OBJ=src\main.o src\main_window.o src\shapes.o src\view2d.o
+OBJ=src\main.o src\main_window.o src\shapes.o src\view2d.o src\coordinates.o
+
 
 BUILD_DIR=build/
 
@@ -23,12 +27,11 @@ LIBS=$(WIN32) $(FLTK)
 
 DEBUGGER=devenv
 
+DEFINES=/D_CRT_SECURE_NO_WARNINGS
+
 !IFDEF IO_SQLITE
-DEFINES=/DIO_SQLITE
+DEFINES+=/DIO_SQLITE
 SQLITE=vendor\sqlite\sqlite3.c
-!ELSE
-DEFINES=
-SQLITE=
 !ENDIF
 
 !IFDEF DEBUG_BUILD
