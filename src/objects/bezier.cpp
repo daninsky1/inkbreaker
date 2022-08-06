@@ -34,19 +34,19 @@ void Bezier::draw()
     fl_end_line();
 }
 
-BezierHandle *Bezier::add_point(const BezierHandle bh)
+BezierHandle *Bezier::add_bhandle(const BezierHandle bh)
 {
     bhandles.push_back(bh);
     return &bhandles[bhandles.size() - 1];
 }
-BezierHandle *Bezier::add_point(Vec2f point, Vec2f head, Vec2f tail)
+BezierHandle *Bezier::add_bhandle(Vec2f point, Vec2f head, Vec2f tail)
 {
-    add_point(BezierHandle{point, head, tail});
+    add_bhandle(BezierHandle{point, head, tail});
 }
 
-BezierHandle *Bezier::insert_point(int index, const BezierHandle p)
+BezierHandle *Bezier::insert_bhandle(int index, const BezierHandle bh)
 {
     vector<BezierHandle>::iterator it = bhandles.begin() + index;
-    bhandles.insert(it, p);
+    bhandles.insert(it, bh);
     return &bhandles[index];
 }
