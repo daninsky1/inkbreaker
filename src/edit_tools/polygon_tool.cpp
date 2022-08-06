@@ -2,11 +2,9 @@
 #include "../view2d.h"
 
 
-PolygonTool::PolygonTool(MainWindow *mw)
-{
-    m_mw = mw;
-    activate_tool(this);
-}
+PolygonTool::PolygonTool(MainWindow *mw) :
+    EditTool{mw, this}
+{ }
 
 Polygon *PolygonTool::create_polygon()
 {
@@ -163,7 +161,7 @@ int PolygonTool::mouse_handle(int evt)
             if (!is_in_operation()) {
                 m_temp_polygon = create_polygon();
                 m_temp_polygon->add_point(m_mouse_world_snap);
-                begin_operation(this, m_temp_polygon);
+                begin_operation(m_temp_polygon);
             }
             m_active_point = m_temp_polygon->add_point(m_mouse_world_snap);
 
