@@ -41,7 +41,7 @@ BezierHandle *Bezier::add_bhandle(const BezierHandle bh)
 }
 BezierHandle *Bezier::add_bhandle(Vec2f point, Vec2f head, Vec2f tail)
 {
-    add_bhandle(BezierHandle{point, head, tail});
+    return add_bhandle(BezierHandle{point, head, tail});
 }
 
 BezierHandle *Bezier::insert_bhandle(int index, const BezierHandle bh)
