@@ -177,7 +177,7 @@ public:
     float zooming_sens   = 0.01f;  // Drag per pixel zoom 
 private:
     MainWindow *m_mw;
-    EditTool *edit_tool;
+    EditTool *edit_tool = nullptr;
     void DEBUG_display_v2d_info();
     Fl_Offscreen scr_buf;        // Canvas buffer
     // NOTE(daniel): This is a FLTK offscreen implementation detail, I think is
