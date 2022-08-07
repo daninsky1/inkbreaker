@@ -6,10 +6,10 @@ PolygonTool::PolygonTool(MainWindow *mw) :
     EditTool{mw, this}
 { }
 
-Polygon *PolygonTool::create_polygon()
-{
-    return new Polygon();
-}
+// Polygonn *PolygonTool::create_polygon()
+// {
+//     return new Polygonn();
+// }
 
 int PolygonTool::create_main_handle(int evt)
 {
@@ -44,7 +44,7 @@ int PolygonTool::keyboard_handle(int evt)
                 m_mw->root->add_child(wrapper);
             }
             m_active_point = nullptr;
-            end_operation(this);
+            end_operation();
             m_temp_polygon = nullptr;
         }
         m_mw->v2d->redraw();
@@ -52,7 +52,7 @@ int PolygonTool::keyboard_handle(int evt)
     } break;
     case FL_Escape: {
         if (is_in_operation()) {
-            end_operation(this);
+            end_operation();
             m_active_point = nullptr;
             delete m_temp_polygon;
             m_temp_polygon = nullptr;
@@ -63,7 +63,7 @@ int PolygonTool::keyboard_handle(int evt)
     case FL_BackSpace: {
         if (is_in_operation()) {
             if (m_temp_polygon->size() <= 2) {
-                end_operation(this);
+                end_operation();
                 m_active_point = nullptr;
                 delete m_temp_polygon;
                 m_temp_polygon = nullptr;
@@ -159,7 +159,7 @@ int PolygonTool::mouse_handle(int evt)
         if (Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!is_in_operation()) {
-                m_temp_polygon = create_polygon();
+                m_temp_polygon = new Polygonn;
                 m_temp_polygon->add_point(m_mouse_world_snap);
                 begin_operation(m_temp_polygon);
             }

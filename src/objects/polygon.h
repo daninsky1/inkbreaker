@@ -12,14 +12,14 @@
 */
 using namespace std;
 
-class Polygon : public Shape {
+class Polygonn : public Shape {
 public:
-    Polygon() { };
-    ~Polygon() { };
+    Polygonn() { }
+    ~Polygonn() { }
     ShapeInfo shape_info{ 1, FL_BLACK, FL_WHITE, true, true };
     void draw() override;
-    void update_bbox() override { };
-    bool is_inside_bbox(Vec2f v) override { return false; };
+    void update_bbox() override { }
+    bool is_inside_bbox(Vec2f v) override { return false; }
     
     Vec2f *add_point(const Vec2f point);
     Vec2f *add_point(float x, float y);
@@ -28,8 +28,8 @@ public:
     
     bool empty() { return points.empty(); }
     size_t size() { return points.size(); }
-    void pop_back() { return points.pop_back(); }
+    void pop_back() { points.pop_back(); }
     
-    void set_shape_info(ShapeInfo si) { shape_info = si; };
+    void set_shape_info(ShapeInfo si) { shape_info = si; }
     vector<Vec2f> points;
 };
