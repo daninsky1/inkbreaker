@@ -1,9 +1,9 @@
 # Make the build silent
 .SILENT:
 
-# Define DEBUG_BUILD to make a debug build otherwise will make a release build
-DEBUG_BUILD=
 # IO_SQLITE=
+
+BUILD_TYPE=Debug
 
 SRC=src\main.cpp src\main_window.cpp src\view2d.cpp src\tree.cpp src\coordinates.cpp \
 src\objects\shape.cpp src\objects\polygon.cpp src\objects\bezier.cpp \
@@ -11,7 +11,6 @@ src\edit_tools\edit_tool.cpp src\edit_tools\polygon_tool.cpp src\edit_tools\bezi
 src\objects\shapes.cpp 
 
 OBJ=src\main.o src\main_window.o src\shapes.o src\view2d.o src\coordinates.o
-
 
 BUILD_DIR=build/
 
@@ -34,12 +33,11 @@ DEFINES+=/DIO_SQLITE
 SQLITE=vendor\sqlite\sqlite3.c
 !ENDIF
 
-!IFDEF DEBUG_BUILD
-BUILD_TYPE=Debug
+!IF "$(BUILD_TYPE)" == "Debug"
 CPPFLAGS=/EHsc /Zi /Od /FC /nologo /MDd /MP /W3 /diagnostics:column
 PROGRAM=inkbreakerd.exe
 FLTK=$(FLTK_BUILD_DIR)\lib\$(BUILD_TYPE)\fltkd.lib
-!ELSE
+!ELSE IF $(BUILD_TYPE) == "Release"
 BUILD_TYPE=Release
 CPPFLAGS=/O2 /FC /nologo /MP /MD
 PROGRAM=inkbreaker.exe
@@ -74,6 +72,5 @@ tags: $(SRC)
 	del /q tags
 	ctags -R --kinds-C=+l --c++-kinds=+p --fields=+iaS --extras=+q --language-force=C++ --sort=true $(SRC)
 
-
 test:
-	echo $(SRC)
+	echo "Hello World!"
