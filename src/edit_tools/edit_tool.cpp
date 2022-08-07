@@ -9,7 +9,7 @@ Shape *EditTool::m_temp_shape = nullptr;
 EditTool::EditTool(MainWindow *mw, EditTool *et)
 {
     assert(!m_active_tool);
-    if (m_active_tool); // throw?;
+    // if (m_active_tool); // throw?;
     
     m_mw = mw;
     if (is_active()) { free_edit_tool(); }
@@ -51,6 +51,6 @@ void EditTool::begin_operation(Shape *temp_shape)
 void EditTool::end_operation()
 {
     assert(m_temp_shape);
-    m_active_tool->register_shape();
+    // m_active_tool->register_shape();
     m_temp_shape = nullptr;
 }

@@ -42,7 +42,7 @@ public:
 protected:
     EditTool(MainWindow *mw, EditTool *et);
 
-    virtual void register_shape() = 0;
+    // virtual void register_shape() = 0;
     MainWindow *m_mw;    
 private:
     EditTool(EditTool *) = delete;
