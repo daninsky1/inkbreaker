@@ -1,3 +1,5 @@
+#pragma once
+
 #include "edit_tool.h"
 #include "../objects/bezier.h"
 
@@ -8,7 +10,7 @@ public:
     Bezier *create_bezier();
     int create_main_handle(int evt) override;
     // TODO(daniel): Implement edit_main_handle(int)
-    int edit_main_handle(int evt) override { };
+    int edit_main_handle(int evt) override { return 0; };
     // void draw_nodes();
     // void draw_outline();
 private:
