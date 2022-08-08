@@ -12,10 +12,10 @@
 */
 using namespace std;
 
-class Polygonn : public Shape {
+class Poly : public Shape {
 public:
-    Polygonn() { }
-    ~Polygonn() { }
+    Poly() { }
+    ~Poly() { }
     ShapeInfo shape_info{ 1, FL_BLACK, FL_WHITE, true, true };
     void draw() override;
     void update_bbox() override { }

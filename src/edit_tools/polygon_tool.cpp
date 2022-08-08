@@ -2,13 +2,9 @@
 #include "../view2d.h"
 
 
-PolygonTool::PolygonTool(MainWindow *mw) :
-    EditTool{mw, this}
-{ }
-
-// Polygonn *PolygonTool::create_polygon()
+// Poly *PolygonTool::create_polygon()
 // {
-//     return new Polygonn();
+//     return new Poly();
 // }
 
 int PolygonTool::create_main_handle(int evt)
@@ -159,7 +155,7 @@ int PolygonTool::mouse_handle(int evt)
         if (Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!is_in_operation()) {
-                m_temp_polygon = new Polygonn;
+                m_temp_polygon = new Poly;
                 m_temp_polygon->add_point(m_mouse_world_snap);
                 begin_operation(m_temp_polygon);
             }

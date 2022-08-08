@@ -3,7 +3,7 @@
 #include <FL/fl_draw.H>
 
 
-void Polygonn::draw()
+void Poly::draw()
 {
     int px, py;
 
@@ -25,17 +25,17 @@ void Polygonn::draw()
     fl_end_line();
 }
 
-Vec2f *Polygonn::add_point(const Vec2f p)
+Vec2f *Poly::add_point(const Vec2f p)
 {
     points.push_back(p);
     return &points[points.size() - 1];
 }
-Vec2f *Polygonn::add_point(float x, float y)
+Vec2f *Poly::add_point(float x, float y)
 {
     return add_point(Vec2f{x, y});
 }
 
-Vec2f *Polygonn::insert_point(int index, const Vec2f p)
+Vec2f *Poly::insert_point(int index, const Vec2f p)
 {
     vector<Vec2f>::iterator it = points.begin() + index;
     points.insert(it, p);
