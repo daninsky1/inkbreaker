@@ -2,13 +2,14 @@
 #include "../view2d.h"
 
 
-BezierTool::BezierTool(MainWindow *mw) :
-    EditTool{mw, this}
-{ }
-
-Bezier *BezierTool::create_bezier()
+Shape *BezierTool::begin_shape_handle()
 {
-    return new Bezier();
+    return dynamic_cast<Shape*>(new Bezier());
+}
+
+void BezierTool::end_shape_handle()
+{
+
 }
 
 int BezierTool::create_main_handle(int evt)

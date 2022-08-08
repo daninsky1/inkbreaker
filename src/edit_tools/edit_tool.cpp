@@ -1,4 +1,6 @@
 #include "edit_tool.h"
+#include "polygon_tool.h"
+#include "bezier_tool.h"
 
 #include <FL/names.h>
 
@@ -6,25 +8,26 @@
 EditTool *EditTool::m_active_tool = nullptr;
 Shape *EditTool::m_temp_shape = nullptr;
 
-EditTool::EditTool(MainWindow *mw, EditTool *et)
-{
-    assert(!m_active_tool);
-    // if (m_active_tool); // throw?;
-    
-    m_mw = mw;
-    if (is_active()) { free_edit_tool(); }
-    m_active_tool = et;
-}
-
-void EditTool::free_edit_tool()
+/* A factory function to create or change EditTool */
+EditTool *EditTool::edit_tool(Draw dmode, MainWindow *mw)
 {
     if (m_active_tool) {
-        if (is_in_operation()) {
-            m_active_tool->end_operation();
+        if (m_temp_shape) {
+            end_operation();
         }
         delete m_active_tool;
-        m_active_tool = nullptr;
-    };
+    }
+    switch (dmode) {
+    case Draw::polygon: {
+        m_active_tool = new PolygonTool(mw);
+    } break;
+    case Draw::bezier: {
+        m_active_tool = new BezierTool(mw);
+    }
+    default:
+        assert(!"Type unhandled.");
+    }
+    return m_active_tool;
 }
 
 bool EditTool::is_active()
@@ -42,15 +45,15 @@ bool EditTool::is_in_operation()
     return m_temp_shape ? true : false;
 };
 
-void EditTool::begin_operation(Shape *temp_shape)
+void EditTool::begin_operation()
 {
     assert(!m_temp_shape);
-    m_temp_shape = temp_shape;
+    m_temp_shape = m_active_tool->begin_shape_handle();
 }
 
 void EditTool::end_operation()
 {
     assert(m_temp_shape);
-    // m_active_tool->register_shape();
+    m_active_tool->end_shape_handle();
     m_temp_shape = nullptr;
 }

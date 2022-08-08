@@ -211,29 +211,13 @@ int View2D::handle(int evt)
     if (m_mw->state->mode == Mode::draw) {
         // NOTE(daniel): Maybe use a factory function here with a unique type_id
         // to call the right EditTool
-        switch (m_mw->state->draw) {
-        case Draw::polygon: {
-            if (!edit_tool) edit_tool = new PolygonTool(m_mw);
-            handled = edit_tool->create_main_handle(evt);
-            if (handled) {
-                return handled;
-            } 
-        } break;
-        case Draw::bezier: {
-            if (!edit_tool) edit_tool = new BezierTool(m_mw);
-            else {
-
-            }
-            handled = edit_tool->create_main_handle(evt);
-            if (handled) {
-                return handled;
-            } 
-        } break;
-        default: {
+        if (!edit_tool) {
+            edit_tool = EditTool::edit_tool(m_mw->state->draw, m_mw);
         }
-        }
-        // if (edit_mode_handle(evt)) return 1;
-
+        handled = edit_tool->create_main_handle(evt);
+        if (handled) {
+            return handled;
+        } 
     }
 
     int key_code = 0;

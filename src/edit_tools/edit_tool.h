@@ -9,6 +9,7 @@
 #include "../enumerators.h"
 #include "../coordinates.h"
 #include "../tree.h"
+#include "../enumerators.h"
 
 
 /* The EditTool is a singleton that store one EditTool subclass at the time is
@@ -28,22 +29,34 @@
 
 class EditTool {
 public:
+    EditTool() { };
+    virtual ~EditTool() { };
+    /* Factory function to create EditTool */
+    static EditTool *edit_tool(Draw dmode, MainWindow *mw);
     static EditTool *edit_tool() { return m_active_tool; }
-    static void free_edit_tool();
     static EditTool *active_tool();
     static bool is_active();
     static Shape *temp_shape();
     /* Check if is in the middle of a unfinished drawing */
-    static void begin_operation(Shape *temp_shape);
+    static void begin_operation();
+    /* Never call this function directly!
+    This function is called by begin_operation() to register a new or not
+    temporary editable shape and optionaly set its states.
+    This function should not be called by if, the user directly! */
+    virtual Shape *begin_shape_handle() = 0;
     static void end_operation();
+    /* Never call this function directly!
+    This function is called by end_operation() to handle the end of operation
+    primary to handling the temporary shape, save it in memory or discard it and
+    clear the tool states. */
+    virtual void end_shape_handle() = 0;
     static bool is_in_operation();
     virtual int create_main_handle(int evt) = 0;
     virtual int edit_main_handle(int evt) = 0;
-protected:
-    EditTool(MainWindow *mw, EditTool *et);
 
     // virtual void register_shape() = 0;
-    MainWindow *m_mw;    
+protected:
+    MainWindow *m_mw;
 private:
     EditTool(EditTool *) = delete;
     void operator=(const EditTool &) = delete;

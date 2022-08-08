@@ -2,10 +2,25 @@
 #include "../view2d.h"
 
 
-// Poly *PolygonTool::create_polygon()
-// {
-//     return new Poly();
-// }
+Shape *PolygonTool::begin_shape_handle()
+{
+    m_temp_polygon = new Poly();
+    return dynamic_cast<Shape*>(m_temp_polygon);
+}
+
+void PolygonTool::end_shape_handle()
+{
+    if (m_temp_polygon->size() <= 2) {
+        delete m_temp_polygon;
+    }
+    else {
+        m_temp_polygon->pop_back();
+        Tree::Node *wrapper = new Tree::Node((Shape*)m_temp_polygon);
+        m_mw->root->add_child(wrapper);
+    }
+    m_active_point = nullptr;
+    m_temp_polygon = nullptr;
+}
 
 int PolygonTool::create_main_handle(int evt)
 {
@@ -31,17 +46,7 @@ int PolygonTool::keyboard_handle(int evt)
     switch (key_code) {
     case FL_Enter: {
         if (is_in_operation()) {
-            if (m_temp_polygon->size() <= 2) {
-                delete m_temp_polygon;
-            }
-            else {
-                m_temp_polygon->pop_back();
-                Tree::Node *wrapper = new Tree::Node((Shape*)m_temp_polygon);
-                m_mw->root->add_child(wrapper);
-            }
-            m_active_point = nullptr;
             end_operation();
-            m_temp_polygon = nullptr;
         }
         m_mw->v2d->redraw();
         handled = 1;
@@ -155,9 +160,8 @@ int PolygonTool::mouse_handle(int evt)
         if (Fl::event_button() == FL_LEFT_MOUSE) {
             // first node at location of left click
             if (!is_in_operation()) {
-                m_temp_polygon = new Poly;
+                begin_operation();
                 m_temp_polygon->add_point(m_mouse_world_snap);
-                begin_operation(m_temp_polygon);
             }
             m_active_point = m_temp_polygon->add_point(m_mouse_world_snap);
 
