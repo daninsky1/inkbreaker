@@ -23,7 +23,7 @@ EditTool *EditTool::edit_tool(Draw dmode, MainWindow *mw)
     } break;
     case Draw::bezier: {
         m_active_tool = new BezierTool(mw);
-    }
+    } break;
     default:
         assert(!"Type unhandled.");
     }
