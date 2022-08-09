@@ -14,7 +14,7 @@ View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
     m_mw = static_cast<MainWindow*>(this->parent());
     m_mw->state->mode = Mode::draw;
     m_mw->state->select = Select::move;
-    m_mw->state->draw = Draw::polygon;
+    m_mw->state->draw = Draw::bezier;
 
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
