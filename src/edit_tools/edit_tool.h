@@ -26,7 +26,6 @@
 * not keep a direct pointer of an subclass. The only interface secure to use to
 * check the current subclass in use is the EditTool singleton.
 */
-
 class EditTool {
 public:
     EditTool() { };
@@ -53,15 +52,11 @@ public:
     static bool is_in_operation();
     virtual int create_main_handle(int evt) = 0;
     virtual int edit_main_handle(int evt) = 0;
-
-    // virtual void register_shape() = 0;
 protected:
     MainWindow *m_mw;
 private:
     EditTool(EditTool *) = delete;
     void operator=(const EditTool &) = delete;
-    
     static EditTool *m_active_tool;
     static Shape *m_temp_shape;
-    /* NOTE(daniel): Check if EditTool is in the middle of an operation */
 };
