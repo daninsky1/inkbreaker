@@ -158,29 +158,6 @@ int PolygonTool::mouse_handle(int evt)
                 // m_temp_polygon->shape_info = m_mw->v2d->shape_info; // Update to new ShapeInfo
             }
             m_active_point = m_temp_polygon->add_point(m_mouse_world_snap);
-
-            
-            // else {
-            //     printf("mouse release: %f, %f - %f, %f\n", mouse_world.x, mouse_world.y, mouse_snap_world.x, mouse_snap_world.y);
-
-            //     if (bezier_m_temp_polygon) {
-            //         active_bhandle = bezier_m_temp_polygon->get_next_handle(*active_bhandle);
-            //     }
-            //     else {
-            //         m_active_point = m_temp_polygon->get_next_node(mouse_current_world);
-
-            //         printf("nodes size %lu\n", m_temp_polygon->nodes.size());
-            //         if (!m_active_point) {
-            //             shapes.push_back(m_temp_polygon);
-            //             printf("Shape stored: %s\n", m_temp_polygon->type().c_str());
-            //             printf("%f, %f - %f, %f\n", m_temp_polygon->nodes[0].pos.x, m_temp_polygon->nodes[0].pos.y, m_temp_polygon->nodes[1].pos.x, m_temp_polygon->nodes[1].pos.y);
-            //             is_active = false;
-            //             changed = true;
-            //             m_temp_polygon = nullptr;
-            //             m_active_point = nullptr;
-            //         }
-            //     }
-            // }
         }
         m_mw->v2d->redraw();
         handled = 1;
