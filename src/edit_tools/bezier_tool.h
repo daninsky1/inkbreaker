@@ -19,8 +19,9 @@ public:
 private:
     int keyboard_handle(int evt);
     int mouse_handle(int evt);
-    Bezier *m_temp_bezier;
+    Bezier *m_temp_bezier = nullptr;
     Vec2f m_mouse_world;
     Vec2f m_mouse_world_snap;
-    BezierHandle *m_active_bhandle;
+    BezierHandle *m_active_bhandle = nullptr;
+    bool m_is_dragging = false;
 };
