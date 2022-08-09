@@ -98,53 +98,22 @@ int PolygonTool::mouse_handle(int evt)
             // m_mw->v2d->redraw();
             *m_active_point = m_mouse_world_snap;
             
-            handled = 1;
             m_mw->v2d->redraw();
+            handled = 1;
         }
-        // if (!m_active_point) {
-        // }
     } break;
-    // TODO(daniel): Check if drag start is necessery
-    // case FL_PUSH: {
-    //     get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-    //     scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
-    //     mouse_snap_world = get_snap_grid(mouse_world);
-    //     world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-
-    //     // Review if this is necessary
-    //     drag_start_scr_x = Fl::event_x_root();
-    //     drag_start_scr_y = Fl::event_y_root();
-
-    //     //m_mw->v2d->redraw();
-    //     handled = 1;
-    // } break;
-    // case FL_DRAG: {
-    //     get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-    //     scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
-    //     mouse_snap_world = get_snap_grid(mouse_world);
-    //     world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-
-    //     // NOTE(daniel): Find a way to track dragging state(is_dragging) that
-    //     // is tied to this function/state
-    //     int drag_update_scrx = Fl::event_x_root();
-    //     int drag_update_scry = Fl::event_y_root();
-
-    //     if (is_active && (Fl::event_button() == FL_LEFT_MOUSE)) {
-    //         // Update active head bhandle and tail handle
-    //         if (active_bhandle) {
-    //             active_bhandle->head = mouse_current_world;
-    //             // Invert mouse coordinates
-    //             active_bhandle->tail.x = active_bhandle->point.x + (active_bhandle->point.x - active_bhandle->head.x);
-    //             active_bhandle->tail.y = active_bhandle->point.y + (active_bhandle->point.y - active_bhandle->head.y);
-    //             //printf("head: p0: %f, %f | h0: %f, %f | tail: h1: %f, %f | p1: %f, %f\n");
-    //         }
-    //         drag_start_scr_x = drag_update_scrx;
-    //         drag_start_scr_y = drag_update_scry;
-
-    //         m_mw->v2d->redraw();
-    //         handled = 1;
-    //     }
-    // } break;
+    case FL_DRAG: {
+        if (is_in_operation() && (Fl::event_button() == FL_LEFT_MOUSE)) {
+            m_mw->v2d->get_mouse_v2d_to_world_position(&m_mouse_world);
+            m_mouse_world_snap = m_mouse_world;
+            m_mw->v2d->get_snap(&m_mouse_world_snap);
+            
+            *m_active_point = m_mouse_world_snap;
+            
+            m_mw->v2d->redraw();
+            handled = 1;
+        }
+    } break;
     case FL_RELEASE: {
         m_mw->v2d->get_mouse_v2d_to_world_position(&m_mouse_world);
         m_mouse_world_snap = m_mouse_world;
