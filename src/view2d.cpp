@@ -193,7 +193,7 @@ int View2D::handle(int evt)
     case FL_FOCUS: case FL_UNFOCUS:
         return 1;
         break;
-    case FL_MOVE: {
+    case FL_MOVE: case FL_DRAG: {
         /* Update snap in View2D position to draw the snap guide circle */
         /* IMPORTANT(daniel): Mouse stop to update if receive another event
         FL_DRAG FL_PUSH, so this need to be updated accordingly */
