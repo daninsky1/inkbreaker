@@ -27,6 +27,7 @@ public:
     Vec2f *last_point() { return &points[points.size() - 1]; }
     
     bool empty() { return points.empty(); }
+    void clear() { points.clear(); }
     size_t size() { return points.size(); }
     void pop_back() { points.pop_back(); }
     

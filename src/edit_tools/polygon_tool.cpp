@@ -53,34 +53,29 @@ int PolygonTool::keyboard_handle(int evt)
     } break;
     case FL_Escape: {
         if (is_in_operation()) {
+            m_temp_polygon->clear();
             end_operation();
-            m_active_point = nullptr;
-            delete m_temp_polygon;
-            m_temp_polygon = nullptr;
             m_mw->v2d->redraw();
+            handled = 1;
         }
         handled = 1;
     } break;
     case FL_BackSpace: {
         if (is_in_operation()) {
-            if (m_temp_polygon->size() <= 2) {
-                end_operation();
-                m_active_point = nullptr;
-                delete m_temp_polygon;
-                m_temp_polygon = nullptr;
-            }
-            else {
+            if (m_temp_polygon->size() > 2) {
                 m_temp_polygon->pop_back();
                 m_active_point = m_temp_polygon->last_point();
+                
+                m_mw->v2d->get_mouse_v2d_to_world_position(&m_mouse_world);
+                m_mouse_world_snap = m_mouse_world;
+                m_mw->v2d->get_snap(&m_mouse_world_snap); 
+                
+                *m_active_point = m_mouse_world_snap;
+                
+                m_mw->v2d->redraw();
+                handled = 1;
             }
-            // TODO(daniel): Check if cursor update is necessary here
-            // get_cursor_v2d_position(mouse_v2d.x, mouse_v2d.y);
-            // scr_to_world(mouse_v2d.x, mouse_v2d.y, mouse_world);
-            // mouse_snap_world = get_snap_grid(mouse_world);
-            // world_to_scr(mouse_snap_world, snap_cursor_v2d.x, snap_cursor_v2d.y);
-            m_mw->v2d->redraw();
         }
-        handled = 1;
     } break;
     }
     return handled;
@@ -102,8 +97,6 @@ int PolygonTool::mouse_handle(int evt)
             //moves, so no need to redraw here
             // m_mw->v2d->redraw();
             *m_active_point = m_mouse_world_snap;
-            Vec2f last_point = m_temp_polygon->points[m_temp_polygon->size()-1];
-            printf("polygon size %lu, %f, %f\n", m_temp_polygon->size(), last_point.x, last_point.y);
             
             handled = 1;
             m_mw->v2d->redraw();
