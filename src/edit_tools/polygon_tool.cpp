@@ -162,6 +162,7 @@ int PolygonTool::mouse_handle(int evt)
             if (!is_in_operation()) {
                 begin_operation();
                 m_temp_polygon->add_point(m_mouse_world_snap);
+                // m_temp_polygon->shape_info = m_mw->v2d->shape_info; // Update to new ShapeInfo
             }
             m_active_point = m_temp_polygon->add_point(m_mouse_world_snap);
 
