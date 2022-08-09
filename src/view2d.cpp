@@ -209,8 +209,6 @@ int View2D::handle(int evt)
     
     // printf("Event was %s (%d), handled=%d\n", fl_eventnames[evt], evt, handled);
     if (m_mw->state->mode == Mode::draw) {
-        // NOTE(daniel): Maybe use a factory function here with a unique type_id
-        // to call the right EditTool
         if (!edit_tool) {
             edit_tool = EditTool::edit_tool(m_mw->state->draw, m_mw);
         }
