@@ -30,6 +30,7 @@ public:
     BezierHandle *last_bhandle() { return &bhandles[bhandles.size() - 1]; }
     
     bool empty() { return bhandles.empty(); }
+    void clear() { bhandles.clear(); }
     size_t size() { return bhandles.size(); }
     void *pop_back() { bhandles.pop_back(); }
     
