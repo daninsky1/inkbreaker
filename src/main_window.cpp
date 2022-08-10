@@ -564,11 +564,11 @@ Fl_Menu_Item menu_items[] = {
         { "Grid", 0, (Fl_Callback*)pan_state_cb },
         { 0 },
     { "Draw", 0, nullptr, nullptr, FL_SUBMENU },
-        { "Line", 0, (Fl_Callback*)line_state_cb },
-        { "Rectangle", 0, (Fl_Callback*)rect_state_cb },
-        { "Circle", 0, (Fl_Callback*)circle_state_cb },
-        { "Polygonn", 0, (Fl_Callback*)poly_state_cb },
-        { "Bezier", 0, (Fl_Callback*)bezier_state_cb },
+        // { "Line", 0, (Fl_Callback*)line_state_cb },
+        // { "Rectangle", 0, (Fl_Callback*)rect_state_cb },
+        // { "Circle", 0, (Fl_Callback*)circle_state_cb },
+        { "Polygon", 'p', (Fl_Callback*)poly_state_cb },
+        { "Bezier", 'b', (Fl_Callback*)bezier_state_cb },
         { 0 },
     { "Shape Style", 0, nullptr, nullptr, FL_SUBMENU },
     //    { "Line Width", 0, nullptr, nullptr, FL_SUBMENU },
@@ -615,6 +615,9 @@ MainWindow::MainWindow(int v2d_w, int v2d_h) :
             item->user_data(this);
         }
     }
+    
+    state->mode = Mode::draw;
+    state->draw = Draw::bezier;
 }
 
 bool MainWindow::changed()
