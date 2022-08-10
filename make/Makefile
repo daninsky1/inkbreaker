@@ -68,7 +68,7 @@ $(FLTK):
 	@echo FLTK Unix $(BUILD_TYPE) build
 	mkdir -p $(FLTK_BUILD_DIR)
 	if [ ! -e "$(FLTK_BUILD_DIR)/Makefile" ]; then cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR); fi
-	$(MAKE_COMMAND) -C $(FLTK_BUILD_DIR) -f Makefile -j
+	$(MAKE_COMMAND) -C $(FLTK_BUILD_DIR) -f Makefile -j 4
 
 .PHONY: run
 run: $(PROGRAM)
