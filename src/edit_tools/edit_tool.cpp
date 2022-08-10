@@ -9,7 +9,7 @@ EditTool *EditTool::m_active_tool = nullptr;
 Shape *EditTool::m_temp_shape = nullptr;
 
 /* A factory function to create or change EditTool */
-EditTool *EditTool::edit_tool(Draw dmode, MainWindow *mw)
+EditTool *EditTool::edit_tool(MainWindow *mw)
 {
     if (m_active_tool) {
         if (m_temp_shape) {
@@ -17,7 +17,7 @@ EditTool *EditTool::edit_tool(Draw dmode, MainWindow *mw)
         }
         delete m_active_tool;
     }
-    switch (dmode) {
+    switch (mw->state->draw) {
     case Draw::polygon: {
         m_active_tool = new PolygonTool(mw);
     } break;

@@ -31,7 +31,7 @@ public:
     EditTool() { };
     virtual ~EditTool() { };
     /* Factory function to create EditTool */
-    static EditTool *edit_tool(Draw dmode, MainWindow *mw);
+    static EditTool *edit_tool(MainWindow *mw);
     static EditTool *edit_tool() { return m_active_tool; }
     static EditTool *active_tool();
     static bool is_active();
