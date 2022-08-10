@@ -32,7 +32,7 @@ public:
     bool empty() { return bhandles.empty(); }
     void clear() { bhandles.clear(); }
     size_t size() { return bhandles.size(); }
-    void *pop_back() { bhandles.pop_back(); }
+    void pop_back() { bhandles.pop_back(); }
     
     void set_shape_info(ShapeInfo si) { shape_info = si; };
     vector<BezierHandle> bhandles;
