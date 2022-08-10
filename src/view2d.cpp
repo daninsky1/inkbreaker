@@ -12,9 +12,7 @@ View2D::View2D(int x, int y, int w, int h, std::vector<old::Shape*> &p_shapes) :
     shapes{ p_shapes }
 {
     m_mw = static_cast<MainWindow*>(this->parent());
-    m_mw->state->mode = Mode::draw;
     m_mw->state->select = Select::move;
-    m_mw->state->draw = Draw::bezier;
 
     scr_buf = fl_create_offscreen(w, h);
     fl_offscr_scale = Fl_Graphics_Driver::default_driver().scale();
@@ -181,7 +179,6 @@ void View2D::draw()
     fl_copy_offscreen(v2d_x, v2d_y, v2d_w, v2d_h, scr_buf, 0, 0);
 }
 
-
 int View2D::handle(int evt)
 {
     int handled = 0;
@@ -210,10 +207,11 @@ int View2D::handle(int evt)
     // printf("Event was %s (%d), handled=%d\n", fl_eventnames[evt], evt, handled);
     if (m_mw->state->mode == Mode::draw) {
         if (!edit_tool) {
-            edit_tool = EditTool::edit_tool(m_mw->state->draw, m_mw);
+            edit_tool = EditTool::edit_tool(m_mw);
         }
         handled = edit_tool->create_main_handle(evt);
         if (handled) {
+            
             return handled;
         } 
     }
