@@ -50,12 +50,14 @@ void line_state_cb(Fl_Widget* widget, void* mwv)
     mw->state->mode = Mode::draw;
     mw->state->draw = Draw::line;
 }
+
 void rect_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mw = static_cast<MainWindow*>(mwv);
     mw->state->mode = Mode::draw;
     mw->state->draw = Draw::rect;
 }
+
 void circle_state_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mw = static_cast<MainWindow*>(mwv);
@@ -84,6 +86,7 @@ void set_line_color_cb(Fl_Widget* widget, void* mwv)
     Fl_Color c = fl_show_colormap(FL_BLACK);
     mw->v2d->shape_info.line_color = c;
 }
+
 void set_fill_color_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow* mw = static_cast<MainWindow*>(mwv);
@@ -621,4 +624,3 @@ void MainWindow::changed(bool c)
     state->changed = c;
     v2d->changed = c;
 }
-

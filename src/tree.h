@@ -34,7 +34,7 @@ namespace Tree {
         vector<Node*> nodes();
         size_t size();
         
-        bool children_empty() {return m_children->empty(); }
+        bool children_empty() { return m_children->empty(); }
         bool shape_empty() { return m_value ? true : false; }
     private:
         Node *m_parent = nullptr;
