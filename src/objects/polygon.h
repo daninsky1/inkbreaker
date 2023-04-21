@@ -8,7 +8,7 @@
 /* Polygon may be an imprecise term, because this can draw only contours when
 * the Polygon fill is transparent, open lines, one line(one-dimention shape)
 * and a shapes with lines crossing.
-* This is a lines, shapes, and poligons
+* This is a lines, shapes, and polygons
 */
 using namespace std;
 

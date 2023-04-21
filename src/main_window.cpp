@@ -385,16 +385,13 @@ void load_file(std::vector<Shape*> &shapes)
 
     sqlite3_close(file_db);
 }
-#else
-void save_file(std::vector<old::Shape*> shapes) { printf("Error: No IO implemented\n"); }
-void load_file(std::vector<old::Shape*> &shapes) { printf("Error: No IO implemented\n"); }
 #endif
 
 void save_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow *mw = static_cast<MainWindow*>(mwv);
 
-    if (glob_filename[0] == '\0') {
+    if (mw->filestate.filepath[0] == '\0') {
         // No filename - get one!
         saveas_cb(widget, mwv);
         return;
@@ -402,7 +399,7 @@ void save_cb(Fl_Widget* widget, void* mwv)
     else {
         printf("changed false\n");
         mw->changed(false);
-        save_file(mw->v2d->shapes);
+        //save_file(mw->v2d->shapes);
     }
 }
 
@@ -442,7 +439,6 @@ void new_cb(Fl_Widget* widget, void* mwv)
     mw->v2d->clear();
 }
 
-
 void open_cb(Fl_Widget* widget, void* mwv)
 {
     MainWindow *mw = static_cast<MainWindow*>(mwv);
@@ -472,7 +468,7 @@ void open_cb(Fl_Widget* widget, void* mwv)
     if (fnfc.show()) return;
     strcpy(glob_filename, fnfc.filename());
 
-    load_file(mw->v2d->shapes);
+    // load_file(mw->v2d->shapes);
 }
 
 inline char* get_file_ext(char* filename, size_t sz)
@@ -511,10 +507,10 @@ void saveas_cb(Fl_Widget* widget, void* mwv)
         if (ext_val == 0) {
             if (!fileext || (strcmp(fileext, ".sqlite3") && strcmp(fileext, ".sqlite") && strcmp(fileext, ".db"))) {
                 strcat(glob_filename, ".sqlite3");
-                save_file(mw->v2d->shapes);
+                //save_file(mw->v2d->shapes);
             }
         }
-        save_file(mw->v2d->shapes);
+        //save_file(mw->v2d->shapes);
         std::cout << "FILE_NAME: " << glob_filename << '\n';
     }
 }
@@ -584,6 +580,7 @@ Fl_Menu_Item menu_items[] = {
 MainWindow::MainWindow(int v2d_w, int v2d_h) :
     Fl_Double_Window{ v2d_w, MENU_BAR_H + v2d_h, "InkBreaker" }
 {
+
     // InkbreakerState
     state = new InkbreakerState();
     state->changed = false;

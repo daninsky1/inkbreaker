@@ -15,6 +15,7 @@
 #include <FL/Fl_Native_File_Chooser.H>
 
 #include "objects/shapes.h"
+#include "io/io.h"
 #include "state.h"
 #include "tree.h"
 
@@ -58,6 +59,9 @@ public:
 
     bool changed();
     void changed(bool c);
+    
+    /* File */
+    FileState filestate;
 
     /* Shapes */
     Tree::Node *root = new Tree::Node();
