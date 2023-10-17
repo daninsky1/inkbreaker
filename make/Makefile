@@ -24,7 +24,7 @@ OBJ=$(addprefix $(BUILD_DIR)/, \
 	main_window.o \
 	shapes.o view2d.o)
 
-DISABLE_WARNINGS=-Wno-unused-variable -Wno-unused-function -Wno-unused-value \
+DISABLED_WARNINGS=-Wno-unused-variable -Wno-unused-function -Wno-unused-value \
 -Wno-unused-but-set-variable
 DEFINES=/D
 FLTK_DIR=vendor/fltk
@@ -32,11 +32,13 @@ FLTK_BUILD_DIR=$(FLTK_DIR)/build
 FLTK_CONFIG=./$(FLTK_BUILD_DIR)/fltk-config
 # https://www.gnu.org/software/make/manual/html_node/Flavors.html#Flavors
 # Make will expands 'var=' recursively
-CXXFLAGS+=$(shell $(FLTK_CONFIG) --cxxflags)
-LDFLAGS+=$(shell $(FLTK_CONFIG) --ldstaticflags)
+ifneq ("$(wildcard $(FLTK_CONFIG))","")
+	CXXFLAGS+=$(shell $(FLTK_CONFIG) --cxxflags)
+	LDFLAGS+=$(shell $(FLTK_CONFIG) --ldstaticflags)
+endif
 # WARNING: fltk lib path relie on the order of --ldstaticflags this may break
 # if the script change the order of things
-FLTK=$(firstword $(LDFLAGS))
+FLTK=libfltk.a
 
 INCLUDE_DIRS=-Ivendor/fltk -Ivendor/fltk/build -Ivendor
 # LIBS_SRC_DIRS=vendor\fltk\src vendor\sqlite
@@ -45,11 +47,11 @@ DEBUGGER=gdb
 DEBUGGER_FLAGS=-silent
 
 ifdef IO_SQLITE
-DEFINES+= /DIO_SQLITE
-SQLITE=vendor/sqlite/sqlite3.c
+	DEFINES+= /DIO_SQLITE
+	SQLITE=vendor/sqlite/sqlite3.c
 else
-DEFINES=
-SQLITE=
+	DEFINES=
+	SQLITE=
 endif
 
 ifeq ($(BUILD_TYPE), Debug)
@@ -72,15 +74,21 @@ $(PROGRAM_NAME): $(PROGRAM)
 $(PROGRAM): $(SRC) $(FLTK)
 	@echo $(PROGRAM) Unix $(BUILD_TYPE) build
 	mkdir -p $(BUILD_DIR)
-	$(CXX) -o $(PROGRAM) $(SRC) $(SQLITE) $(CXXFLAGS) $(DISABLE_WARNINGS) $(LDFLAGS) $(INCLUDE_DIRS) $(DEFINES)
+	$(CXX) -o $(PROGRAM) $(SRC) $(SQLITE) $(CXXFLAGS) $(DISABLED_WARNINGS) $(LDFLAGS) $(INCLUDE_DIRS) $(DEFINES)
 
 .PHONY: fltk
-fltk: $(FLTK)
+fltk: $(FLTK) $(FLTK_CONFIG) $(FLTK_BUILD_DIR)/Makefile
 $(FLTK):
 	@echo FLTK Unix $(BUILD_TYPE) build
-	mkdir -p $(FLTK_BUILD_DIR)
 	if [ ! -e "$(FLTK_BUILD_DIR)/Makefile" ]; then cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR); fi
 	$(MAKE_COMMAND) -C $(FLTK_BUILD_DIR) -f Makefile -j 4
+	
+.PHONY: configurefltk
+configurefltk: $(FLTK_CONFIG)
+$(FLTK_CONFIG):
+	mkdir -p $(FLTK_BUILD_DIR)
+	echo $(FLTK_BUILD_DIR)
+	cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -S$(FLTK_DIR) -B$(FLTK_BUILD_DIR)
 
 .PHONY: run
 run: $(PROGRAM)
@@ -110,4 +118,4 @@ workbench: src/workbench.cpp src/tree.cpp src/coordinates.cpp src/objects/polygo
 
 .PHONY: maketest
 maketest:
-	@echo $(PROGRAM)
+	echo $(FLTK)
