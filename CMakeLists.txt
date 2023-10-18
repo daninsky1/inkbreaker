@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(inkbreaker
         VERSION 0.1.0
         LANGUAGES C CXX)
-configure_file(InkBreakerConfig.h.in InkBreakerConfig.h)
+# configure_file(InkBreakerConfig.h.in InkBreakerConfig.h)
 
 # toolchain var: -DCMAKE_TOOLCHAIN_FILE=[toolchain.cmake path]
 # TODO: add MSVC fltk dir resolution
@@ -37,16 +37,32 @@ target_include_directories(sqlite
     PUBLIC vendor/)
 
 # Main app
-set(MAIN_APP_SOURCES src/main.cpp
+set(APP_SOURCE src/main.cpp
     src/main_window.cpp
-    src/shapes.cpp)
-add_executable(InkBreaker WIN32 MACOSX_BUNDLE ${MAIN_APP_SOURCES})
-target_compile_options(InkBreaker PRIVATE -W3)
+    src/coordinates.cpp
+    src/selection.cpp
+    src/tree.cpp
+    src/tree2.cpp
+    src/view2d.cpp
+    src/edit_tools/bezier_tool.cpp
+    src/edit_tools/edit_tool.cpp
+    src/edit_tools/polygon_tool.cpp
+    src/io/io.cpp
+    src/objects/bezier.cpp
+    src/objects/polygon.cpp
+    src/objects/shape.cpp
+    src/objects/shapes.cpp)
+
+add_executable(InkBreaker WIN32 MACOSX_BUNDLE ${APP_SOURCE})
+target_compile_options(InkBreaker PRIVATE)
 set_property(TARGET InkBreaker PROPERTY CXX_STANDARD 17)
 target_include_directories(InkBreaker
                            PRIVATE ${PROJECT_BINARY_DIR}
                            PRIVATE ${FLTK_INCLUDE_DIRS}
                            PRIVATE src/
+                           PRIVATE src/edit_tools
+                           PRIVATE src/io
+                           PRIVATE src/objects
 )
 
 target_link_libraries(InkBreaker
