@@ -1,14 +1,16 @@
 #include "selection.h"
 
 
+Selection *Selection::m_instance;
+
 Selection::Selection()
 {
 }
 
 Selection *Selection::selection()
 {
-    if(!m_instance) {
-        m_instance = new Selection();
+    if(!Selection::m_instance) {
+        Selection::m_instance = new Selection();
     }
-    return m_instance;
+    return Selection::m_instance;
 }
