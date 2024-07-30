@@ -9,8 +9,8 @@ public:
     BezierTool(MainWindow *mw) : EditTool() { m_mw = mw; }
     // TODO: Write destructor
     ~BezierTool() { }
-    Shape *begin_shape_handle();
-    void end_shape_handle();
+    Shape *begin_shape_handle() override;
+    void end_shape_handle() override;
     int create_main_handle(int evt) override;
     // TODO(daniel): Implement edit_main_handle(int)
     int edit_main_handle(int evt) override { return 0; };
