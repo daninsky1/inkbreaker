@@ -1,4 +1,4 @@
-# How to get project
+# How to get the project
 `git clone --recurse-submodules https://github.com/daninsky1/inkbreaker.git`  
 
 # How to build on Windows
