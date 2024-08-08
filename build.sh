@@ -1,7 +1,7 @@
 #!/bin/sh
 
-CC='zig c++ -lgdi32 -lcomdlg32'
-# CC='clang'
+# CC='zig c++ -lgdi32 -lcomdlg32'
+CC='clang'
 # CC='gcc'
 
 ${CC} src/main.cpp \
@@ -16,7 +16,8 @@ ${CC} src/main.cpp \
 	src/edit_tools/bezier_tool.cpp \
 	src/io/io.cpp \
 	src/objects/shapes.cpp \
-    -o inkbreaker \
+    -o inkbreaker.exe \
+    -g \
     -std=c++14 \
     -Isrc/ \
     -Ivendor/fltk/ \
@@ -24,10 +25,4 @@ ${CC} src/main.cpp \
     -Lvendor/fltk/lib/ \
     $(sh vendor/fltk/fltk-config --ldstaticflags) \
     -lstdc++ \
-    -lfltk \
-    -lfltk_forms \
-    -lfltk_images \
-    -lfltk_png \
-    -lfltk_gl \
-    -lfltk_jpeg \
-    -lfltk_z
+    -lfltk
