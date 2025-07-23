@@ -1,35 +1,25 @@
 #include <iostream>
-#include <clocale>
-#include <sstream>
 
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdint>
 
-#include "main_window.h"
+#include <SDL3/SDL_main.h>
 
-// #define STB_PERLIN_IMPLEMENTATION
-// #include "stb/stb_perlin.h"
-// #define STB_IMAGE_IMPLEMENTATION
-// #include "stb/stb_image.h"
+#include "ui/widget.h"
+#include "ui/window.h"
+#include "ui/framework.h"
+#include "ui/container.h"
 
-static int escape_handler(int evt)
+constexpr int width = 800;
+constexpr int height = 600;
+
+int SDL_main(int argc, char* argv[])
 {
-    // NOTE: [...] FLTK has a 'global event handler' that makes Escape
-    // try to close the window [...]:
-    // https://www.fltk.org/doc-1.4/FAQ.html
-    // To prevent any not handled escape key to close our main window we eat it
-    if (evt == FL_SHORTCUT && Fl::event_key() == FL_Escape) return 1;
-    return 0;
-}
+    SDL_WindowFlags windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
-int main()
-{
-    // window
-    MainWindow* main_wnd = new MainWindow{ V2D_DEFAULT_W, V2D_DEFAULT_H };
-    main_wnd->show();
-    Fl::add_handler(escape_handler);
-
-    return Fl::run();
+    ui::Container container = ui::Container(0);
+    
+    ui::Window window("Inkbreaker", width, height, windowFlags);
+    window.setChild(container);
+    
+    return ui::runApplication(window);
 }

@@ -98,6 +98,26 @@ make -j<num_threads>
 ./build.sh
 ```
 
+
+# Skia dependencies 
+__libpng__  
+__libwebp__ 
+__libjpeg__  
+__harfbuzz__  
+__icu__
+
+error: target not found: mingw-w64-clang-x86_64-icu-uc
+error: target not found: mingw-w64-clang-x86_64-icu-i18n
+```shell
+# MSYS2 MinGW Clang64
+pacman -S \
+    mingw-w64-clang-x86_64-libpng \
+    mingw-w64-clang-x86_64-libwebp \
+    mingw-w64-clang-x86_64-libjpeg \
+    mingw-w64-clang-x86_64-harfbuzz \
+    mingw-w64-clang-x86_64-icu
+```
+
 Todo:  
 * Make polygon and polygon edit tool.  
 * Make Bezier and Bezier edit tool.  
