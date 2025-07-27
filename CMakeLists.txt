@@ -9,6 +9,13 @@ set(BUILD_SHARED_LIBS OFF)
 add_executable(
         inkbreaker
         src/main.cpp
+        src/ui/widget.cpp
+        src/ui/window.cpp
+        src/ui/container.cpp
+        src/ui/flex_container.cpp
+        src/ui/Center.cpp
+        src/ui/Center.h
+        src/ui/examples.h
 )
 
 # SDL 3

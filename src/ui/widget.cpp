@@ -12,13 +12,6 @@ void Widget::setSize(const Size& size)
     _size = size;
 }
 
-void Widget::setConstraint(uint32_t xConstraint, uint32_t yConstraint,
-                           uint32_t widthConstraint,
-                           uint32_t heightConstraint)
-{
-
-}
-
 std::string Widget::toString() const { return _runtimeType; }
 
 std::string Widget::getRuntimeType()
