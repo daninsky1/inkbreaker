@@ -23,8 +23,13 @@ const css::Padding& Container::getPadding() const
 Size Container::layout(const BoxConstraint& constraint)
 {
     if (_child != nullptr) {
-        // TODO(Daniel S.): Recalcular constraint margin e padding
+        // Assumes the size of the child
         _size = _child->layout(constraint);
+    } else if (!_size.hasSize()) {
+        // Assumes the max size of the parent, this can lead to a bug, if later
+        // be decided to implements the unrestricted widget, there will be no
+        // reasable max size to get from constraint
+        _size = {constraint.maxWidth, constraint.maxHeight};
     }
     return normalize(constraint);
 }
@@ -54,5 +59,9 @@ void Container::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
 
     // Restaura o estado anterior do canvas
     canvas->restore();
+
+    if (_child != nullptr) {
+        _child->render(canvas, offsetX, offsetY);
+    }
 }
 } // namespace ui
