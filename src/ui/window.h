@@ -23,7 +23,7 @@ class Window : public SingleChildWidget
 {
 public:
     Window(std::string title, uint32_t w, uint32_t h, SDL_WindowFlags flags);
-    ~Window() = default;
+    ~Window() override = default;
     
     SDL_Renderer* getRenderer() const {
         return _renderer;
@@ -40,7 +40,7 @@ public:
     // TODO(Daniel S): Analisar se é necessário manejar skia buffer fora desta
     //  classe
     void render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY) override;
-private:
+protected:
     std::string _title;
     SDL_WindowFlags _flags;
     SDL_Window* _window = nullptr;

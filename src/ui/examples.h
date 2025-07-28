@@ -4,21 +4,28 @@
 
 #pragma once
 
+#include <vector>
+
+#include <SDL3/SDL_video.h>
+
 #include "widget.h"
 #include "container.h"
 #include "center.h"
 #include "align.h"
 
-constexpr int width = 800;
-constexpr int height = 600;
+constexpr int W_WIDTH = 800;
+constexpr int W_HEIGHT = 600;
+constexpr int W_FLAGS = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
-inline ui::Window* getMainWindow()
+inline ui::Window* runExample(ui::Widget* widget)
 {
-    return new ui::Window(
+    ui::Window* window = new ui::Window(
         "Inkbreaker",
-        width, height,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+        W_WIDTH, W_HEIGHT,
+        W_FLAGS
     );
+    window->setChild(*widget);
+    return window;
 }
 
 /**
@@ -31,14 +38,11 @@ inline ui::Window* getMainWindow()
  * So the Container fills the entire window and renders a red background color.
  * @retusrn
  */
-inline ui::Window* example1()
+inline ui::Widget* example1()
 {
     ui::Container* container = new ui::Container();
     container->setColor(SkColors::kRed);
-
-    ui::Window* window = getMainWindow();
-    window->setChild(*container);
-    return window;
+    return container;
 }
 
 /**
@@ -47,15 +51,13 @@ inline ui::Window* example1()
  * So the Container fills the screen again.
  * @return
  */
-inline ui::Window* example2()
+inline ui::Widget* example2()
 {
     ui::Container* container = new ui::Container();
     container->setColor(SkColors::kRed);
     container->setSize({200, 200});
 
-    ui::Window* window = getMainWindow();
-    window->setChild(*container);
-    return window;
+    return container;
 }
 
 /**
@@ -67,7 +69,7 @@ inline ui::Window* example2()
  * example 200x200
  * @return
  */
-inline ui::Window* example3()
+inline ui::Widget* example3()
 {
     ui::Container* container = new ui::Container();
     container->setColor(SkColors::kRed);
@@ -77,9 +79,7 @@ inline ui::Window* example3()
     center->setColor(SkColors::kGray);
     center->setChild(*container);
 
-    ui::Window* window = getMainWindow();
-    window->setChild(*center);
-    return window;
+    return center;
 }
 
 /**
@@ -91,7 +91,7 @@ inline ui::Window* example3()
  * alignment points such as bottom-right, top-left, center, etc.
  * @return
  */
-inline ui::Window* example4()
+inline ui::Widget* example4()
 {
     ui::Container* container = new ui::Container();
     container->setColor(SkColors::kRed);
@@ -102,9 +102,7 @@ inline ui::Window* example4()
     align->setAlignment(ui::Alignment::BottomRight);
     align->setChild(*container);
 
-    ui::Window* window = getMainWindow();
-    window->setChild(*align);
-    return window;
+    return align;
 }
 
 /**
@@ -116,7 +114,7 @@ inline ui::Window* example4()
  * it can't be bigger than the window, it just fills the screen
  * @return
  */
-inline ui::Window* example5()
+inline ui::Widget* example5()
 {
     ui::Container* container = new ui::Container();
     container->setColor(SkColors::kRed);
@@ -126,9 +124,7 @@ inline ui::Window* example5()
     center->setColor(SkColors::kGray);
     center->setChild(*container);
 
-    ui::Window* window = getMainWindow();
-    window->setChild(*center);
-    return window;
+    return center;
 }
 
 /**
@@ -145,7 +141,7 @@ inline ui::Window* example5()
  * behave like Flutter Container, that's it!
  * @return
  */
-inline ui::Window* example6()
+inline ui::Widget* example6()
 {
     ui::Container* container = new ui::Container();
     container->setColor(SkColors::kRed);
@@ -154,16 +150,14 @@ inline ui::Window* example6()
     center->setColor(SkColors::kGray);
     center->setChild(*container);
 
-    ui::Window* window = getMainWindow();
-    window->setChild(*center);
-    return window;
+    return center;
 }
 
 /**
  *
  * @return
  */
-inline ui::Window* example7()
+inline ui::Widget* example7()
 {
     ui::Container* greenContainer = new ui::Container();
     greenContainer->setSize({60, 60});
@@ -177,7 +171,70 @@ inline ui::Window* example7()
     center->setColor(SkColors::kGray);
     center->setChild(*container);
 
-    ui::Window* window = getMainWindow();
-    window->setChild(*center);
-    return window;
+    return center;
 }
+
+class ExempleApp : public ui::Window
+{
+public:
+    ExempleApp()
+    :Window("", W_WIDTH , W_HEIGHT, W_FLAGS)
+    {
+        examplesDescription = {
+            "Red Container constrained by Window",
+            "Fixed-size Container constrained by the Window",
+            "Centered fixed-size Container inside the Window",
+            "Bottom-right aligned fixed-size Container",
+            "Max-size Container constrained by the Window",
+            "Unconstrained Container expansion",
+            "Nested Container with wrapping behavior"
+
+        };
+        SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[0]).c_str());
+        examples = {
+            example1(),
+            example2(),
+            example3(),
+            example4(),
+            example5(),
+            example6(),
+            example7()
+        };
+        _child = examples[currentExample];
+    }
+
+    ui::Event& eventHandler(ui::Event& event) override {
+        event = Window::eventHandler(event);
+        if (event.handled) return event;
+
+        SDL_Event sdlEvent = event.sdlEvent;
+        switch (sdlEvent.type) {
+        case SDL_EVENT_KEY_DOWN:
+            const SDL_KeyboardEvent& keyboardEvent = sdlEvent.key;
+            if (keyboardEvent.repeat == 0) {
+                switch (keyboardEvent.key) {
+                case SDLK_RIGHT:
+                    event.handled = true;
+                    if (++currentExample > (examples.size() - 1)) currentExample = 0;
+                    std::cout << currentExample << std::endl;
+                    _child = examples[currentExample];
+                    SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[currentExample]).c_str());
+                    break;
+                case SDLK_LEFT:
+                    event.handled = true;
+                    if (--currentExample < 0) currentExample = examples.size() - 1;
+                    std::cout << currentExample << std::endl;
+                    _child = examples[currentExample];
+                    SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[currentExample]).c_str());
+                    break;
+                }
+            }
+            break;
+        }
+        return event;
+    }
+
+    std::vector<Widget*> examples;
+    std::vector<std::string> examplesDescription;
+    int currentExample = 0;
+};
