@@ -6,6 +6,19 @@
 * This is not a real css implementation, just a way to store some style
 * properties, inspired by css.
 */
+
+namespace ui
+{
+struct BoxSpace
+{
+    uint32_t top = 0;
+    uint32_t left = 0;
+    uint32_t bottom = 0;
+    uint32_t right = 0;
+};
+
+}
+
 namespace css {
 struct Margin {
     double top;
@@ -13,7 +26,7 @@ struct Margin {
     double bottom;
     double left;
     
-    Margin(double all)
+    explicit Margin(double all)
         : top(all), right(all), bottom(all), left(all) {}
     Margin(double tb, double lr)
         : top(tb), right(lr), bottom(tb), left(lr) {}
