@@ -16,6 +16,8 @@ add_executable(
         src/ui/Center.cpp
         src/ui/Center.h
         src/ui/examples.h
+        src/ui/align.cpp
+        src/ui/align.h
 )
 
 # SDL 3
