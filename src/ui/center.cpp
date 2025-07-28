@@ -56,7 +56,9 @@ void Center::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
     // Restaura o estado anterior do canvas
     canvas->restore();
 
-    _child->render(canvas, absX, absY);
+    if (_child != nullptr) {
+        _child->render(canvas, absX, absY);
+    }
 }
 
 } // ui
