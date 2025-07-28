@@ -18,6 +18,7 @@ add_executable(
         src/ui/examples.h
         src/ui/align.cpp
         src/ui/align.h
+        src/ui/padding.cpp
 )
 
 # SDL 3
