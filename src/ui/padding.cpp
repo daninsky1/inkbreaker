@@ -29,7 +29,7 @@ Size Padding::layout(const BoxConstraint& constraint)
         childSize = _child->layout(childConstraint);
 
         // Posiciona o filho com offset do padding
-        _child->setPosition({ .x = _padding.left, .y = _padding.top });
+        _childPosition = { .x = _padding.left, .y = _padding.top };
     }
 
     // O próprio tamanho do Padding inclui o filho + padding

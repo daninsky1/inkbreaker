@@ -3,13 +3,11 @@
 namespace ui
 {
 
-void Widget::setPosition(const Position& position)
+Size Widget::normalize(const BoxConstraint& constraint)
 {
-    _position = position;
-}
-void Widget::setSize(const Size& size)
-{
-    _size = size;
+    _size.width = std::clamp(_size.width, constraint.minWidth, constraint.maxWidth);
+    _size.height = std::clamp(_size.height, constraint.minHeight, constraint.maxHeight);
+    return _size;
 }
 
 std::string Widget::toString() const { return _runtimeType; }

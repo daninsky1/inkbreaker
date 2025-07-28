@@ -65,7 +65,7 @@ Size Align::layout(const BoxConstraint& constraint)
             break;
         }
 
-        _child->setPosition({ .x = x, .y = y });
+        _childPosition = { .x = x, .y = y };
     }
     // Normalize Align size
     return normalize(constraint);
@@ -73,14 +73,11 @@ Size Align::layout(const BoxConstraint& constraint)
 
 void Align::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
 {
-    int absX = _position.x + offsetX;
-    int absY = _position.y + offsetY;
-
     // Salva o estado atual do canvas
     canvas->save();
 
     // Aplica a translação para o container
-    canvas->translate(_position.x, _position.y);
+    canvas->translate(offsetX, offsetY);
     //
     // // Define o retângulo de clipping do container
     canvas->clipRect(SkRect::MakeWH(_size.width, _size.height));
@@ -98,7 +95,7 @@ void Align::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
     canvas->restore();
 
     if (_child != nullptr) {
-        _child->render(canvas, absX, absY);
+        _child->render(canvas, _childPosition.x + offsetX, _childPosition.y + offsetY);
     }
 }
 

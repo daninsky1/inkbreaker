@@ -15,95 +15,108 @@
 
 namespace ui
 {
+/**
+ * @class Widget
+ * @brief Base class representing a UI widget with box model layout capabilities.
+ *
+ * This class defines the fundamental properties and behaviors of a UI widget,
+ * including size management, event handling, layout constraints, and rendering.
+ * It serves as the base for all concrete widget implementations.
+ *
+ * The widget maintains its size, parent relationship, and layout constraints.
+ * It provides an interface for event handling, layout calculation, and rendering,
+ * which must be implemented by subclasses.
+ *
+ * @note Subclasses must override the pure virtual methods:
+ *       - layout()
+ *       - render()
+ */
 class Widget
 {
 public:
     uint32_t getWidth() const { return _size.width; }
     uint32_t getHeight() const { return _size.height; }
-    void setPosition(const Position&position );
-    void setSize(const Size&size );
-                        
-    Position getPosition() const { return { _position }; }
-    Size getSize() const { return { _size }; }
-    Size normalize(const BoxConstraint& constraint) {
-        // Normalize the widget's size based on the given constraints
-        _size.width = std::clamp(_size.width, constraint.minWidth, constraint.maxWidth);
-        _size.height = std::clamp(_size.height, constraint.minHeight, constraint.maxHeight);
-        return _size;
-    }
-    
-    /**
-     * Sets the widget constraint and apply layout
-     * @param constraint The constraints to measure against.
-     * @return The measured size of the widget.
-     */
-    virtual Size layout(const BoxConstraint& constraint) {
-        return _size;
-    }
-    
-    virtual Event& eventHandler(Event& event) {
-        // Default event handling   , can be overridden by subclasses
-        return event; // Return 0 to indicate the event was not handled
-    }
-    
-    /*
-     * Default rendering logic can be overridden by subclasses
-     * This could include drawing the widget's background, borders, etc.
-    */
-    virtual void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) {
+    Size getSize() const { return _size; }
+    void setSize(Size size) { _size = size; };
+    Widget* getParent() const { return _parent; }
+    virtual void setParent(Widget* parent) { _parent = parent; }
 
-    }
-    
-    /*
-     * Default rendering logic can be overridden by subclasses
-     * This could include drawing the widget's background, borders, etc.
-     * This method should be called by the root widget to start the rendering process
-     * in the widget tree.
-     * The root widget should be responsible for setting up the canvas.
-    */
-    virtual void render() {
-        
-    }
-    
+    /**
+     * Normalize the widget's size based on the given constraints
+     * @param constraint
+     * @return
+     */
+    Size normalize(const BoxConstraint& constraint) ;
     virtual std::string toString() const;
     virtual std::string getRuntimeType();
-    Widget* getParent() const { return _parent; }
-    /**
-     * Recommended to override this method in subclasses to handle specific
-     * widget updates.
-     * Call this base method to ensure setting parent and the dirty flag.
-     */
-    virtual void setParent(Widget* parent) {
-        _parent = parent;
-        _needsUpdate = true; // Mark the widget as dirty when the parent is set
-    }
-    
+
     void markNeedsUpdate() { _needsUpdate = true; }
-    
-    
-    // static bool canUpdate(Widget oldWidget, Widget newWidget) {
-    //     return oldWidget._runtimeType == newWidget._runtimeType &&
-    //         oldWidget._key == newWidget._key;
-    // }
-    
-    // core::Element* createElement(uint64_t key) {
-        
-    //     return new core::Element(this);
-    // }
+
+    /**
+     * Handles an event for the widget.
+     *
+     * This method should be overridden by concrete subclasses to implement
+     * custom event handling logic.
+     *
+     * If a parent class provides a concrete implementation of this method,
+     * subclasses should call the base implementation
+     * (e.g., Widget::eventHandler(event))
+     * before or after their own logic, depending on the desired event
+     * propagation behavior.
+     *
+     * To indicate that an event was handled, set `event.handled = true` within
+     * the method. Unhandled events should leave this flag as `false`.
+     *
+     * @param event The event to process.
+     * @return A reference to the same event, possibly modified.
+     */
+    virtual Event& eventHandler(Event& event) { return event; };
+
+    /**
+     * Sets the widget's constraints and performs layout calculation.
+     *
+     * This method should be overridden by concrete subclasses to measure
+     * the widget's size based on the given constraints and to perform
+     * any necessary layout logic.
+     *
+     * @param constraint The constraints that define the minimum and maximum
+     *                   allowable size for this widget.
+     * @return The measured size of the widget after applying the constraints
+     *         and performing layout.
+     */
+    virtual Size layout(const BoxConstraint& constraint) = 0;
+
+    /**
+     * Renders the widget onto the given Skia canvas.
+     *
+     * This method should be overridden by concrete subclasses to perform
+     * custom drawing logic using the provided `SkCanvas` instance.
+     *
+     * The `offsetX` and `offsetY` parameters represent the absolute position
+     * offset of the widget relative to its parent or the root canvas. These
+     * offsets should be applied to ensure correct placement of the widget in
+     * the render tree.
+     *
+     * @param canvas  The Skia canvas to draw onto.
+     * @param offsetX The horizontal offset to apply during rendering.
+     * @param offsetY The vertical offset to apply during rendering.
+     */
+    virtual void render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY) = 0;
 protected:
     Widget() { }
     virtual ~Widget() = default;
-    
+
+    Size _size = Size{0, 0};        // Size of the widget, used for layout calculations
+    BoxConstraint _boxConstraint;               // Box constraints for the widget's size and position
+    Widget* _parent = nullptr;                  // The parent widget, if is nullptr assumes it's the root widget
+
+    // NOTE(Daniel S): Not used bellow
     bool _focused = false;                      // Indicates if the widget is focused
     bool _visible = true;                       // Indicates if the widget is visible
     bool _active = true;                        // Indicates if the widget is active
-    Position _position = Position{0, 0};  // Position of the widget, from the top-left corner to the bottom-right corner
-    Size _size = Size{0, 0};        // Size of the widget, used for layout calculations
-    BoxConstraint _boxConstraint;               // Constraints for the widget's size and position
-    Widget* _parent = nullptr;
     uint32_t _depth = 0;                        // Depth in the widget tree, used for rendering order
-    uint64_t _key = 0;
-    std::string _runtimeType;
+    uint64_t _key = 0;                          // Unique key of the Widgeet
+    std::string _runtimeType;                   // The widget type name
     bool _needsUpdate = true;                   // Indicates if the widget needs to be updated and redrawn
 };
 
@@ -125,6 +138,7 @@ public:
 protected:
     virtual ~SingleChildWidget() = default;
     Widget* _child = nullptr; // Pointer to the single child widget
+    Position _childPosition = Position{0, 0};
 };
 
 

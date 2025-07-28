@@ -27,7 +27,7 @@ void Window::setRenderSurface()
     // _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, _width, _height);
 }
 
-void Window::render()
+void Window::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
 {
     if (_child == nullptr) {
         SDL_Log("No child widget to render.");

@@ -2,11 +2,8 @@
 
 namespace ui
 {
-void FlexContainer::render(SkCanvas *canvas,uint32_t offsetX,uint32_t offsetY)
+void FlexContainer::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
 {
-    uint32_t absX = _position.x;
-    uint32_t absY = _position.y;
-    
     switch (_flexDirection) {
     case css::FlexDirection::Row:
         SDL_Log("Rendering FlexContainer in Row direction");
@@ -14,7 +11,7 @@ void FlexContainer::render(SkCanvas *canvas,uint32_t offsetX,uint32_t offsetY)
             if (child) {
                 child->render(canvas,0, 0);
             }
-            absX += child->getWidth();
+            // absX += child->getWidth();
         }
         break;
     case css::FlexDirection::Column:
@@ -29,7 +26,7 @@ void FlexContainer::render(SkCanvas *canvas,uint32_t offsetX,uint32_t offsetY)
             if (child) {
                 child->render(canvas,0, 0);
             }
-            absX += child->getWidth();
+            // absX += child->getWidth();
         }
         break;
     case css::FlexDirection::ColumnReverse:

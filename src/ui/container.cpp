@@ -36,14 +36,11 @@ Size Container::layout(const BoxConstraint& constraint)
 
 void Container::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
 {
-    int absX = _position.x + offsetX;
-    int absY = _position.y + offsetY;
-
     // Salva o estado atual do canvas
     canvas->save();
 
     // Aplica a translação para o container
-    canvas->translate(_position.x, _position.y);
+    canvas->translate(offsetX, offsetY);
     //
     // // Define o retângulo de clipping do container
     canvas->clipRect(SkRect::MakeWH(_size.width, _size.height));

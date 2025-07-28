@@ -34,12 +34,12 @@ public:
             _child->layout(_boxConstraint);
         }
     }
-    
-    void render() override;
 
     Event& eventHandler(Event& event) override;
-    
-    SDL_Texture* _texture;
+    Size layout(const BoxConstraint& constraint) override { return _size; };
+    // TODO(Daniel S): Analisar se é necessário manejar skia buffer fora desta
+    //  classe
+    void render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY) override;
 private:
     std::string _title;
     SDL_WindowFlags _flags;
@@ -49,7 +49,7 @@ private:
     SkImageInfo _skImageInfo;
     sk_sp<SkSurface> _rasterSurface;
     SkColor4f _backgroundColor = SkColors::kWhite;
-    
+    SDL_Texture* _texture;
     void setRenderSurface();
 };
 

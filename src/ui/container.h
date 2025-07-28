@@ -23,12 +23,14 @@ public:
     
     void setColor(SkColor4f color) { _backgroundColor = color; }
     SkColor4f getColor() const { return _backgroundColor; }
+
+
     
     void setMargin(const css::Margin& margin);
     const css::Margin& getMargin() const;
     void setPadding(const css::Padding& padding);
     const css::Padding& getPadding() const;
-    
+
     Size layout(const BoxConstraint& constraint) override;
     void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) override;
 private:
