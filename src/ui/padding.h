@@ -15,13 +15,15 @@ namespace ui {
 class Padding : public SingleChildWidget {
 public:
     Padding();
+    Padding(uint32_t top, uint32_t left, uint32_t bottom, uint32_t right);
     Size layout(const BoxConstraint& constraint) override;
     void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) override;
 
     void setColor(SkColor4f color) { _color = color; }
     void setPadding(BoxSpace padding) { _padding = padding; }
+    BoxSpace getPadding() const { return _padding; }
 protected:
-    BoxSpace _padding;
+    BoxSpace _padding = {0, 0, 0, 0};
     SkColor4f _color = SkColors::kWhite;
 };
 } // ui

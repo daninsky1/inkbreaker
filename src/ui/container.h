@@ -7,6 +7,7 @@
 #include "widget.h"
 
 #include "layout.h"
+#include "padding.h"
 
 namespace ui
 {
@@ -19,23 +20,20 @@ class Container : public SingleChildWidget
 {
 public:
     Container()
-        : _margin(0.0), _padding(0.0) { }
+        : _margin(0.0), _padding(0, 0, 0, 0) { }
     
     void setColor(SkColor4f color) { _backgroundColor = color; }
     SkColor4f getColor() const { return _backgroundColor; }
-
-
-    
     void setMargin(const css::Margin& margin);
     const css::Margin& getMargin() const;
-    void setPadding(const css::Padding& padding);
-    const css::Padding& getPadding() const;
+    void setPadding(const BoxSpace padding);
+    BoxSpace getPadding() const;
 
     Size layout(const BoxConstraint& constraint) override;
     void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) override;
 private:
     css::Margin _margin;
-    css::Padding _padding;
+    BoxSpace _padding;
     SkColor4f _backgroundColor = SkColors::kGray;
 };
 

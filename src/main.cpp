@@ -15,11 +15,12 @@
 #include "ui/window.h"
 #include "ui/layout.h"
 
-static ui::Window* rootWindow = nullptr;
+static ExempleApp* rootWindow = nullptr;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv)
 {
     rootWindow = new ExempleApp();
+    // rootWindow->setCurrentExemple(7);
     ui::BoxSpace boxSpace{.top = 0, .left = 0 , .bottom = 0, .right = 0};
 
     return SDL_APP_CONTINUE;

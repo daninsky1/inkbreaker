@@ -174,11 +174,63 @@ inline ui::Widget* example7()
     return center;
 }
 
+inline ui::Widget* example8()
+{
+    ui::Container* greenContainer = new ui::Container();
+    greenContainer->setSize({60, 60});
+    greenContainer->setColor(SkColors::kGreen);
+
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setPadding({30, 30, 30, 30});
+    redContainer->setChild(*greenContainer);
+
+    ui::Center* center = new ui::Center();
+    center->setColor(SkColors::kGray);
+    center->setChild(*redContainer);
+
+    return center;
+}
+
+inline ui::Widget* example9()
+{
+    ui::Container* greenContainer = new ui::Container();
+    greenContainer->setSize({60, 60});
+    greenContainer->setColor(SkColors::kGreen);
+
+    ui::Container* container = new ui::Container();
+    container->setColor(SkColors::kRed);
+    container->setChild(*greenContainer);
+
+    ui::Center* center = new ui::Center();
+    center->setColor(SkColors::kGray);
+    center->setChild(*container);
+
+    return center;
+}
+
+inline ui::Widget* example10()
+{
+    ui::Container* greenContainer = new ui::Container();
+    greenContainer->setSize({60, 60});
+    greenContainer->setColor(SkColors::kGreen);
+
+    ui::Container* container = new ui::Container();
+    container->setColor(SkColors::kRed);
+    container->setChild(*greenContainer);
+
+    ui::Center* center = new ui::Center();
+    center->setColor(SkColors::kGray);
+    center->setChild(*container);
+
+    return center;
+}
+
 class ExempleApp : public ui::Window
 {
 public:
     ExempleApp()
-    :Window("", W_WIDTH , W_HEIGHT, W_FLAGS)
+        :Window("", W_WIDTH , W_HEIGHT, W_FLAGS)
     {
         examplesDescription = {
             "Red Container constrained by Window",
@@ -187,7 +239,8 @@ public:
             "Bottom-right aligned fixed-size Container",
             "Max-size Container constrained by the Window",
             "Unconstrained Container expansion",
-            "Nested Container with wrapping behavior"
+            "Nested Container with wrapping behavior",
+            ""
 
         };
         SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[0]).c_str());
@@ -198,7 +251,10 @@ public:
             example4(),
             example5(),
             example6(),
-            example7()
+            example7(),
+            example8()
+            // example9(),
+            // example10(),
         };
         _child = examples[currentExample];
     }
@@ -215,23 +271,31 @@ public:
                 switch (keyboardEvent.key) {
                 case SDLK_RIGHT:
                     event.handled = true;
-                    if (++currentExample > (examples.size() - 1)) currentExample = 0;
-                    std::cout << currentExample << std::endl;
-                    _child = examples[currentExample];
-                    SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[currentExample]).c_str());
+                    setCurrentExemple(++currentExample);
                     break;
                 case SDLK_LEFT:
                     event.handled = true;
-                    if (--currentExample < 0) currentExample = examples.size() - 1;
-                    std::cout << currentExample << std::endl;
-                    _child = examples[currentExample];
-                    SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[currentExample]).c_str());
+                    setCurrentExemple(--currentExample);
                     break;
                 }
             }
             break;
         }
         return event;
+    }
+
+    void setCurrentExemple(int index) {
+
+        int last = (examples.size() - 1);
+        std::cout << index << "   " << last << std::endl;
+        if (index > last) currentExample = 0;
+        else if (index < 0) currentExample = last;
+        else currentExample = index;
+
+        std::cout << currentExample << std::endl;
+
+        _child = examples[currentExample];
+        SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[currentExample]).c_str());
     }
 
     std::vector<Widget*> examples;

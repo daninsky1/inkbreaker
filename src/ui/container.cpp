@@ -11,11 +11,11 @@ const css::Margin& Container::getMargin() const
 {
     return _margin;
 }
-void Container::setPadding(const css::Padding& padding)
+void Container::setPadding(const BoxSpace padding)
 {
     _padding = padding;
 }
-const css::Padding& Container::getPadding() const
+BoxSpace Container::getPadding() const
 {
     return _padding;
 }
@@ -31,6 +31,10 @@ Size Container::layout(const BoxConstraint& constraint)
         // reasable max size to get from constraint
         _size = {constraint.maxWidth, constraint.maxHeight};
     }
+    // Implementação de padding dentro do container
+    _size.width += (_padding.left + _padding.right);
+    _size.height += (_padding.top + _padding.bottom);
+
     return normalize(constraint);
 }
 
@@ -58,7 +62,7 @@ void Container::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
     canvas->restore();
 
     if (_child != nullptr) {
-        _child->render(canvas, offsetX, offsetY);
+        _child->render(canvas, offsetX + _padding.left, offsetY + _padding.top);
     }
 }
 } // namespace ui

@@ -6,6 +6,16 @@
 
 namespace ui {
 
+Padding::Padding()
+{
+
+}
+
+Padding::Padding(uint32_t top, uint32_t left, uint32_t bottom, uint32_t right)
+    :_padding(top, left, bottom, right)
+{
+}
+
 Size Padding::layout(const BoxConstraint& constraint)
 {
     // Reduz as constraints disponíveis para o filho
