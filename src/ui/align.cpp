@@ -12,9 +12,9 @@ Align::Align()
 }
 
 
-Size Align::layout(const BoxConstraint& constraint)
+Size Align::layout(const BoxConstraints& constraint)
 {
-    BoxConstraint childConstraint = {
+    BoxConstraints childConstraint = {
         .minWidth = 0,
         .minHeight = 0,
         .maxWidth = constraint.maxWidth,
@@ -23,8 +23,8 @@ Size Align::layout(const BoxConstraint& constraint)
     if (_child != nullptr) {
         Size childSize = _child->layout(childConstraint);
 
-        uint32_t x = 0;
-        uint32_t y = 0;
+        int32_t x = 0;
+        int32_t y = 0;
 
         switch (_alignment) {
         case Alignment::TopLeft:
@@ -71,13 +71,13 @@ Size Align::layout(const BoxConstraint& constraint)
     return normalize(constraint);
 }
 
-void Align::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
+void Align::render(SkCanvas* canvas, Position offset)
 {
     // Salva o estado atual do canvas
     canvas->save();
 
     // Aplica a translação para o container
-    canvas->translate(offsetX, offsetY);
+    canvas->translate(offset.x, offset.y);
     //
     // // Define o retângulo de clipping do container
     canvas->clipRect(SkRect::MakeWH(_size.width, _size.height));
@@ -95,7 +95,7 @@ void Align::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
     canvas->restore();
 
     if (_child != nullptr) {
-        _child->render(canvas, _childPosition.x + offsetX, _childPosition.y + offsetY);
+        _child->render(canvas, _childPosition.add(offset));
     }
 }
 

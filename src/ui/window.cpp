@@ -5,11 +5,11 @@
 #include "window.h"
 
 namespace ui {
-Window::Window(std::string title, uint32_t w, uint32_t h, SDL_WindowFlags flags)
+Window::Window(std::string title, int32_t w, int32_t h, SDL_WindowFlags flags)
     : _title(std::move(title)), _flags(flags)
 {
     _size = { w, h };
-    _boxConstraint = BoxConstraint{w, h, w, h};
+    _boxConstraints = BoxConstraints{w, h, w, h};
     if (!SDL_CreateWindowAndRenderer(_title.c_str(), w, h, _flags, &_window, &_renderer)) {
         SDL_Log("Failed to create window and renderer: %s", SDL_GetError());
     }
@@ -23,17 +23,18 @@ void Window::setRenderSurface()
     size_t rowBytes = info.minRowBytes();
     _rasterSurface = SkSurface::MakeRasterDirect(info, _sdlSurface->pixels, rowBytes);
     SkCanvas* canvas = _rasterSurface->getCanvas();
-    canvas->clear(_backgroundColor);
+    canvas->clear(_color);
     // _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, _width, _height);
 }
 
-void Window::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
+void Window::render(SkCanvas* canvas, Position offset)
 {
     if (_child == nullptr) {
         SDL_Log("No child widget to render.");
         return;
     }
-    _child->render(_rasterSurface->getCanvas(), 0, 0);
+    _rasterSurface->getCanvas()->clear(_color);
+    _child->render(_rasterSurface->getCanvas(), {0, 0});
     SDL_UpdateWindowSurface(_window);
 }
 
@@ -47,7 +48,7 @@ Event& Window::eventHandler(Event& event)
         int h = sdlEvent.window.data2;
         SDL_Log("Window resized to %d x %d", w, h);
         _size = Size(w, h);
-        _boxConstraint = BoxConstraint(w, h, w, h);
+        _boxConstraints = BoxConstraints(w, h, w, h);
         setRenderSurface();
         event.handled = true; // Mark the event as handled
         return event;

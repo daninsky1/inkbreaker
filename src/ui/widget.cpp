@@ -3,10 +3,9 @@
 namespace ui
 {
 
-Size Widget::normalize(const BoxConstraint& constraint)
+Size Widget::normalize(const BoxConstraints& constraint)
 {
-    _size.width = std::clamp(_size.width, constraint.minWidth, constraint.maxWidth);
-    _size.height = std::clamp(_size.height, constraint.minHeight, constraint.maxHeight);
+    _size = constraint.clamp(_size);
     return _size;
 }
 

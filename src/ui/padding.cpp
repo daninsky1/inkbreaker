@@ -16,14 +16,14 @@ Padding::Padding(uint32_t top, uint32_t left, uint32_t bottom, uint32_t right)
 {
 }
 
-Size Padding::layout(const BoxConstraint& constraint)
+Size Padding::layout(const BoxConstraints& constraint)
 {
     // Reduz as constraints disponíveis para o filho
-    BoxConstraint childConstraint = {
-        .minWidth = std::max(0u, constraint.minWidth > (_padding.left + _padding.right)
+    BoxConstraints childConstraint = {
+        .minWidth = std::max(0, constraint.minWidth > (_padding.left + _padding.right)
                              ? constraint.minWidth - (_padding.left + _padding.right)
                              : 0),
-        .minHeight = std::max(0u, constraint.minHeight > (_padding.top + _padding.bottom)
+        .minHeight = std::max(0, constraint.minHeight > (_padding.top + _padding.bottom)
                               ? constraint.minHeight - (_padding.top + _padding.bottom)
                               : 0),
         .maxWidth = constraint.maxWidth > (_padding.left + _padding.right)
@@ -48,7 +48,8 @@ Size Padding::layout(const BoxConstraint& constraint)
         .height = childSize.height + _padding.top + _padding.bottom
     };
 }
-void Padding::render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY)
+
+void Padding::render(SkCanvas*canvas, Position offset)
 {
 
 }

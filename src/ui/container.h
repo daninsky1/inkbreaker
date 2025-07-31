@@ -29,8 +29,8 @@ public:
     void setPadding(const BoxSpace padding);
     BoxSpace getPadding() const;
 
-    Size layout(const BoxConstraint& constraint) override;
-    void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) override;
+    Size layout(const BoxConstraints& constraint) override;
+    void render(SkCanvas*canvas, Position offset) override;
 private:
     css::Margin _margin;
     BoxSpace _padding;

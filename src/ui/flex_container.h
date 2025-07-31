@@ -28,7 +28,7 @@ public:
     void setPadding(const css::Padding& padding) { _padding = padding; }
     const css::Padding& getPadding() const { return _padding; }
     
-    void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) override;
+    void render(SkCanvas*canvas, Position offset) override;
 private:
     SkColor4f _backgroundColor = SkColors::kGray;
     css::Margin _margin;

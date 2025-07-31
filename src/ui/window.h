@@ -22,7 +22,7 @@ namespace ui {
 class Window : public SingleChildWidget
 {
 public:
-    Window(std::string title, uint32_t w, uint32_t h, SDL_WindowFlags flags);
+    Window(std::string title, int32_t w, int32_t h, SDL_WindowFlags flags);
     ~Window() override = default;
     
     SDL_Renderer* getRenderer() const {
@@ -31,15 +31,15 @@ public:
 
     void update() {
         if (_child != nullptr) {
-            _child->layout(_boxConstraint);
+            _child->layout(_boxConstraints);
         }
     }
 
     Event& eventHandler(Event& event) override;
-    Size layout(const BoxConstraint& constraint) override { return _size; };
+    Size layout(const BoxConstraints& constraint) override { return _size; };
     // TODO(Daniel S): Analisar se é necessário manejar skia buffer fora desta
     //  classe
-    void render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY) override;
+    void render(SkCanvas* canvas, Position offset) override;
 protected:
     std::string _title;
     SDL_WindowFlags _flags;
@@ -48,7 +48,7 @@ protected:
     SDL_Surface* _sdlSurface = nullptr;
     SkImageInfo _skImageInfo;
     sk_sp<SkSurface> _rasterSurface;
-    SkColor4f _backgroundColor = SkColors::kWhite;
+    SkColor4f _color = SkColors::kGray;
     SDL_Texture* _texture;
     void setRenderSurface();
 };

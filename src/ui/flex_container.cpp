@@ -2,14 +2,14 @@
 
 namespace ui
 {
-void FlexContainer::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
+void FlexContainer::render(SkCanvas *canvas, Position offset)
 {
     switch (_flexDirection) {
     case css::FlexDirection::Row:
         SDL_Log("Rendering FlexContainer in Row direction");
         for (auto &child : _children) {        
             if (child) {
-                child->render(canvas,0, 0);
+                child->render(canvas, {0, 0});
             }
             // absX += child->getWidth();
         }
@@ -24,7 +24,7 @@ void FlexContainer::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
         for (size_t i = (_children.size() - 1); i > 0; i--) {        
             auto &child = _children[i];
             if (child) {
-                child->render(canvas,0, 0);
+                child->render(canvas, {0, 0});
             }
             // absX += child->getWidth();
         }

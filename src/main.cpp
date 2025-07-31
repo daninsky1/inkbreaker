@@ -20,7 +20,7 @@ static ExempleApp* rootWindow = nullptr;
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv)
 {
     rootWindow = new ExempleApp();
-    // rootWindow->setCurrentExemple(7);
+    rootWindow->setCurrentExemple(8);
     ui::BoxSpace boxSpace{.top = 0, .left = 0 , .bottom = 0, .right = 0};
 
     return SDL_APP_CONTINUE;
@@ -43,7 +43,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 {
     uint64_t startTime = SDL_GetTicks(); // Get the current time in milliseconds
     rootWindow->update();
-    rootWindow->render(nullptr, 0, 0); // Render the root window
+    rootWindow->render(nullptr, {0, 0}); // Render the root window
 
     uint64_t elapsedTime = SDL_GetTicks() - startTime; // Calculate elapsed time
 

@@ -11,9 +11,9 @@ Center::Center()
 
 }
 
-Size Center::layout(const BoxConstraint& constraint)
+Size Center::layout(const BoxConstraints& constraint)
 {
-    BoxConstraint centerConstraint = {
+    BoxConstraints centerConstraint = {
         .minWidth = 0,
         .minHeight = 0,
         .maxWidth = constraint.maxWidth,
@@ -30,13 +30,13 @@ Size Center::layout(const BoxConstraint& constraint)
     return normalize(constraint);
 }
 
-void Center::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
+void Center::render(SkCanvas* canvas, Position offset)
 {
     // Salva o estado atual do canvas
     canvas->save();
 
     // Aplica a translação para o container
-    canvas->translate(offsetX, offsetX);
+    canvas->translate(offset.x, offset.x);
     //
     // // Define o retângulo de clipping do container
     canvas->clipRect(SkRect::MakeWH(_size.width, _size.height));
@@ -44,7 +44,7 @@ void Center::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
     // Cria a tinta (SkPaint) com estilo de preenchimento
     SkPaint paint;
     paint.setStyle(SkPaint::kFill_Style);
-    paint.setColor(_backgroundColor); // ou 0xFFFF0000 para vermelho opaco
+    paint.setColor(_color); // ou 0xFFFF0000 para vermelho opaco
     paint.setAntiAlias(true);
 
     // Desenha um retângulo preenchido do canto superior esquerdo até as dimensões do widget
@@ -54,7 +54,7 @@ void Center::render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY)
     canvas->restore();
 
     if (_child != nullptr) {
-        _child->render(canvas, _childPosition.x + offsetX, _childPosition.y + offsetY);
+        _child->render(canvas, _childPosition.add(offset));
     }
 }
 

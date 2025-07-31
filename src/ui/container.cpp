@@ -20,7 +20,7 @@ BoxSpace Container::getPadding() const
     return _padding;
 }
 
-Size Container::layout(const BoxConstraint& constraint)
+Size Container::layout(const BoxConstraints& constraint)
 {
     if (_child != nullptr) {
         // Assumes the size of the child
@@ -29,7 +29,10 @@ Size Container::layout(const BoxConstraint& constraint)
         // Assumes the max size of the parent, this can lead to a bug, if later
         // be decided to implements the unrestricted widget, there will be no
         // reasable max size to get from constraint
-        _size = {constraint.maxWidth, constraint.maxHeight};
+        _size = {
+            std::max(constraint.minWidth, constraint.maxWidth),
+            std::max(constraint.minWidth, constraint.maxHeight)
+        };
     }
     // Implementação de padding dentro do container
     _size.width += (_padding.left + _padding.right);
@@ -38,15 +41,15 @@ Size Container::layout(const BoxConstraint& constraint)
     return normalize(constraint);
 }
 
-void Container::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
+void Container::render(SkCanvas *canvas, Position offset)
 {
     // Salva o estado atual do canvas
     canvas->save();
 
     // Aplica a translação para o container
-    canvas->translate(offsetX, offsetY);
-    //
-    // // Define o retângulo de clipping do container
+    canvas->translate(offset.x, offset.y);
+
+    // Define o retângulo de clipping do container
     canvas->clipRect(SkRect::MakeWH(_size.width, _size.height));
 
     // Cria a tinta (SkPaint) com estilo de preenchimento
@@ -62,7 +65,7 @@ void Container::render(SkCanvas *canvas, uint32_t offsetX, uint32_t offsetY)
     canvas->restore();
 
     if (_child != nullptr) {
-        _child->render(canvas, offsetX + _padding.left, offsetY + _padding.top);
+        _child->render(canvas, offset.add(_padding.left, _padding.top));
     }
 }
 } // namespace ui

@@ -46,7 +46,7 @@ public:
      * @param constraint
      * @return
      */
-    Size normalize(const BoxConstraint& constraint) ;
+    Size normalize(const BoxConstraints& constraint) ;
     virtual std::string toString() const;
     virtual std::string getRuntimeType();
 
@@ -79,12 +79,12 @@ public:
      * the widget's size based on the given constraints and to perform
      * any necessary layout logic.
      *
-     * @param constraint The constraints that define the minimum and maximum
+     * @param boxConstraints The constraints that define the minimum and maximum
      *                   allowable size for this widget.
      * @return The measured size of the widget after applying the constraints
      *         and performing layout.
      */
-    virtual Size layout(const BoxConstraint& constraint) = 0;
+    virtual Size layout(const BoxConstraints& boxConstraints) = 0;
 
     /**
      * Renders the widget onto the given Skia canvas.
@@ -98,16 +98,15 @@ public:
      * the render tree.
      *
      * @param canvas  The Skia canvas to draw onto.
-     * @param offsetX The horizontal offset to apply during rendering.
-     * @param offsetY The vertical offset to apply during rendering.
+     * @param offset The offset to apply during rendering.
      */
-    virtual void render(SkCanvas* canvas, uint32_t offsetX, uint32_t offsetY) = 0;
+    virtual void render(SkCanvas* canvas, Position offset) = 0;
 protected:
     Widget() { }
     virtual ~Widget() = default;
 
     Size _size = Size{0, 0};        // Size of the widget, used for layout calculations
-    BoxConstraint _boxConstraint;               // Box constraints for the widget's size and position
+    BoxConstraints _boxConstraints;               // Box constraints for the widget's size and position
     Widget* _parent = nullptr;                  // The parent widget, if is nullptr assumes it's the root widget
 
     // NOTE(Daniel S): Not used bellow

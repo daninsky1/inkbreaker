@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 /*
 * Tries to mimic very porly css properties.
@@ -11,10 +12,10 @@ namespace ui
 {
 struct BoxSpace
 {
-    uint32_t top = 0;
-    uint32_t left = 0;
-    uint32_t bottom = 0;
-    uint32_t right = 0;
+    int32_t top = 0;
+    int32_t left = 0;
+    int32_t bottom = 0;
+    int32_t right = 0;
 };
 
 }
@@ -56,24 +57,54 @@ enum class FlexDirection {
 
 }
 
-struct Position { uint32_t x = 0, y = 0; };
+struct Position
+{
+    int32_t x = 0, y = 0;
+
+    [[nodiscard]] Position add(int32_t ox, int32_t oy) const {
+        return {.x = x + ox, .y = y + oy};
+    }
+    [[nodiscard]] Position add(Position o) const {
+        return {.x = x + o.x, .y = y + o.y};
+    }
+};
+
+struct BoxConstraints;
 struct Size
 {
-    uint32_t width = 0, height = 0;
+    int32_t width = 0, height = 0;
 
-    bool hasSize() const {
+    [[nodiscard]] bool hasSize() const {
         return width > 0 && height > 0;
     }
 };
+
 struct Box {
-    uint32_t x = 0;
-    uint32_t y = 0;
-    uint32_t width = 0;
-    uint32_t height = 0;
+    int32_t x = 0;
+    int32_t y = 0;
+    int32_t width = 0;
+    int32_t height = 0;
 };
-struct BoxConstraint {
-    uint32_t minWidth = 0;
-    uint32_t minHeight = 0;
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
+
+struct BoxConstraints {
+    int32_t minWidth = 0;
+    int32_t minHeight = 0;
+    int32_t maxWidth = 0;
+    int32_t maxHeight = 0;
+
+    Size clamp(Size& size) const {
+        return {
+            .width = std::clamp(size.width, minWidth, std::max(minWidth, maxWidth)),
+            .height = std::clamp(size.height, minHeight, std::max(minHeight, maxHeight))
+        };
+    }
+
+    [[nodiscard]] BoxConstraints tighten(const BoxConstraints& other) const {
+        return {
+            .minWidth = std::max(other.minWidth, minWidth),
+            .minHeight = std::max(other.minHeight, minHeight),
+            .maxWidth = std::min(other.maxWidth, maxWidth),
+            .maxHeight = std::min(other.maxHeight, maxHeight)
+        };
+    }
 };

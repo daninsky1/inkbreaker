@@ -25,8 +25,8 @@ class Align : public SingleChildWidget
 {
 public:
     Align();
-    Size layout(const BoxConstraint& constraint) override;
-    void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) override;
+    Size layout(const BoxConstraints& constraint) override;
+    void render(SkCanvas*canvas, Position offset) override;
 
     void setColor(SkColor4f color) { _color = color; }
     void setAlignment(const Alignment alignment) { _alignment = alignment; }

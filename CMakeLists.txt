@@ -19,6 +19,10 @@ add_executable(
         src/ui/align.cpp
         src/ui/align.h
         src/ui/padding.cpp
+        src/ui/constrained_box.cpp
+        src/ui/constrained_box.h
+        src/ui/unconstrained_box.cpp
+        src/ui/unconstrained_box.h
 )
 
 # SDL 3

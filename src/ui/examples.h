@@ -12,11 +12,20 @@
 #include "container.h"
 #include "center.h"
 #include "align.h"
+#include "constrained_box.h"
+#include "unconstrained_box.h"
 
 constexpr int W_WIDTH = 800;
 constexpr int W_HEIGHT = 600;
 constexpr int W_FLAGS = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
+/**
+ * These examples mimics some Flutter behaviors and examples.
+ * https://docs.flutter.dev/ui/layout/constraints
+ *
+ * @param widget
+ * @return
+ */
 inline ui::Window* runExample(ui::Widget* widget)
 {
     ui::Window* window = new ui::Window(
@@ -27,10 +36,6 @@ inline ui::Window* runExample(ui::Widget* widget)
     window->setChild(*widget);
     return window;
 }
-
-/**
- * These examples mimics some Flutter behaviors and examples.
- */
 
 /**
  * The window is the parent of the Container, and forces the Container to be
@@ -118,7 +123,7 @@ inline ui::Widget* example5()
 {
     ui::Container* container = new ui::Container();
     container->setColor(SkColors::kRed);
-    container->setSize({std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max()});
+    container->setSize({std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max()});
 
     ui::Center* center = new ui::Center();
     center->setColor(SkColors::kGray);
@@ -194,36 +199,289 @@ inline ui::Widget* example8()
 
 inline ui::Widget* example9()
 {
-    ui::Container* greenContainer = new ui::Container();
-    greenContainer->setSize({60, 60});
-    greenContainer->setColor(SkColors::kGreen);
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
 
-    ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
-    container->setChild(*greenContainer);
-
-    ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
-    center->setChild(*container);
-
-    return center;
+    ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
+        {.minWidth = 70, .minHeight = 70, .maxWidth = 150, .maxHeight = 150},
+        redContainer
+    };
+    return constrainedBox;
 }
 
 inline ui::Widget* example10()
 {
-    ui::Container* greenContainer = new ui::Container();
-    greenContainer->setSize({60, 60});
-    greenContainer->setColor(SkColors::kGreen);
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setSize({.width = 10, .height = 10});
 
-    ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
-    container->setChild(*greenContainer);
+    ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
+        {.minWidth = 70, .minHeight = 70, .maxWidth = 150, .maxHeight = 150},
+        redContainer
+    };
 
     ui::Center* center = new ui::Center();
     center->setColor(SkColors::kGray);
-    center->setChild(*container);
+    center->setChild(*constrainedBox);
 
     return center;
+}
+
+inline ui::Widget* example11()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setSize({.width = 1000, .height = 1000});
+
+    ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
+            {.minWidth = 70, .minHeight = 70, .maxWidth = 150, .maxHeight = 150},
+            redContainer
+        };
+
+    ui::Center* center = new ui::Center();
+    center->setColor(SkColors::kGray);
+    center->setChild(*constrainedBox);
+
+    return center;
+}
+
+inline ui::Widget* example12()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setSize({.width = 100, .height = 100});
+
+    ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
+                {.minWidth = 70, .minHeight = 70, .maxWidth = 150, .maxHeight = 150},
+                redContainer
+            };
+
+    ui::Center* center = new ui::Center();
+    center->setColor(SkColors::kGray);
+    center->setChild(*constrainedBox);
+
+    return center;
+}
+
+/**
+ * The window forces the UnconstrainedBox to be exactly the same size as the
+ * screen. However, the UnconstrainedBox lets its child Container be any size
+ * it wants
+ * @return
+ */
+inline ui::Widget* example13()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setSize({.width = 40, .height = 100});
+
+    ui::UnconstrainedBox* unconstrainedBox = new ui::UnconstrainedBox{
+        redContainer
+    };
+
+    return unconstrainedBox;
+}
+
+/**
+ * This example demonstrates the behavior of the UnconstrainedBox when its child exceeds
+ * the available space.
+ *
+ * The UnconstrainedBox itself is constrained by the Window widget,
+ * but it removes those constraints when passing them down to its child.
+ * This means the child Container is allowed to have any size it wants.
+ *
+ * However, in this case, the child's width (4000) is much larger than the available width
+ * provided by the screen or layout parent.
+ * In Flutter, this would trigger an "overflow warning" in debug mode.
+ * In this framework, such debug warnings are not yet implemented.
+ *
+ * This is useful for testing layout behavior in extreme sizing conditions and is
+ * particularly relevant when planning debug tooling in the future.
+ *
+ * Note: The visual overflow indicator is not currently implemented.
+ *
+ * @return A widget tree with an UnconstrainedBox containing an oversized red Container.
+ */
+inline ui::Widget* example14()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setSize({.width = 4000, .height = 100});
+
+    ui::UnconstrainedBox* unconstrainedBox = new ui::UnconstrainedBox{
+        redContainer
+    };
+
+    return unconstrainedBox;
+}
+
+/**
+ * This example demonstrates the behavior of the OverflowBox when its child exceeds
+ * the available space. It creates a red Container with a width of 4000 pixels and a height of 100.
+ *
+ * The OverflowBox is constrained by its parent (e.g., the screen), but passes relaxed constraints
+ * to its child. In this case, the child is allowed to have an infinite maximum width and height,
+ * so it can render far beyond the visible area.
+ *
+ * Unlike UnconstrainedBox, OverflowBox does not produce any warnings when the child overflows.
+ * It simply renders what it can within the clipping and visibility rules of the parent widget or surface.
+ *
+ * This behavior is useful when you want to allow a child to render beyond the bounds of its container
+ * without being limited or triggering debug warnings.
+ *
+ * Note: As with example14, debug overflow indicators are not currently implemented in this framework.
+ *
+ * @return A widget tree with an OverflowBox containing an oversized red Container.
+ */
+inline ui::Widget* example15()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setSize({.width = 4000, .height = 100});
+
+    ui::OVerflowBox* unconstrainedBox = new ui::OVerflowBox{
+        redContainer
+    };
+
+    return unconstrainedBox;
+}
+
+/**
+ * This example is intentionally left non-functional in this framework because it demonstrates
+ * a limitation that does not apply here.
+ *
+ * In Flutter, this example fails to render because the UnconstrainedBox allows its child to
+ * have any size, and the child Container tries to have an infinite width (`double.infinity`),
+ * which leads to an error: "BoxConstraints forces an infinite width."
+ *
+ * However, in this framework, layout units are currently represented as integers, and infinite
+ * values are not supported. Therefore, it is not possible to create a container with an infinite
+ * width. This makes the issue shown in the Flutter example irrelevant here.
+ *
+ * The concept of "infinite size" is undefined in this context, as the rendering engine assumes
+ * all dimensions are concrete, finite integers.
+ *
+ * In the future, support for floating-point dimensions (e.g., using `double`) might be considered,
+ * but it is currently not planned or confirmed.
+ *
+ * @return nullptr — this example is not implemented due to framework design constraints.
+ */
+inline ui::Widget* example16()
+{
+    ui::Container* blackContainer = new ui::Container();
+    blackContainer->setColor(SkColors::kBlack);
+    return blackContainer;
+}
+
+inline ui::Widget* example17()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kRed);
+    redContainer->setSize({.width = 4000, .height = 100});
+
+    
+
+    ui::UnconstrainedBox* unconstrainedBox = new ui::UnconstrainedBox{
+        redContainer
+    };
+
+    return unconstrainedBox;
+}
+
+inline ui::Widget* example18()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example19()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example20()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example21()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example22()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example23()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example24()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example25()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example26()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example27()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example28()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
+}
+
+inline ui::Widget* example29()
+{
+    ui::Container* redContainer = new ui::Container();
+    redContainer->setColor(SkColors::kBlack);
+    redContainer->setSize({.width = 40, .height = 50});
+    return redContainer;
 }
 
 class ExempleApp : public ui::Window
@@ -240,8 +498,28 @@ public:
             "Max-size Container constrained by the Window",
             "Unconstrained Container expansion",
             "Nested Container with wrapping behavior",
-            ""
-
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
         };
         SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[0]).c_str());
         examples = {
@@ -252,9 +530,28 @@ public:
             example5(),
             example6(),
             example7(),
-            example8()
-            // example9(),
-            // example10(),
+            example8(),
+            example9(),
+            example10(),
+            example11(),
+            example12(),
+            example13(),
+            example14(),
+            example15(),
+            example16(),
+            example17(),
+            example18(),
+            example19(),
+            example20(),
+            example21(),
+            example22(),
+            example23(),
+            example24(),
+            example25(),
+            example26(),
+            example27(),
+            example28(),
+            example29()
         };
         _child = examples[currentExample];
     }

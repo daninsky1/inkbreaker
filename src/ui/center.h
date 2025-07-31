@@ -13,14 +13,14 @@ namespace ui {
 class Center : public SingleChildWidget {
 public:
     Center();
-    Size layout(const BoxConstraint& constraint) override;
+    Size layout(const BoxConstraints& constraint) override;
     void setColor(SkColor4f color) {
-        _backgroundColor = color;
+        _color = color;
     }
 
-    void render(SkCanvas*canvas,uint32_t offsetX,uint32_t offsetY) override;
+    void render(SkCanvas*canvas, Position offset) override;
 protected:
-    SkColor4f _backgroundColor = SkColors::kWhite;
+    SkColor4f _color = SkColors::kWhite;
 };
 
 } // ui
