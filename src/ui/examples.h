@@ -13,6 +13,7 @@
 #include "center.h"
 #include "align.h"
 #include "constrained_box.h"
+#include "text.h"
 #include "unconstrained_box.h"
 
 constexpr int W_WIDTH = 800;
@@ -484,13 +485,22 @@ inline ui::Widget* example29()
     return redContainer;
 }
 
-class ExempleApp : public ui::Window
+inline ui::Widget* textExample1()
+{
+    auto* text = new ui::Text("Hello, World!");
+    auto* center = new ui::Center();
+    center->setColor(SkColors::kBlack);
+    center->setChild(*text);
+    return center;
+}
+
+class ExampleApp : public ui::Window
 {
 public:
-    ExempleApp()
+    ExampleApp()
         :Window("", W_WIDTH , W_HEIGHT, W_FLAGS)
     {
-        examplesDescription = {
+        examplesDescriptions = {
             "Red Container constrained by Window",
             "Fixed-size Container constrained by the Window",
             "Centered fixed-size Container inside the Window",
@@ -520,8 +530,9 @@ public:
             "27",
             "28",
             "29",
+            "Text 01"
         };
-        SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[0]).c_str());
+        SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescriptions[0]).c_str());
         examples = {
             example1(),
             example2(),
@@ -551,7 +562,8 @@ public:
             example26(),
             example27(),
             example28(),
-            example29()
+            example29(),
+            textExample1()
         };
         _child = examples[currentExample];
     }
@@ -582,7 +594,6 @@ public:
     }
 
     void setCurrentExemple(int index) {
-
         int last = (examples.size() - 1);
         std::cout << index << "   " << last << std::endl;
         if (index > last) currentExample = 0;
@@ -592,10 +603,10 @@ public:
         std::cout << currentExample << std::endl;
 
         _child = examples[currentExample];
-        SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescription[currentExample]).c_str());
+        SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescriptions[currentExample]).c_str());
     }
 
     std::vector<Widget*> examples;
-    std::vector<std::string> examplesDescription;
+    std::vector<std::string> examplesDescriptions;
     int currentExample = 0;
 };

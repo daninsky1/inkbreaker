@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+
 #include <include/core/SkPaint.h>
 #include <include/effects/SkDiscretePathEffect.h>
 

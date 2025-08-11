@@ -67,7 +67,7 @@ int runApplication(ui::Window& rootWindow)
 
 
 void draw() {
-    sk_sp<SkSurface> rasterSurface = SkSurface::MakeRaster(SkImageInfo::MakeN32Premul(512, 512));
+    sk_sp<SkSurface> rasterSurface = SkSurfaces::Raster(SkImageInfo::MakeN32Premul(512, 512));
     SkCanvas* canvas = rasterSurface->getCanvas();
     canvas->drawColor(SK_ColorWHITE);
 

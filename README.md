@@ -16,3 +16,10 @@ pacman -S mingw-w64-clang-x86_64-pkgconf \
     mingw-w64-clang-x86_64-libpng \
     mingw-w64-clang-x86_64-zlib
 ```
+
+# Hellish Windows Build
+https://groups.google.com/g/skia-discuss/c/IUo1AQowhhs?pli=1
+
+bin\gn.exe gen out/Debug --args="is_debug=true extra_cflags=[\"/MDd\"]"
+bin\gn.exe gen out/Release --args="is_official_build=true"
+

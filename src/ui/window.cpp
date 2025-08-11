@@ -21,8 +21,9 @@ void Window::setRenderSurface()
     _sdlSurface = SDL_GetWindowSurface(_window);
     SkImageInfo info = SkImageInfo::MakeN32Premul(_sdlSurface->w, _sdlSurface->h);
     size_t rowBytes = info.minRowBytes();
-    _rasterSurface = SkSurface::MakeRasterDirect(info, _sdlSurface->pixels, rowBytes);
+    _rasterSurface = SkSurfaces::WrapPixels(info, _sdlSurface->pixels, rowBytes);
     SkCanvas* canvas = _rasterSurface->getCanvas();
+    canvas->resetMatrix();
     canvas->clear(_color);
     // _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, _width, _height);
 }
@@ -34,6 +35,7 @@ void Window::render(SkCanvas* canvas, Position offset)
         return;
     }
     _rasterSurface->getCanvas()->clear(_color);
+    _rasterSurface->getCanvas()->resetMatrix();
     _child->render(_rasterSurface->getCanvas(), {0, 0});
     SDL_UpdateWindowSurface(_window);
 }
