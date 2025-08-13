@@ -87,9 +87,9 @@ private:
 };
 
 void serialize(const Circle& circle);
-void serialize(const Rectangle& rectangle);
+void serialize(const Rect& rectangle);
 
-inline void draw(const Rectangle& rectangle)
+inline void draw(const Rect& rectangle)
 {
     auto msg = std::format(
         "Drawing rectangle: x: {}, y: {}, width: {}, height: {}",

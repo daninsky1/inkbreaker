@@ -1,17 +1,12 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 #include <format>
 #include <vector>
 
-#include <SDL3/SDL_render.h>
-#include <SDL3/SDL_log.h>
-
-#include <include/core/SkCanvas.h>
-
 #include "events.h"
 #include "layout.h"
+#include "graphics/renderer.h"
 
 namespace ui
 {
@@ -97,10 +92,10 @@ public:
      * offsets should be applied to ensure correct placement of the widget in
      * the render tree.
      *
-     * @param canvas  The Skia canvas to draw onto.
+     * @param renderer  The Skia canvas to draw onto.
      * @param offset The offset to apply during rendering.
      */
-    virtual void render(SkCanvas* canvas, Position offset) = 0;
+    virtual void render(gfx::Renderer* renderer, Position offset) = 0;
 protected:
     Widget() { }
     virtual ~Widget() = default;

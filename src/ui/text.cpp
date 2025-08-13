@@ -17,15 +17,15 @@ Size Text::layout(const BoxConstraints& boxConstraints)
     return _size;
 }
 
-void Text::render(SkCanvas* canvas, Position offset)
+void Text::render(gfx::Renderer* renderer, Position offset)
 {
-    canvas->save();
-    // canvas->translate(offset.x, offset.y);
-    // canvas->clipRect(SkRect::MakeWH(_size.width, _size.height));
-    // canvas->drawColor(_backgoundColor);
+    renderer->save();
+    // renderer->translate(offset.x, offset.y);
+    // renderer->clipRect(gfx::Rect{_size.width, _size.height));
+    // renderer->drawColor(_backgoundColor);
 
-    // Restaura o estado anterior do canvas
-    canvas->restore();
+
+    renderer->restore();
 }
 
 } // ui

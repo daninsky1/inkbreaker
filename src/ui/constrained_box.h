@@ -15,7 +15,7 @@ public:
     }
 
     Size layout(const BoxConstraints& boxConstraints);
-    void render(SkCanvas* canvas, Position offset);
+    void render(gfx::Renderer* renderer, Position offset);
 
 protected:
 

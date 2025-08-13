@@ -10,7 +10,7 @@ Window::Window(std::string title, int32_t w, int32_t h, SDL_WindowFlags flags)
 {
     _size = { w, h };
     _boxConstraints = BoxConstraints{w, h, w, h};
-    if (!SDL_CreateWindowAndRenderer(_title.c_str(), w, h, _flags, &_window, &_renderer)) {
+    if (!SDL_CreateWindowAndRenderer(_title.c_str(), w, h, _flags, &_window, &_sdlRenderer)) {
         SDL_Log("Failed to create window and renderer: %s", SDL_GetError());
     }
     setRenderSurface();
@@ -19,25 +19,36 @@ Window::Window(std::string title, int32_t w, int32_t h, SDL_WindowFlags flags)
 void Window::setRenderSurface()
 {
     _sdlSurface = SDL_GetWindowSurface(_window);
-    SkImageInfo info = SkImageInfo::MakeN32Premul(_sdlSurface->w, _sdlSurface->h);
-    size_t rowBytes = info.minRowBytes();
-    _rasterSurface = SkSurfaces::WrapPixels(info, _sdlSurface->pixels, rowBytes);
-    SkCanvas* canvas = _rasterSurface->getCanvas();
-    canvas->resetMatrix();
-    canvas->clear(_color);
-    // _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, _width, _height);
+    gfx::ImageInfo info{.dimension = {_sdlSurface->w, _sdlSurface->h}};
+    _surface = gfx::Surface::create(info);
+    if (_renderer == nullptr) {
+        _renderer = gfx::Renderer::create();
+    }
+    _renderer->bindRenderTarget(_surface);
+    _renderer->clear(_color);
 }
 
-void Window::render(SkCanvas* canvas, Position offset)
+void Window::render(gfx::Renderer* renderer, Position offset)
 {
     if (_child == nullptr) {
         SDL_Log("No child widget to render.");
         return;
     }
-    _rasterSurface->getCanvas()->clear(_color);
-    _rasterSurface->getCanvas()->resetMatrix();
-    _child->render(_rasterSurface->getCanvas(), {0, 0});
+    _renderer->clear(_color);
+    _child->render(_renderer, {0, 0});
+
+    // NOTA(Daniel S.): Hack, muita cópia acontecendo
+    _sdlSurface = SDL_GetWindowSurface(_window);
+    SDL_Surface* surface = SDL_CreateSurface(_surface->getWidth(), _surface->getHeight(), SDL_PIXELFORMAT_RGBA8888);
+    surface->pixels = _surface->getData();
+    SDL_BlitSurface(surface, NULL, _sdlSurface, NULL);
     SDL_UpdateWindowSurface(_window);
+}
+
+void Window::update() const {
+    if (_child != nullptr) {
+        _child->layout(_boxConstraints);
+    }
 }
 
 Event& Window::eventHandler(Event& event)

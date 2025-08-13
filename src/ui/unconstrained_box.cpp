@@ -58,10 +58,10 @@ Size UnconstrainedBox::layout(const BoxConstraints& boxConstraints)
     return normalize(boxConstraints);
 }
 
-void UnconstrainedBox::render(SkCanvas* canvas, Position offset)
+void UnconstrainedBox::render(gfx::Renderer* renderer, Position offset)
 {
     if (_child != nullptr) {
-        _child->render(canvas, _childPosition.add(offset));
+        _child->render(renderer, _childPosition.add(offset));
     }
 }
 

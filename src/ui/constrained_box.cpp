@@ -16,10 +16,10 @@ Size ConstrainedBox::layout(const BoxConstraints& boxConstraints)
     return normalize(boxConstraints);
 }
 
-void ConstrainedBox::render(SkCanvas* canvas, Position offset)
+void ConstrainedBox::render(gfx::Renderer* renderer, Position offset)
 {
     if (_child != nullptr) {
-        _child->render(canvas, offset);
+        _child->render(renderer, offset);
     }
 }
 

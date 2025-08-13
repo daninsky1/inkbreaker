@@ -41,31 +41,31 @@ Size Container::layout(const BoxConstraints& constraint)
     return normalize(constraint);
 }
 
-void Container::render(SkCanvas *canvas, Position offset)
+void Container::render(gfx::Renderer* renderer, Position offset)
 {
-    // Salva o estado atual do canvas
-    canvas->save();
 
-    // Aplica a translação para o container
-    canvas->translate(offset.x, offset.y);
+    renderer->save();
+
+
+    renderer->translate(offset.x, offset.y);
 
     // Define o retângulo de clipping do container
-    canvas->clipRect(SkRect::MakeWH(_size.width, _size.height));
+    renderer->clipRect(gfx::Rect{0, 0, _size.width, _size.height});
 
-    // Cria a tinta (SkPaint) com estilo de preenchimento
-    SkPaint paint;
-    paint.setStyle(SkPaint::kFill_Style);
-    paint.setColor(_backgroundColor); // ou 0xFFFF0000 para vermelho opaco
+
+    gfx::Paint paint;
+    paint.setStyle(gfx::Style::FILL_STYLE);
+    paint.setColor(_backgroundColor);
     paint.setAntiAlias(true);
 
-    // Desenha um retângulo preenchido do canto superior esquerdo até as dimensões do widget
-    canvas->drawRect(SkRect::MakeXYWH(0, 0, _size.width, _size.height), paint);
 
-    // Restaura o estado anterior do canvas
-    canvas->restore();
+    renderer->drawRect(gfx::Rect{0, 0, _size.width, _size.height}, paint);
+
+    // Restaura o estado anterior do renderer
+    renderer->restore();
 
     if (_child != nullptr) {
-        _child->render(canvas, offset.add(_padding.left, _padding.top));
+        _child->render(renderer, offset.add(_padding.left, _padding.top));
     }
 }
 } // namespace ui

@@ -21,7 +21,12 @@ public:
     void bindRenderTarget(std::shared_ptr<Surface> surface) override;
     void releaseRenderTarget() override;
     void clear(const Color& color) override;
-    void drawRectangle(const Rectangle& rectangle, const Paint& paint) override;
+    void drawRect(const Rect& rectangle, const Paint& paint) override;
+    void save() override;
+    void restore() override;
+    void translate(int32_t x, int32_t y) override;
+    void translate(IPoint pos) override;
+    void clipRect(IRect rect) override;
 private:
     std::shared_ptr<Blend2dSurface> _surface{};
     BLContext _blContext{};

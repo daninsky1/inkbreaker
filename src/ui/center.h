@@ -3,10 +3,9 @@
 //
 #pragma once
 
-#include <include/core/SkColor.h>
+#include "widget.h"
 
 #include "layout.h"
-#include "widget.h"
 
 namespace ui {
 
@@ -14,13 +13,13 @@ class Center : public SingleChildWidget {
 public:
     Center();
     Size layout(const BoxConstraints& constraint) override;
-    void setColor(SkColor4f color) {
+    void setColor(gfx::Color color) {
         _color = color;
     }
 
-    void render(SkCanvas*canvas, Position offset) override;
+    void render(gfx::Renderer* renderer, Position offset) override;
 protected:
-    SkColor4f _color = SkColors::kWhite;
+    gfx::Color _color = gfx::Colors::WHITE;
 };
 
 } // ui

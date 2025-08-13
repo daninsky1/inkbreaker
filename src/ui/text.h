@@ -17,12 +17,12 @@ public:
     Text(std::string value);
 
     Size layout(const BoxConstraints& boxConstraints) override;
-    void render(SkCanvas* canvas, Position offset) override;
+    void render(gfx::Renderer* renderer, Position offset) override;
 private:
-    void skiaTextRender(SkCanvas* canvas, Position offset);
+    void skiaTextRender(gfx::Renderer* renderer, Position offset);
     std::string _value;
-    SkColor4f _color = SkColors::kWhite;
-    SkColor4f _backgoundColor = SkColors::kTransparent;
+    gfx::Color _color = gfx::Colors::WHITE;
+    gfx::Color _backgoundColor = gfx::Colors::TRANSPARENT;
     int32_t _fontSize = 24;
 };
 

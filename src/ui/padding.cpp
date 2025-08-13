@@ -49,7 +49,7 @@ Size Padding::layout(const BoxConstraints& constraint)
     };
 }
 
-void Padding::render(SkCanvas*canvas, Position offset)
+void Padding::render(gfx::Renderer* renderer, Position offset)
 {
 
 }

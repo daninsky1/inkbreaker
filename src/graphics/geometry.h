@@ -25,7 +25,7 @@ struct TPoint
 using IPoint = TPoint<int32_t>;
 using FPoint = TPoint<float>;
 using DPoint = TPoint<double>;
-using Point = FPoint;
+using Point = IPoint;
 
 template<Numeric T>
 struct TVector2d { T x{}, y{}; };
@@ -57,27 +57,27 @@ struct TSize
 using ISize = TSize<int32_t>;
 using FSize = TSize<float>;
 using DSize = TSize<double>;
-using Size = FSize;
+using Size = ISize;
 
 template<Numeric T>
 struct TLine { T x1{}, y1{}, x2{}, y2{}; };
 using ILine = TLine<int32_t>;
 using FLine = TLine<float>;
 using DLine = TLine<double>;
-using Line = FLine;
+using Line = ILine;
 
 template<Numeric T>
-struct TRectangle { T x{}, y{}, width{}, height{}; };
-using IRectangle = TRectangle<int32_t>;
-using FRectangle = TRectangle<float>;
-using DRectangle = TRectangle<double>;
-using Rectangle = FRectangle;
+struct TRect { T x{}, y{}, width{}, height{}; };
+using IRect = TRect<int32_t>;   // ;)
+using FRect = TRect<float>;
+using DRect = TRect<double>;
+using Rect = IRect;
 
 template<Numeric T>
 struct TCircle { T x{}, y{}, radius{0}; };
 using ICircle = TCircle<int32_t>;
 using FCircle =  TCircle<float>;
 using DCircle = TCircle<double>;
-using Circle = FCircle;
+using Circle = ICircle;
 
 }

@@ -18,7 +18,7 @@
 
 constexpr int W_WIDTH = 800;
 constexpr int W_HEIGHT = 600;
-constexpr int W_FLAGS = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+constexpr int W_FLAGS = SDL_WINDOW_RESIZABLE;
 
 /**
  * These examples mimics some Flutter behaviors and examples.
@@ -47,7 +47,7 @@ inline ui::Window* runExample(ui::Widget* widget)
 inline ui::Widget* example1()
 {
     ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
+    container->setColor(gfx::Colors::RED);
     return container;
 }
 
@@ -60,7 +60,7 @@ inline ui::Widget* example1()
 inline ui::Widget* example2()
 {
     ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
+    container->setColor(gfx::Colors::RED);
     container->setSize({200, 200});
 
     return container;
@@ -78,11 +78,11 @@ inline ui::Widget* example2()
 inline ui::Widget* example3()
 {
     ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
+    container->setColor(gfx::Colors::RED);
     container->setSize({200, 200});
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*container);
 
     return center;
@@ -100,11 +100,11 @@ inline ui::Widget* example3()
 inline ui::Widget* example4()
 {
     ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
+    container->setColor(gfx::Colors::RED);
     container->setSize({200, 200});
 
     ui::Align* align = new ui::Align();
-    align->setColor(SkColors::kGray);
+    align->setColor(gfx::Colors::GRAY);
     align->setAlignment(ui::Alignment::BottomRight);
     align->setChild(*container);
 
@@ -123,11 +123,11 @@ inline ui::Widget* example4()
 inline ui::Widget* example5()
 {
     ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
+    container->setColor(gfx::Colors::RED);
     container->setSize({std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max()});
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*container);
 
     return center;
@@ -150,10 +150,10 @@ inline ui::Widget* example5()
 inline ui::Widget* example6()
 {
     ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
+    container->setColor(gfx::Colors::RED);
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*container);
 
     return center;
@@ -167,14 +167,14 @@ inline ui::Widget* example7()
 {
     ui::Container* greenContainer = new ui::Container();
     greenContainer->setSize({60, 60});
-    greenContainer->setColor(SkColors::kGreen);
+    greenContainer->setColor(gfx::Colors::GREEN);
 
     ui::Container* container = new ui::Container();
-    container->setColor(SkColors::kRed);
+    container->setColor(gfx::Colors::RED);
     container->setChild(*greenContainer);
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*container);
 
     return center;
@@ -184,15 +184,15 @@ inline ui::Widget* example8()
 {
     ui::Container* greenContainer = new ui::Container();
     greenContainer->setSize({60, 60});
-    greenContainer->setColor(SkColors::kGreen);
+    greenContainer->setColor(gfx::Colors::GREEN);
 
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setPadding({30, 30, 30, 30});
     redContainer->setChild(*greenContainer);
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*redContainer);
 
     return center;
@@ -201,7 +201,7 @@ inline ui::Widget* example8()
 inline ui::Widget* example9()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
 
     ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
         {.minWidth = 70, .minHeight = 70, .maxWidth = 150, .maxHeight = 150},
@@ -213,7 +213,7 @@ inline ui::Widget* example9()
 inline ui::Widget* example10()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setSize({.width = 10, .height = 10});
 
     ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
@@ -222,7 +222,7 @@ inline ui::Widget* example10()
     };
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*constrainedBox);
 
     return center;
@@ -231,7 +231,7 @@ inline ui::Widget* example10()
 inline ui::Widget* example11()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setSize({.width = 1000, .height = 1000});
 
     ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
@@ -240,7 +240,7 @@ inline ui::Widget* example11()
         };
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*constrainedBox);
 
     return center;
@@ -249,7 +249,7 @@ inline ui::Widget* example11()
 inline ui::Widget* example12()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setSize({.width = 100, .height = 100});
 
     ui::ConstrainedBox* constrainedBox = new ui::ConstrainedBox{
@@ -258,7 +258,7 @@ inline ui::Widget* example12()
             };
 
     ui::Center* center = new ui::Center();
-    center->setColor(SkColors::kGray);
+    center->setColor(gfx::Colors::GRAY);
     center->setChild(*constrainedBox);
 
     return center;
@@ -273,7 +273,7 @@ inline ui::Widget* example12()
 inline ui::Widget* example13()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setSize({.width = 40, .height = 100});
 
     ui::UnconstrainedBox* unconstrainedBox = new ui::UnconstrainedBox{
@@ -306,7 +306,7 @@ inline ui::Widget* example13()
 inline ui::Widget* example14()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setSize({.width = 4000, .height = 100});
 
     ui::UnconstrainedBox* unconstrainedBox = new ui::UnconstrainedBox{
@@ -337,7 +337,7 @@ inline ui::Widget* example14()
 inline ui::Widget* example15()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setSize({.width = 4000, .height = 100});
 
     ui::OVerflowBox* unconstrainedBox = new ui::OVerflowBox{
@@ -370,14 +370,14 @@ inline ui::Widget* example15()
 inline ui::Widget* example16()
 {
     ui::Container* blackContainer = new ui::Container();
-    blackContainer->setColor(SkColors::kBlack);
+    blackContainer->setColor(gfx::Colors::BLACK);
     return blackContainer;
 }
 
 inline ui::Widget* example17()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kRed);
+    redContainer->setColor(gfx::Colors::RED);
     redContainer->setSize({.width = 4000, .height = 100});
 
     
@@ -392,7 +392,7 @@ inline ui::Widget* example17()
 inline ui::Widget* example18()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -400,7 +400,7 @@ inline ui::Widget* example18()
 inline ui::Widget* example19()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -408,7 +408,7 @@ inline ui::Widget* example19()
 inline ui::Widget* example20()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -416,7 +416,7 @@ inline ui::Widget* example20()
 inline ui::Widget* example21()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -424,7 +424,7 @@ inline ui::Widget* example21()
 inline ui::Widget* example22()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -432,7 +432,7 @@ inline ui::Widget* example22()
 inline ui::Widget* example23()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -440,7 +440,7 @@ inline ui::Widget* example23()
 inline ui::Widget* example24()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -448,7 +448,7 @@ inline ui::Widget* example24()
 inline ui::Widget* example25()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -456,7 +456,7 @@ inline ui::Widget* example25()
 inline ui::Widget* example26()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -464,7 +464,7 @@ inline ui::Widget* example26()
 inline ui::Widget* example27()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -472,7 +472,7 @@ inline ui::Widget* example27()
 inline ui::Widget* example28()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -480,7 +480,7 @@ inline ui::Widget* example28()
 inline ui::Widget* example29()
 {
     ui::Container* redContainer = new ui::Container();
-    redContainer->setColor(SkColors::kBlack);
+    redContainer->setColor(gfx::Colors::BLACK);
     redContainer->setSize({.width = 40, .height = 50});
     return redContainer;
 }
@@ -489,7 +489,7 @@ inline ui::Widget* textExample1()
 {
     auto* text = new ui::Text("Hello, World!");
     auto* center = new ui::Center();
-    center->setColor(SkColors::kBlack);
+    center->setColor(gfx::Colors::BLACK);
     center->setChild(*text);
     return center;
 }
@@ -565,7 +565,7 @@ public:
             example29(),
             textExample1()
         };
-        _child = examples[currentExample];
+        // _child = examples[currentExample];
     }
 
     ui::Event& eventHandler(ui::Event& event) override {
@@ -602,7 +602,7 @@ public:
 
         std::cout << currentExample << std::endl;
 
-        _child = examples[currentExample];
+        // _child = examples[currentExample];
         SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescriptions[currentExample]).c_str());
     }
 

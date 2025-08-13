@@ -58,6 +58,7 @@ set(SOURCES
 )
 
 add_executable(inkbreaker src/main.cpp ${SOURCES})
+target_include_directories(inkbreaker PRIVATE src)
 
 add_executable(workbench tests/workbench.cpp ${SOURCES})
 target_include_directories(workbench PRIVATE src)

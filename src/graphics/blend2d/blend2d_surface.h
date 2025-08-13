@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "../image_info.h"
-#include "../surface.h"
+#include "graphics/image_info.h"
+#include "graphics/surface.h"
 
 #include <blend2d.h>
 #include <string>
@@ -21,13 +21,15 @@ public:
     ~Blend2dSurface() override { };
     void setData(ImageInfo textureInfo, void* data) override;
     void* getData() const override;
+    int32_t getWidth() const override;
+    int32_t getHeight() const override;
     void bind() override {}
     void unbind() override {}
     void* getHandle() const override { return nullptr; }
-    void writeToFile(std::string fileName);
+    void writeToFile(std::string fileName) override;
     BLImage& getBLImage();
 private:
-    BLFormat _getBlFormat() const;
+    BLFormat _getBlFormat() const;public:
     ImageInfo _imageInfo;
     BLImage _blImage;
     BLImageData _blImageData;

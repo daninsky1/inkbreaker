@@ -58,10 +58,10 @@ Size LimitedBox::layout(const BoxConstraints& boxConstraints)
     return normalize(boxConstraints);
 }
 
-void LimitedBox::render(SkCanvas* canvas, Position offset)
+void LimitedBox::render(gfx::Renderer* renderer, Position offset)
 {
     if (_child != nullptr) {
-        _child->render(canvas, _childPosition.add(offset));
+        _child->render(renderer, _childPosition.add(offset));
     }
 }
 

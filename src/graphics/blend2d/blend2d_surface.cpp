@@ -37,6 +37,16 @@ void* Blend2dSurface::getData() const
     return _blImageData.pixelData;
 }
 
+int32_t Blend2dSurface::getWidth() const
+{
+    return _blImage.width();
+}
+
+int32_t Blend2dSurface::getHeight() const
+{
+    return _blImage.height();
+}
+
 void Blend2dSurface::writeToFile(std::string fileName)
 {
     _blImage.writeToFile(fileName.c_str());

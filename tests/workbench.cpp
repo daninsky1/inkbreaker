@@ -97,15 +97,14 @@ void BL_TEST();
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
     uint64_t startTime = SDL_GetTicks(); // Get the current time in milliseconds
-
     render->bindRenderTarget(surface);
 
-    gfx::Rectangle rect{0, 0, W_WIDTH, W_HEIGHT};
+    gfx::Rect rect{0, 0, W_WIDTH, W_HEIGHT};
     gfx::Paint paint{};
     gfx::Color color{0, 255, 0, 255};
-    paint.set(color);
+    paint.setColor(color);
 
-    render->drawRectangle(rect, paint);
+    render->drawRect(rect, paint);
 
     render->releaseRenderTarget();
 

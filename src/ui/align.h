@@ -26,12 +26,12 @@ class Align : public SingleChildWidget
 public:
     Align();
     Size layout(const BoxConstraints& constraint) override;
-    void render(SkCanvas*canvas, Position offset) override;
+    void render(gfx::Renderer* renderer, Position offset) override;
 
-    void setColor(SkColor4f color) { _color = color; }
+    void setColor(gfx::Color color) { _color = color; }
     void setAlignment(const Alignment alignment) { _alignment = alignment; }
 protected:
-    SkColor4f _color = SkColors::kWhite;
+    gfx::Color _color = gfx::Colors::WHITE;
     Alignment _alignment = Alignment::Center;
 };
 
