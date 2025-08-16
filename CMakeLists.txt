@@ -2,8 +2,18 @@ cmake_minimum_required(VERSION 3.26)
 
 project(InkBreaker VERSION 0.1.0 LANGUAGES CXX)
 
+# Add this line near the top of your CMakeLists.txt, after 'project()'
+# This sets the CMAKE_MSVC_RUNTIME_LIBRARY variable to statically link the C++ runtime.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:>" CACHE STRING "MSVC runtime library setting")
+set_property(CACHE CMAKE_MSVC_RUNTIME_LIBRARY PROPERTY STRINGS "MultiThreaded" "MultiThreadedDebug" "MultiThreadedDLL" "MultiThreadedDebugDLL")
+
+# You can also use this, which is a simpler approach that works for most cases
+# set(CMAKE_CXX_FLAGS "/MT")
+# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(BUILD_SHARED_LIBS OFF)
 set(RESOURCE_DIR ${CMAKE_SOURCE_DIR}/resources)
 set(RESOURCE_OUTPUT_DIR ${CMAKE_BINARY_DIR}/resources)
@@ -59,6 +69,8 @@ set(SOURCES
 
 add_executable(inkbreaker src/main.cpp ${SOURCES})
 target_include_directories(inkbreaker PRIVATE src)
+# Add this flag to your target's compile options
+target_compile_options(inkbreaker PRIVATE "-g -fsanitize=address -fno-omit-frame-pointer")
 
 add_executable(workbench tests/workbench.cpp ${SOURCES})
 target_include_directories(workbench PRIVATE src)
@@ -79,32 +91,27 @@ target_link_libraries(inkbreaker PRIVATE SDL3::SDL3-static)
 # Skia
 set(SKIA_PATH "" CACHE PATH "Skia lib path")
 if(SKIA_PATH)
-    message(S TATUS "Using Skia from: ${SKIA_PATH}")
+    message(STATUS "Using Skia from: ${SKIA_PATH}")
 
-    set(SKIA_BUILD_DIR "${SKIA_PATH}/out/Debug")
+    if(CMAKE_BUILD_TYPE)
+        set(SKIA_BUILD_DIR "${SKIA_PATH}/out/${CMAKE_BUILD_TYPE}")
+    else()
+        set(SKIA_BUILD_DIR "${SKIA_PATH}/out/$<CONFIG>")
+    endif()
+
     set(SKIA_INCLUDE_DIRS
             "${SKIA_PATH}"
             "${SKIA_PATH}/include"
             "${SKIA_PATH}/modules"
     )
 
-    target_compile_definitions(inkbreaker PRIVATE __forceinline=inline)
-    target_include_directories(inkbreaker PRIVATE ${SKIA_INCLUDE_DIRS})
-    target_link_libraries(inkbreaker PRIVATE
-            "${SKIA_BUILD_DIR}/skia.lib"
-            "${SKIA_BUILD_DIR}/skshaper.lib"
-            "${SKIA_BUILD_DIR}/skunicode_core.lib"
-            "${SKIA_BUILD_DIR}/skunicode_icu.lib"
-    )
-
-    target_compile_definitions(workbench PRIVATE __forceinline=inline)
-    target_include_directories(workbench PRIVATE ${SKIA_INCLUDE_DIRS})
-    target_link_libraries(workbench PRIVATE
-            "${SKIA_BUILD_DIR}/skia.lib"
-            "${SKIA_BUILD_DIR}/skshaper.lib"
-            "${SKIA_BUILD_DIR}/skunicode_core.lib"
-            "${SKIA_BUILD_DIR}/skunicode_icu.lib"
-    )
+    foreach(TARGET_NAME inkbreaker workbench)
+        target_compile_definitions(${TARGET_NAME} PRIVATE __forceinline=inline)
+        target_include_directories(${TARGET_NAME} PRIVATE ${SKIA_INCLUDE_DIRS})
+        target_link_libraries(${TARGET_NAME} PRIVATE
+                "${SKIA_BUILD_DIR}/skia.lib"
+        )
+    endforeach()
 else()
     # MSYS2/Clang64 env
 #    set(PKG_CONFIG_EXECUTABLE C:/msys64/clang64/bin/pkgconf.exe)
