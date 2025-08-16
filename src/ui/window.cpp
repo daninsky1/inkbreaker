@@ -23,7 +23,10 @@ void Window::setRenderSurface()
     _surface = gfx::Surface::create(info);
     if (_renderer == nullptr) {
         _renderer = gfx::Renderer::create();
+    } else {
+        delete _renderer;
     }
+    _renderer->releaseRenderTarget();
     _renderer->bindRenderTarget(_surface);
     _renderer->clear(_color);
 }
@@ -39,10 +42,19 @@ void Window::render(gfx::Renderer* renderer, Position offset)
 
     // NOTA(Daniel S.): Hack, muita cópia acontecendo
     _sdlSurface = SDL_GetWindowSurface(_window);
-    SDL_Surface* surface = SDL_CreateSurface(_surface->getWidth(), _surface->getHeight(), SDL_PIXELFORMAT_RGBA8888);
-    surface->pixels = _surface->getData();
+    SDL_Surface* surface = SDL_CreateSurface(
+        _surface->getWidth(), _surface->getHeight(),
+        SDL_PIXELFORMAT_ARGB8888
+    );
+    SDL_memcpy(
+        surface->pixels,
+        _surface->getData(),
+        surface->h * surface->pitch
+    );
+
     SDL_BlitSurface(surface, NULL, _sdlSurface, NULL);
     SDL_UpdateWindowSurface(_window);
+    SDL_DestroySurface(surface);
 }
 
 void Window::update() const {

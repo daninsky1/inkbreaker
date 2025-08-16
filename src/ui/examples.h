@@ -501,13 +501,13 @@ public:
         :Window("", W_WIDTH , W_HEIGHT, W_FLAGS)
     {
         examplesDescriptions = {
-            "Red Container constrained by Window",
-            "Fixed-size Container constrained by the Window",
-            "Centered fixed-size Container inside the Window",
-            "Bottom-right aligned fixed-size Container",
-            "Max-size Container constrained by the Window",
-            "Unconstrained Container expansion",
-            "Nested Container with wrapping behavior",
+            "1-Red Container constrained by Window",
+            "2-Fixed-size Container constrained by the Window",
+            "3-Centered fixed-size Container inside the Window",
+            "4-Bottom-right aligned fixed-size Container",
+            "5-Max-size Container constrained by the Window",
+            "6-Unconstrained Container expansion",
+            "7-Nested Container with wrapping behavior",
             "8",
             "9",
             "10",
@@ -565,7 +565,7 @@ public:
             example29(),
             textExample1()
         };
-        // _child = examples[currentExample];
+        _child = examples[currentExample];
     }
 
     ui::Event& eventHandler(ui::Event& event) override {
@@ -602,7 +602,7 @@ public:
 
         std::cout << currentExample << std::endl;
 
-        // _child = examples[currentExample];
+        _child = examples[currentExample];
         SDL_SetWindowTitle(_window, std::format("Examples. {}", examplesDescriptions[currentExample]).c_str());
     }
 

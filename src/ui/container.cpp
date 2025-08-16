@@ -43,21 +43,16 @@ Size Container::layout(const BoxConstraints& constraint)
 
 void Container::render(gfx::Renderer* renderer, Position offset)
 {
-
     renderer->save();
-
 
     renderer->translate(offset.x, offset.y);
 
     // Define o retângulo de clipping do container
     renderer->clipRect(gfx::Rect{0, 0, _size.width, _size.height});
 
-
     gfx::Paint paint;
     paint.setStyle(gfx::Style::FILL_STYLE);
     paint.setColor(_backgroundColor);
-    paint.setAntiAlias(true);
-
 
     renderer->drawRect(gfx::Rect{0, 0, _size.width, _size.height}, paint);
 

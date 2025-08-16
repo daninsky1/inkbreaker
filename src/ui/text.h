@@ -24,6 +24,7 @@ private:
     gfx::Color _color = gfx::Colors::WHITE;
     gfx::Color _backgoundColor = gfx::Colors::TRANSPARENT;
     int32_t _fontSize = 24;
+    std::string _fontFilepath = "resources/fonts/roboto/static/Roboto-Regular.ttf";
 };
 
 } // ui
