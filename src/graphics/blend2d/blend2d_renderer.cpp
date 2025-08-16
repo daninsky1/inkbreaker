@@ -40,6 +40,11 @@ void Blend2DRenderer::releaseRenderTarget()
 void Blend2DRenderer::clear(const Color& color)
 {
     if (_surface == nullptr) return;
+    auto blImage = _surface->getBLImage();
+    _blContext.fillRect(
+        BLRectI(0, 0, blImage.width(), blImage.height()),
+        BLRgba32(color.pack32())
+    );
 }
 
 void Blend2DRenderer::drawRect(const Rect& rectangle, const Paint& paint)
@@ -47,16 +52,9 @@ void Blend2DRenderer::drawRect(const Rect& rectangle, const Paint& paint)
     if (_surface == nullptr) {
         assert(false);
     }
-
-    auto color = paint.getColor();
-    uint32_t packed =
-        (static_cast<uint32_t>(color.a) << 24) |
-        (static_cast<uint32_t>(color.r) << 16) |
-        (static_cast<uint32_t>(color.g) <<  8) |
-        (static_cast<uint32_t>(color.b) <<  0);
     _blContext.fillRect(
         BLRectI(rectangle.x, rectangle.y, rectangle.width, rectangle.height),
-        BLRgba32(packed)
+        BLRgba32(paint.getColor().pack32())
     );
 }
 
@@ -72,7 +70,7 @@ void Blend2DRenderer::restore()
 
 void Blend2DRenderer::translate(int32_t x, int32_t y)
 {
-    _blContext.translate(x, x);
+    _blContext.translate(x, y);
 }
 
 void Blend2DRenderer::translate(IPoint pos)
