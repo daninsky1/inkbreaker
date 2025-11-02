@@ -65,6 +65,10 @@ set(SOURCES
         src/graphics/render.h
         src/graphics/blend2d/blend2d_utils.cpp
         src/graphics/blend2d/blend2d_utils.h
+        src/graphics/font.h
+        src/graphics/blend2d/blend2d_font.cpp
+        src/graphics/blend2d/blend2d_font.h
+        src/graphics/font.cpp
 )
 
 add_executable(inkbreaker src/main.cpp ${SOURCES})

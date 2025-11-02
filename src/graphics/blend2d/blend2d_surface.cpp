@@ -13,7 +13,7 @@
 
 namespace gfx {
 
-Blend2dSurface::Blend2dSurface(ImageInfo imageInfo)
+Blend2DSurface::Blend2DSurface(ImageInfo imageInfo)
     : _imageInfo{imageInfo}
 {
     BLFormat blFormat = _getBlFormat();
@@ -26,38 +26,38 @@ Blend2dSurface::Blend2dSurface(ImageInfo imageInfo)
     }
 }
 
-void Blend2dSurface::setData(ImageInfo textureInfo, void* data)
+void Blend2DSurface::setData(ImageInfo textureInfo, void* data)
 {
-
+    
 }
 
-void* Blend2dSurface::getData() const
+void* Blend2DSurface::getData() const
 {
     if (_blImage.empty()) return nullptr;
     return _blImageData.pixelData;
 }
 
-int32_t Blend2dSurface::getWidth() const
+int32_t Blend2DSurface::getWidth() const
 {
     return _blImage.width();
 }
 
-int32_t Blend2dSurface::getHeight() const
+int32_t Blend2DSurface::getHeight() const
 {
     return _blImage.height();
 }
 
-void Blend2dSurface::writeToFile(std::string fileName)
+void Blend2DSurface::writeToFile(std::string fileName)
 {
     _blImage.writeToFile(fileName.c_str());
 }
 
-BLImage& Blend2dSurface::getBLImage()
+BLImage& Blend2DSurface::getBLImage()
 {
     return _blImage;
 }
 
-BLFormat Blend2dSurface::_getBlFormat() const
+BLFormat Blend2DSurface::_getBlFormat() const
 {
     switch (_imageInfo.colorType) {
     case ColorType::PREMUL_ARGB_8888: {

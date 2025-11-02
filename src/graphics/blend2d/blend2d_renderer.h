@@ -10,7 +10,7 @@
 namespace gfx {
 
 /**
- * Blend2D renderer
+ * Blend2D renderer, this class forwards the calls to BLContext
  */
 class Blend2DRenderer final : public Renderer
 {
@@ -22,13 +22,14 @@ public:
     void releaseRenderTarget() override;
     void clear(const Color& color) override;
     void drawRect(const Rect& rectangle, const Paint& paint) override;
+    void drawText() override;
     void save() override;
     void restore() override;
     void translate(int32_t x, int32_t y) override;
     void translate(IPoint pos) override;
     void clipRect(IRect rect) override;
 private:
-    std::shared_ptr<Blend2dSurface> _surface{};
+    std::shared_ptr<Blend2DSurface> _surface{};
     BLContext _blContext{};
 };
 

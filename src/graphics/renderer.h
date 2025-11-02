@@ -35,6 +35,8 @@ public:
 
     virtual void drawRect(const Rect& rectangle, const Paint& paint) = 0;
 
+    virtual void drawText(const std::string& text, const IPoint& position, std::shared_ptr<Font> font, const Paint& paint) = 0;
+
     // STATE
     virtual void restore() = 0;
 

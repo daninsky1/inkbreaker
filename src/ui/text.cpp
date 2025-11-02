@@ -4,6 +4,8 @@
 
 #include "text.h"
 
+#include "graphics/font.h"
+
 namespace ui {
 
 Text::Text(std::string value)
@@ -28,8 +30,13 @@ void Text::render(gfx::Renderer* renderer, Position offset)
         .setColor(_backgoundColor);
     renderer->drawRect(gfx::Rect{0, 0, _size.width, _size.height}, paint);
 
-    // TODO(Daniel S): Renderizar texto
+    std::shared_ptr<gfx::Typeface> typeface = gfx::Typeface::createFromFile(_fontFilepath);
+    std::shared_ptr<gfx::Font> font = gfx::Font::createFromTypeface(typeface, 24.0f);
+
     
+
+    // TODO(Daniel S): Renderizar texto
+
 
     renderer->restore();
 }

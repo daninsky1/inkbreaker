@@ -15,10 +15,10 @@ namespace gfx {
 /**
  * Allocates a surface on RAM
  */
-class Blend2dSurface final : public Surface {
+class Blend2DSurface final : public Surface {
 public:
-    explicit Blend2dSurface(ImageInfo imageInfo);
-    ~Blend2dSurface() override { };
+    explicit Blend2DSurface(ImageInfo imageInfo);
+    ~Blend2DSurface() override { };
     void setData(ImageInfo textureInfo, void* data) override;
     void* getData() const override;
     int32_t getWidth() const override;

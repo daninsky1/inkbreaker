@@ -3,8 +3,10 @@
 //
 
 #include "../blend2d/blend2d_renderer.h"
+#include "../blend2d/blend2d_font.h"
 
 #include <iostream>
+#include <sstream>
 
 namespace gfx {
 
@@ -19,9 +21,9 @@ Blend2DRenderer::~Blend2DRenderer()
 
 void Blend2DRenderer::bindRenderTarget(std::shared_ptr<Surface> surface)
 {
-    switch (Renderer::getRendererAPI()) {
+    switch (getRendererAPI()) {
     case RendererAPI::BLEND_2D: {
-        _surface = std::static_pointer_cast<Blend2dSurface>(surface);
+        _surface = std::static_pointer_cast<Blend2DSurface>(surface);
         break;
     }
     default:
@@ -58,6 +60,11 @@ void Blend2DRenderer::drawRect(const Rect& rectangle, const Paint& paint)
     );
 }
 
+void Blend2DRenderer::drawText()
+{
+
+}
+
 void Blend2DRenderer::save()
 {
     _blContext.save();
@@ -75,7 +82,7 @@ void Blend2DRenderer::translate(int32_t x, int32_t y)
 
 void Blend2DRenderer::translate(IPoint pos)
 {
-    _blContext.translate(pos.x, pos.x);
+    _blContext.translate(pos.x, pos.y);
 }
 
 void Blend2DRenderer::clipRect(IRect rect)

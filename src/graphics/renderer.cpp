@@ -10,8 +10,6 @@ namespace gfx {
 
 RendererAPI Renderer::_rendererAPI = RendererAPI::BLEND_2D;
 
-
-
 Renderer* Renderer::create()
 {
     switch (getRendererAPI()) {
